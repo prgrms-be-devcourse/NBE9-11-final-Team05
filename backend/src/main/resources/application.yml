@@ -1,6 +1,6 @@
 spring:
   application:
     name: ovengers
-
   profiles:
     active: dev
+    include: secret

@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: "${custom.dev.db.url}"
+    username: "${custom.dev.db.username}"
+    password: "${custom.dev.db.password}"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -14,7 +14,7 @@ spring:
         format_sql: true
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: "${custom.dev.jwt.secret}"
   access-expiration: 1800000
   refresh-expiration: 604800000
 
