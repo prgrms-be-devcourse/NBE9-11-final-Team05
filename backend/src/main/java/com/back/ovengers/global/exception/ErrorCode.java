@@ -1,4 +1,4 @@
 package com.back.ovengers.global.exception;
 
-public class ErrorCode {
+public enum ErrorCode {
 }
