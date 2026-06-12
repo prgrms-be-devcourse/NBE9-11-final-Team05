@@ -1,4 +1,10 @@
 package com.back.ovengers.global.response;
 
-public class ApiResponse {
+public record ApiResponse<T>(
+        String message,
+        T data
+) {
+    public ApiResponse(String message) {
+        this(message, null);
+    }
 }
