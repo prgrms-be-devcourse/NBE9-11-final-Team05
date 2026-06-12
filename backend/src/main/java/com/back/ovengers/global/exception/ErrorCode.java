@@ -38,14 +38,9 @@ public enum ErrorCode {
             "서버 오류가 발생했습니다."
     ),
 
-    USER_NOT_FOUND(
-            HttpStatus.NOT_FOUND,
-        "존재하지 않는 이메일입니다."
-    ),
-
-    INVALID_PASSWORD(
+    INVALID_LOGIN_CREDENTIALS(
             HttpStatus.UNAUTHORIZED,
-        "비밀번호가 올바르지 않습니다."
+            "이메일 또는 비밀번호가 올바르지 않습니다."
     ),
 
     ALREADY_DELETED(

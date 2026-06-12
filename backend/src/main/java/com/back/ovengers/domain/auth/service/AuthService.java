@@ -69,24 +69,16 @@ public class AuthService {
             LoginRequest request
     ) {
 
-        //이메일로 유저 조회, 없으면 예외 발생
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        //탈퇴(삭제)된 계정인지 확인
-        if (user.getDeletedAt() != null) {
-            throw new CustomException(ErrorCode.ALREADY_DELETED);
-        }
-
+        User user = userRepository.findByEmailAndDeletedAtIsNull(request.email())
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_LOGIN_CREDENTIALS));
         //정지(BANNED) 상태인 계정인지 확인
         if (user.getStatus() == Status.BANNED) {
             throw new CustomException(ErrorCode.BANNED_USER);
         }
 
         // 입력한 비밀번호와 저장된 암호화 비밀번호 비교
-        //    matches(평문, 암호화된 비밀번호) 순서 주의
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new CustomException(ErrorCode.INVALID_PASSWORD);
+            throw new CustomException(ErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
 
         //인증 성공 -> Access Token 발급 (유저 ID 기반)
