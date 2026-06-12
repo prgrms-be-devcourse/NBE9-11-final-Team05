@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
                 .status(errorCode.getStatus())
                 .body(
                         new ApiResponse<>(
-                                errorCode.getCode(),
+                                errorCode.name(),
                                 errorCode.getMessage()
                         )
                 );
@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(
                         new ApiResponse<>(
-                                ErrorCode.MISSING_REQUIRED_FIELD.getCode(),
+                                ErrorCode.MISSING_REQUIRED_FIELD.name(),
                                 field + ": " + message
                         )
                 );
@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(
                         new ApiResponse<>(
-                                ErrorCode.INTERNAL_SERVER_ERROR.getCode(),
+                                ErrorCode.INTERNAL_SERVER_ERROR.name(),
                                 ErrorCode.INTERNAL_SERVER_ERROR.getMessage()
                         )
                 );
