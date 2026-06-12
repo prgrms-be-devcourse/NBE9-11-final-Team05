@@ -2,7 +2,6 @@ package com.back.ovengers.global.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,19 +10,21 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
-@RequiredArgsConstructor
 public class JwtProvider {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final Key key;
+    private final long accessExpiration;
+    private final long refreshExpiration;
 
-    // Access Token 만료 시간
-    @Value("${jwt.access-expiration}")
-    private long accessExpiration;
-
-    // Refresh Token 만료 시간
-    @Value("${jwt.refresh-expiration}")
-    private long refreshExpiration;
+    public JwtProvider(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.access-expiration}") long accessExpiration,
+            @Value("${jwt.refresh-expiration}") long refreshExpiration
+    ) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.accessExpiration = accessExpiration;
+        this.refreshExpiration = refreshExpiration;
+    }
 
 
     /**
@@ -33,9 +34,9 @@ public class JwtProvider {
      * - 주의: HS256 사용 시 secret은 최소 256bit(32byte) 이상이어야 함 (짧으면 예외 발생)
      */
     private Key getSigningKey() {
-
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        return this.key;
     }
+
 
 
     /**
