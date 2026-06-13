@@ -1,5 +1,7 @@
 package com.back.ovengers.domain.auth.controller;
 
+import com.back.ovengers.domain.auth.dto.LoginRequest;
+import com.back.ovengers.domain.auth.dto.LoginResponse;
 import com.back.ovengers.domain.auth.dto.SignUpRequest;
 import com.back.ovengers.domain.auth.dto.SignUpResponse;
 import com.back.ovengers.domain.auth.service.AuthService;
@@ -35,4 +37,20 @@ public class AuthController {
                         )
                 );
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+
+        LoginResponse response = authService.login(request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "로그인이 완료되었습니다.",
+                        response
+                )
+        );
+    }
+
 }
