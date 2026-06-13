@@ -4,3 +4,14 @@ spring:
   profiles:
     active: dev
     include: secret
+
+go-camping:
+  base-url: https://apis.data.go.kr/B551011/GoCamping
+  endpoint:
+    based-list: /basedList
+    image-list: /imageList
+  value:
+    numOfRows: 1000
+    mobileOS: ETC
+    mobileApp: OVENGERS
+    type: json
