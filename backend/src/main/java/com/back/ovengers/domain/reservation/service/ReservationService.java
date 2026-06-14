@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.reservation.service;
 
 import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.reservation.dto.ReservationDetailResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationRequest;
 import com.back.ovengers.domain.reservation.dto.ReservationResponse;
 import com.back.ovengers.domain.reservation.entity.Reservation;
@@ -14,12 +15,15 @@ import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -101,5 +105,35 @@ public class ReservationService {
                 .build();
 
         return ReservationResponse.of(reservationRepository.save(reservation));
+    }
+
+    @Transactional(readOnly = true)
+    public ReservationDetailResponse getReservation(Long reservationId, Long userId) {
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        // 본인 예약인지 확인
+        if (!reservation.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        return ReservationDetailResponse.of(reservation);
+    }
+
+    // 사용자 예약 목록 조회 - 페이지당 10개
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> getMyReservations(Long userId, int page) {
+
+        userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        Pageable pageable = PageRequest.of(page, 10);  // 한 페이지 10개
+
+        return reservationRepository.findByUserIdOrderByCreatedAtDesc(
+                        userId, pageable)
+                .stream()
+                .map(ReservationResponse::of)
+                .toList();
     }
 }

@@ -1,5 +1,6 @@
 package com.back.ovengers.domain.camping.entity;
 
+import com.back.ovengers.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

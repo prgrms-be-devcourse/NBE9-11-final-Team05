@@ -35,7 +35,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/api/reservations/**"   // TODO: jwt filter 구현 후 제거
+                                "/api/reservations/**",   // TODO: jwt filter 구현 후 제거
+                                "/api/users/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
