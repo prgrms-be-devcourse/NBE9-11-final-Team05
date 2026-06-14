@@ -103,7 +103,7 @@ public class Camping extends BaseEntity {
         this.lat = request.lat();
         this.lng = request.lng();
     }
-  
+
     public static Camping from(GoCampingApiItem item) {
         return Camping.builder()
                 .contentId(Long.valueOf(item.contentId()))
