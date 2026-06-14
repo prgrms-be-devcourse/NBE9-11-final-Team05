@@ -58,12 +58,12 @@ public enum ErrorCode {
 
     ALREADY_DELETED(
             HttpStatus.BAD_REQUEST,
-            "탈퇴한 회원입니다."
+        "탈퇴한 회원입니다."
     ),
 
     BANNED_USER(
             HttpStatus.FORBIDDEN,
-            "이용이 정지된 계정입니다."
+        "이용이 정지된 계정입니다."
     ),
 
     // 호스트 도메인
