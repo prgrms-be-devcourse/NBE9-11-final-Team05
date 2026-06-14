@@ -1,5 +1,6 @@
 package com.back.ovengers.domain.reservation.controller;
 
+import com.back.ovengers.domain.reservation.dto.ReservationDetailResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationRequest;
 import com.back.ovengers.domain.reservation.dto.ReservationResponse;
 import com.back.ovengers.domain.reservation.service.ReservationService;
@@ -33,5 +34,20 @@ public class ReservationController {
                                 response
                         )
                 );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<ReservationDetailResponse>> getReservation(
+            @PathVariable Long id) {
+
+        // TODO: jwt filter 구현 후 userDetails.getId() 로 교체
+        Long userId = 2L;
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "예약 상세 조회가 완료되었습니다.",
+                        reservationService.getReservation(id, userId)
+                )
+        );
     }
 }
