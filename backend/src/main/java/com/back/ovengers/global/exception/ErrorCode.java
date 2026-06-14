@@ -91,6 +91,12 @@ public enum ErrorCode {
     SITE_NOT_AVAILABLE(
             HttpStatus.CONFLICT,
             "해당 구역의 재고가 없습니다."
+    ),
+
+    // 권한
+    FORBIDDEN(
+            HttpStatus.FORBIDDEN,
+        "접근 권한이 없습니다."
     );
 
     private final HttpStatus status;

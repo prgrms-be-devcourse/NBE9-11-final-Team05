@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.reservation.service;
 
 import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.reservation.dto.ReservationDetailResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationRequest;
 import com.back.ovengers.domain.reservation.dto.ReservationResponse;
 import com.back.ovengers.domain.reservation.entity.Reservation;
@@ -101,5 +102,19 @@ public class ReservationService {
                 .build();
 
         return ReservationResponse.of(reservationRepository.save(reservation));
+    }
+
+    @Transactional(readOnly = true)
+    public ReservationDetailResponse getReservation(Long reservationId, Long userId) {
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        // 본인 예약인지 확인
+        if (!reservation.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        return ReservationDetailResponse.of(reservation);
     }
 }
