@@ -2,8 +2,6 @@ package com.back.ovengers.domain.camping.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-import java.math.BigDecimal;
-
 public record CampingCreateRequest(
 
         String tourNum,
@@ -20,11 +18,7 @@ public record CampingCreateRequest(
         String city,
 
         @NotBlank(message = "주소는 필수입니다.")
-        String address,
-
-        BigDecimal lat,
-
-        BigDecimal lng
+        String address
 
 ) {
 }

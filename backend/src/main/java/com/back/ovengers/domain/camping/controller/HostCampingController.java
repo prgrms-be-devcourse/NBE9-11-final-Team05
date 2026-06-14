@@ -24,6 +24,7 @@ public class HostCampingController {
     public ResponseEntity<ApiResponse<CampingCreateResponse>> register(
             @Valid @RequestBody CampingCreateRequest request
     ) {
+        // TODO: JWT 필터 구현 후 @AuthenticationPrincipal로 로그인 사용자 ID 추출
         Long tempHostId = 1L;
 
         CampingCreateResponse response =

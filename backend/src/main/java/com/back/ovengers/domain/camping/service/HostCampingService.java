@@ -38,8 +38,6 @@ public class HostCampingService {
                 .region(request.region())
                 .city(request.city())
                 .address(request.address())
-                .lat(request.lat())
-                .lng(request.lng())
                 .status(CampingStatus.PENDING)
                 .build();
 
