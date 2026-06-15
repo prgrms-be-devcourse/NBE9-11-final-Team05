@@ -7,6 +7,7 @@ import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
 import com.back.ovengers.domain.review.dto.ReviewRequest;
+import com.back.ovengers.domain.review.dto.ReviewResponse;
 import com.back.ovengers.domain.review.entity.Review;
 import com.back.ovengers.domain.review.repository.ReviewRepository;
 import com.back.ovengers.domain.site.entity.Site;
@@ -18,9 +19,14 @@ import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,7 +102,8 @@ class ReviewServiceTest {
     }
 
     @Test
-    void 이용완료된_예약에_리뷰를_작성할_수_있다() {
+    @DisplayName("이용 완료된 예약에 리뷰를 작성할 수 있다")
+    void test1() {
         ReviewRequest request = ReviewRequest.of(5, "좋았어요");
 
         reviewService.createReview(user, reservation.getId(), request);
@@ -108,7 +115,8 @@ class ReviewServiceTest {
     }
 
     @Test
-    void 이용완료되지_않은_예약은_리뷰를_작성할_수_없다() {
+    @DisplayName("이용 완료되지 않은 예약은 리뷰를 작성할 수 없다")
+    void test2() {
         Reservation notCompleted = reservationRepository.save(Reservation.builder()
                 .user(user)
                 .site(site)
@@ -132,7 +140,8 @@ class ReviewServiceTest {
     }
 
     @Test
-    void 본인_예약이_아니면_리뷰를_작성할_수_없다() {
+    @DisplayName("본인 예약이 아니면 리뷰를 작성할 수 없다")
+    void test3() {
         User other = userRepository.save(User.builder()
                 .email("other@test.com")
                 .password("1234")
@@ -154,7 +163,8 @@ class ReviewServiceTest {
     }
 
     @Test
-    void 같은_예약에_리뷰를_중복_작성할_수_없다() {
+    @DisplayName("같은 예약에 리뷰를 중복 작성할 수 없다")
+    void test4() {
         ReviewRequest request = ReviewRequest.of(5, "좋았어요");
         reviewService.createReview(user, reservation.getId(), request);
 
@@ -164,5 +174,39 @@ class ReviewServiceTest {
         );
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ALREADY_REVIEWED);
+    }
+
+    @Test
+    @DisplayName("캠핑장 리뷰 목록을 조회할 수 있다")
+    void test5() {
+        reviewRepository.save(Review.builder()
+                .user(user)
+                .camping(camping)
+                .reservation(reservation)
+                .rating(5)
+                .content("좋았어요")
+                .build());
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<ReviewResponse> result = reviewService.getCampingReviews(camping.getId(), pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getRating()).isEqualTo(5);
+        assertThat(result.getContent().get(0).getContent()).isEqualTo("좋았어요");
+        assertThat(result.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 캠핑장 리뷰 조회 시 예외가 발생한다")
+    void test6() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> reviewService.getCampingReviews(999L, pageable)
+        );
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.CAMPING_NOT_FOUND);
     }
 }
