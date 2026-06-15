@@ -76,4 +76,14 @@ public class ReviewService {
         review.update(request.getRating(), request.getContent());
     }
 
+    public void deleteReview(User user, Long reviewId) {
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new CustomException(ErrorCode.REVIEW_NOT_FOUND));
+
+        review.validateOwner(user.getId());
+
+        reviewRepository.delete(review);
+    }
+
 }
