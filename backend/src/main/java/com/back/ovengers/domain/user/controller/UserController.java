@@ -11,6 +11,7 @@ import com.back.ovengers.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -59,15 +60,14 @@ public class UserController {
 
     @GetMapping("/me/reservations")
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getMyReservations(
+            @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page) {
 
-        // TODO: 로그인 구현 후 userDetails.getId() 로 교체
-        Long userId = 2L;
 
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         "예약 목록 조회가 완료되었습니다.",
-                        reservationService.getMyReservations(userId, page)
+                        reservationService.getMyReservations(user.getId(), page)
                 )
         );
     }
