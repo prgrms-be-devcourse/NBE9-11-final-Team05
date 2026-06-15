@@ -5,6 +5,7 @@ import com.back.ovengers.global.security.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -12,6 +13,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -42,7 +47,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/api/reservations/**"   // TODO: jwt filter 구현 후 제거
+                                "/api/reservations/**",   // TODO: jwt filter 구현 후 제거
+                                "/api/users/**"
+
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/campings/*/reviews"  // 리뷰 목록 조회 비인증 허용
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -54,4 +65,17 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));   // 현재 로컬 개발 환경만 허용
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")); // 허용할 HTTP 메서드 목록
+        configuration.setAllowedHeaders(List.of("*")); // 모든 요청 헤더 허용
+        configuration.setAllowCredentials(true);  // 쿠키/인증 정보 포함 요청 허용
+
+        // /api/** 경로에 위 CORS 설정 적용
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
+    }
 }

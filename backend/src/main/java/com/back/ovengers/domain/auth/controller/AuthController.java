@@ -6,6 +6,7 @@ import com.back.ovengers.domain.auth.dto.SignUpRequest;
 import com.back.ovengers.domain.auth.dto.SignUpResponse;
 import com.back.ovengers.domain.auth.service.AuthService;
 import com.back.ovengers.global.response.ApiResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -40,17 +41,23 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
-            @Valid @RequestBody LoginRequest request
+            @Valid @RequestBody LoginRequest request,
+            HttpServletResponse response
     ) {
 
-        LoginResponse response = authService.login(request);
+        LoginResponse loginResponse = authService.login(request, response);
 
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         "로그인이 완료되었습니다.",
-                        response
+                        loginResponse
                 )
         );
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletResponse response) {
+        authService.logout(response);
+        return ResponseEntity.ok(new ApiResponse<>("로그아웃이 완료되었습니다."));
+    }
 }

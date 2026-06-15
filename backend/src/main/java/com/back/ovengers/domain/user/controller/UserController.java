@@ -1,5 +1,7 @@
 package com.back.ovengers.domain.user.controller;
 
+import com.back.ovengers.domain.reservation.dto.ReservationResponse;
+import com.back.ovengers.domain.reservation.service.ReservationService;
 import com.back.ovengers.domain.user.dto.MyPageResponse;
 import com.back.ovengers.domain.user.dto.UserUpdateRequest;
 import com.back.ovengers.domain.user.dto.UserUpdateResponse;
@@ -9,7 +11,10 @@ import com.back.ovengers.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final ReservationService reservationService;
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<MyPageResponse>> getMyPage(Authentication authentication) {
@@ -48,6 +54,20 @@ public class UserController {
                 new ApiResponse<>(
                         "회원 정보 수정이 완료되었습니다.",
                         response
+                )
+        );
+    }
+
+    @GetMapping("/me/reservations")
+    public ResponseEntity<ApiResponse<List<ReservationResponse>>> getMyReservations(
+            @AuthenticationPrincipal User user,
+            @RequestParam(defaultValue = "0") int page) {
+
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "예약 목록 조회가 완료되었습니다.",
+                        reservationService.getMyReservations(user.getId(), page)
                 )
         );
     }

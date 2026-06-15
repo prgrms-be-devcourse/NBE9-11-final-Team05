@@ -15,12 +15,15 @@ import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -70,7 +73,8 @@ public class ReservationService {
         long reservedCount = reservationRepository.countOverlappingReservation(
                 request.getSiteId(),
                 request.getCheckIn(),
-                request.getCheckOut()
+                request.getCheckOut(),
+                ReservationStatus.CANCELLED
         );
         if (reservedCount >= site.getTotalAmount()) {
             throw new CustomException(ErrorCode.SITE_NOT_AVAILABLE);
@@ -116,5 +120,21 @@ public class ReservationService {
         }
 
         return ReservationDetailResponse.of(reservation);
+    }
+
+    // 사용자 예약 목록 조회 - 페이지당 10개
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> getMyReservations(Long userId, int page) {
+
+        userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        Pageable pageable = PageRequest.of(page, 10);  // 한 페이지 10개
+
+        return reservationRepository.findByUserIdOrderByCreatedAtDesc(
+                        userId, pageable)
+                .stream()
+                .map(ReservationResponse::of)
+                .toList();
     }
 }
