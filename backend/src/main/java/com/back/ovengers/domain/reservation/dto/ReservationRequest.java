@@ -1,8 +1,10 @@
 package com.back.ovengers.domain.reservation.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
-import org.antlr.v4.runtime.misc.NotNull;
+
 
 import java.time.LocalDate;
 
@@ -25,6 +27,7 @@ public class ReservationRequest {
     private LocalDate checkOut;
 
     @NotNull
+    @Positive
     private Integer guestCount;
 
     private String request;
