@@ -53,6 +53,16 @@ public enum ErrorCode {
         "이용이 정지된 계정입니다."
     ),
 
+    ACCESS_TOKEN_MISSING(
+            HttpStatus.UNAUTHORIZED,
+        "Access Token이 없습니다."
+    ),
+
+    ACCESS_TOKEN_EXPIRED(
+            HttpStatus.UNAUTHORIZED,
+        "Access Token이 만료되었습니다."
+    ),
+
     // 예약
     RESERVATION_NOT_FOUND(
             HttpStatus.NOT_FOUND,
