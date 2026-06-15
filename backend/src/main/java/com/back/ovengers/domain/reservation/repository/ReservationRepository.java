@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
@@ -29,5 +30,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     );
 
     Page<Reservation> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
+    // site, camping 한번에 조회(리뷰에서 사용)
+    @Query("SELECT r FROM Reservation r " +
+            "JOIN FETCH r.site s " +
+            "JOIN FETCH s.camping " +
+            "WHERE r.id = :id")
+    Optional<Reservation> findByIdWithSiteAndCamping(@Param("id") Long id);
 
 }

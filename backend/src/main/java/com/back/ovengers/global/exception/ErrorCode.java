@@ -8,6 +8,19 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
 
+    EMPTY_NICKNAME(
+            HttpStatus.BAD_REQUEST,
+            "닉네임은 공백일 수 없습니다."
+    ),
+    EMPTY_PHONE(
+            HttpStatus.BAD_REQUEST,
+            "전화번호는 공백일 수 없습니다."
+    ),
+    EMPTY_IMAGE_URL(
+            HttpStatus.BAD_REQUEST,
+            "프로필 이미지는 공백일 수 없습니다."
+    ),
+
     MISSING_REQUIRED_FIELD(
             HttpStatus.BAD_REQUEST,
             "필수값이 누락되었습니다."
@@ -133,6 +146,23 @@ public enum ErrorCode {
     FORBIDDEN(
             HttpStatus.FORBIDDEN,
         "접근 권한이 없습니다."
+    ),
+    // 리뷰
+    REVIEW_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "리뷰를 찾을 수 없습니다."
+    ),
+    ALREADY_REVIEWED(
+            HttpStatus.CONFLICT,
+        "이미 리뷰를 작성한 예약입니다."
+    ),
+    RESERVATION_NOT_COMPLETED(
+            HttpStatus.BAD_REQUEST,
+        "이용 완료된 예약만 리뷰를 작성할 수 있습니다."
+    ),
+    REVIEW_ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+        "리뷰 작성 권한이 없습니다."
     );
 
     private final HttpStatus status;
