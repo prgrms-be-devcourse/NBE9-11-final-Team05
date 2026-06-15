@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -72,7 +73,8 @@ public class ReservationService {
         long reservedCount = reservationRepository.countOverlappingReservation(
                 request.getSiteId(),
                 request.getCheckIn(),
-                request.getCheckOut()
+                request.getCheckOut(),
+                ReservationStatus.CANCELLED
         );
         if (reservedCount >= site.getTotalAmount()) {
             throw new CustomException(ErrorCode.SITE_NOT_AVAILABLE);

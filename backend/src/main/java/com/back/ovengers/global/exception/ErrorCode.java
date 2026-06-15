@@ -8,6 +8,19 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
 
+    EMPTY_NICKNAME(
+            HttpStatus.BAD_REQUEST,
+            "닉네임은 공백일 수 없습니다."
+    ),
+    EMPTY_PHONE(
+            HttpStatus.BAD_REQUEST,
+            "전화번호는 공백일 수 없습니다."
+    ),
+    EMPTY_IMAGE_URL(
+            HttpStatus.BAD_REQUEST,
+            "프로필 이미지는 공백일 수 없습니다."
+    ),
+
     MISSING_REQUIRED_FIELD(
             HttpStatus.BAD_REQUEST,
             "필수값이 누락되었습니다."
@@ -53,6 +66,42 @@ public enum ErrorCode {
         "이용이 정지된 계정입니다."
     ),
 
+    // 호스트 도메인
+    LOGIN_REQUIRED(
+            HttpStatus.UNAUTHORIZED,
+            "로그인이 필요합니다."
+    ),
+
+    INVALID_TOKEN(
+            HttpStatus.UNAUTHORIZED,
+            "유효하지 않은 토큰입니다."
+    ),
+
+    HOST_REQUIRED(
+            HttpStatus.FORBIDDEN,
+            "호스트만 등록 가능합니다."
+    ),
+
+    NOT_CAMPING_OWNER(
+            HttpStatus.FORBIDDEN,
+            "해당 캠핑장에 대한 권한이 없습니다."
+    ),
+
+    CAMPING_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "존재하지 않는 캠핑장입니다."
+    ),
+
+    ACCESS_TOKEN_MISSING(
+            HttpStatus.UNAUTHORIZED,
+        "Access Token이 없습니다."
+    ),
+
+    ACCESS_TOKEN_EXPIRED(
+            HttpStatus.UNAUTHORIZED,
+        "Access Token이 만료되었습니다."
+    ),
+
     // 예약
     RESERVATION_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -75,7 +124,7 @@ public enum ErrorCode {
 
     USER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
-            "존재하지 않는 유저입니다."
+            "존재하지 않는 회원입니다."
     ),
 
     CAMPING_NOT_AVAILABLE(
@@ -97,6 +146,23 @@ public enum ErrorCode {
     FORBIDDEN(
             HttpStatus.FORBIDDEN,
         "접근 권한이 없습니다."
+    ),
+    // 리뷰
+    REVIEW_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "리뷰를 찾을 수 없습니다."
+    ),
+    ALREADY_REVIEWED(
+            HttpStatus.CONFLICT,
+        "이미 리뷰를 작성한 예약입니다."
+    ),
+    RESERVATION_NOT_COMPLETED(
+            HttpStatus.BAD_REQUEST,
+        "이용 완료된 예약만 리뷰를 작성할 수 있습니다."
+    ),
+    REVIEW_ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+        "리뷰 작성 권한이 없습니다."
     );
 
     private final HttpStatus status;
