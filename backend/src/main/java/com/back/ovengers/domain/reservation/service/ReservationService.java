@@ -73,7 +73,8 @@ public class ReservationService {
         long reservedCount = reservationRepository.countOverlappingReservation(
                 request.getSiteId(),
                 request.getCheckIn(),
-                request.getCheckOut()
+                request.getCheckOut(),
+                ReservationStatus.CANCELLED
         );
         if (reservedCount >= site.getTotalAmount()) {
             throw new CustomException(ErrorCode.SITE_NOT_AVAILABLE);
