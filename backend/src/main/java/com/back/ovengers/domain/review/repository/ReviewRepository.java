@@ -12,4 +12,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     // 캠핑장 리뷰 목록 조회
     List<Review> findByCampingId(Long campingId);
+
+
 }
