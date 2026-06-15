@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: classpath:application-secret.yml
   datasource:
     url: jdbc:h2:mem:testdb;MODE=MySQL
     driver-class-name: org.h2.Driver
@@ -8,4 +10,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-    show-sql: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: "${custom.dev.jwt.secret}"
+  access-expiration: 1800000
+  refresh-expiration: 604800000

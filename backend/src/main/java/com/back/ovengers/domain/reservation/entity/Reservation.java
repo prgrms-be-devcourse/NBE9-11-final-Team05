@@ -3,6 +3,8 @@ package com.back.ovengers.domain.reservation.entity;
 import com.back.ovengers.domain.site.entity.Site;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.entity.BaseEntity;
+import com.back.ovengers.global.exception.CustomException;
+import com.back.ovengers.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -55,6 +57,17 @@ public class Reservation extends BaseEntity {
     // 결제 완료 API 에서 사용
     public void updateStatus(ReservationStatus status) {
         this.status = status;
+    }
+
+    // Review에서 본인 검증 및 완료된 예약인지 검증으로 사용
+    public void validateReviewAuthority(Long userId) {
+        if(this.user == null || !this.user.getId().equals(userId)){
+            throw new CustomException(ErrorCode.REVIEW_ACCESS_DENIED);
+        }
+
+        if(this.status != ReservationStatus.COMPLETED){
+            throw new CustomException(ErrorCode.RESERVATION_NOT_COMPLETED);
+        }
     }
 
 }
