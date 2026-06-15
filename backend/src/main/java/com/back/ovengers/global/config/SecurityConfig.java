@@ -5,6 +5,7 @@ import com.back.ovengers.global.security.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -48,6 +49,11 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/reservations/**",   // TODO: jwt filter 구현 후 제거
                                 "/api/users/**"
+
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/campings/*/reviews"  // 리뷰 목록 조회 비인증 허용
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
