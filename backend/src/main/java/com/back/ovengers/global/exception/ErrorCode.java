@@ -45,12 +45,38 @@ public enum ErrorCode {
 
     ALREADY_DELETED(
             HttpStatus.BAD_REQUEST,
-        "탈퇴한 회원입니다."
+            "탈퇴한 회원입니다."
     ),
 
     BANNED_USER(
             HttpStatus.FORBIDDEN,
-        "이용이 정지된 계정입니다."
+            "이용이 정지된 계정입니다."
+    ),
+
+    // 호스트 도메인
+    LOGIN_REQUIRED(
+            HttpStatus.UNAUTHORIZED,
+            "로그인이 필요합니다."
+    ),
+
+    INVALID_TOKEN(
+            HttpStatus.UNAUTHORIZED,
+            "유효하지 않은 토큰입니다."
+    ),
+
+    HOST_REQUIRED(
+            HttpStatus.FORBIDDEN,
+            "호스트만 등록 가능합니다."
+    ),
+
+    NOT_CAMPING_OWNER(
+            HttpStatus.FORBIDDEN,
+            "해당 캠핑장에 대한 권한이 없습니다."
+    ),
+
+    CAMPING_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "존재하지 않는 캠핑장입니다."
     ),
 
     ACCESS_TOKEN_MISSING(
@@ -85,7 +111,7 @@ public enum ErrorCode {
 
     USER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
-            "존재하지 않는 유저입니다."
+            "존재하지 않는 회원입니다."
     ),
 
     CAMPING_NOT_AVAILABLE(
