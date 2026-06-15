@@ -8,6 +8,8 @@ import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
+import com.back.ovengers.global.exception.CustomException;
+import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,10 +26,10 @@ public class HostCampingService {
     public CampingCreateResponse register(Long hostId, CampingCreateRequest request) {
 
         User host = userRepository.findById(hostId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (host.getRole() != Role.HOST) {
-            throw new IllegalArgumentException("호스트만 캠핑장을 등록할 수 있습니다.");
+            throw new CustomException(ErrorCode.HOST_REQUIRED);
         }
 
         Camping camping = Camping.builder()
