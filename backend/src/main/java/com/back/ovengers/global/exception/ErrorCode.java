@@ -51,6 +51,46 @@ public enum ErrorCode {
     BANNED_USER(
             HttpStatus.FORBIDDEN,
         "이용이 정지된 계정입니다."
+    ),
+
+    // 예약
+    RESERVATION_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "예약을 찾을 수 없습니다."
+    ),
+    RESERVATION_CONFLICT(
+            HttpStatus.CONFLICT,
+            "이미 예약된 날짜입니다."
+    ),
+    INVALID_RESERVATION_DATE(
+            HttpStatus.BAD_REQUEST,
+            "예약 날짜가 올바르지 않습니다."
+    ),
+
+    // 구역
+    SITE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "구역을 찾을 수 없습니다."
+    ),
+
+    USER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "존재하지 않는 유저입니다."
+    ),
+
+    CAMPING_NOT_AVAILABLE(
+            HttpStatus.BAD_REQUEST,
+            "예약 불가능한 캠핑장입니다."
+    ),
+
+    GUEST_COUNT_EXCEEDED(
+            HttpStatus.BAD_REQUEST,
+            "예약 인원이 최대 인원을 초과했습니다."
+    ),
+
+    SITE_NOT_AVAILABLE(
+            HttpStatus.CONFLICT,
+            "해당 구역의 재고가 없습니다."
     );
 
     private final HttpStatus status;
