@@ -8,7 +8,7 @@ import com.back.ovengers.domain.camping.repository.CampingImageRepository;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GoCampingSyncService {
 
     private final GoCampingClient goCampingClient;
@@ -30,7 +30,6 @@ public class GoCampingSyncService {
         }
 
         List<GoCampingApiItem> items = goCampingClient.getCampList();
-
         List<Camping> camps = new ArrayList<>();
 
         for (GoCampingApiItem item : items) {
@@ -57,7 +56,9 @@ public class GoCampingSyncService {
                 savedImages.add(CampingImage.from(camp, item.imageUrl()));
             }
 
-            campingImageRepository.saveAll(savedImages);
+            if (!savedImages.isEmpty()) {
+                campingImageRepository.saveAll(savedImages);
+            }
         }
     }
 
