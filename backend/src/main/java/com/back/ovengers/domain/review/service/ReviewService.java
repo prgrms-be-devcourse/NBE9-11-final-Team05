@@ -53,14 +53,15 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public Page<ReviewResponse> getCampingReviews(Long campingId, Pageable pageable) {
 
-        // 삭제된 캠핑장 포함 존재 여부 확인
-        if (!campingRepository.existsByIdAndDeletedAtIsNull(campingId)) {
+        // 리뷰 먼저 조회
+        Page<Review> reviews = reviewRepository.findByCampingIdWithUser(campingId, pageable);
+
+        // 리뷰 없을 때만 캠핑장 존재 여부 확인
+        if (reviews.isEmpty() && !campingRepository.existsByIdAndDeletedAtIsNull(campingId)) {
             throw new CustomException(ErrorCode.CAMPING_NOT_FOUND);
         }
 
-        // 리뷰 목록 조회 (N+1 방지, 삭제된 캠핑장 제외)
-        return reviewRepository.findByCampingIdWithUser(campingId, pageable)
-                .map(ReviewResponse::from);
+        return reviews.map(ReviewResponse::from);
     }
 
 }

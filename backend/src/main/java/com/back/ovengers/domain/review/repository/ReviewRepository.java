@@ -16,7 +16,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query(
             // 리뷰 + 유저 정보 한 번에 조회 (N+1 방지)
             // 삭제된 캠핑장 제외
-            value = "SELECT r FROM Review r JOIN FETCH r.user u " +
+            value = "SELECT r FROM Review r LEFT JOIN FETCH r.user u " +
                     "WHERE r.camping.id = :campingId " +
                     "AND r.camping.deletedAt IS NULL",
 

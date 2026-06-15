@@ -19,10 +19,10 @@ public class ReviewResponse {
     private ReviewResponse(Review review) {
         User user = review.getUser();
         this.reviewId = review.getId();
-        this.writerNickname = user.getDeletedAt() != null
+        this.writerNickname = (user == null || user.getDeletedAt() != null)
                 ? "탈퇴한 사용자"
                 : user.getNickname();
-        this.writerImageUrl = user.getDeletedAt() != null
+        this.writerImageUrl = (user == null || user.getDeletedAt() != null)
                 ? null
                 : user.getImageUrl();
         this.rating = review.getRating();
