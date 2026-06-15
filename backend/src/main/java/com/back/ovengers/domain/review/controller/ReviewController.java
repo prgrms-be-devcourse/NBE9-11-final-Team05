@@ -45,4 +45,14 @@ public class ReviewController {
                 PageResponse.from(reviews)
         ));
     }
+
+    @PutMapping("/reviews/{reviewId}")
+    public ResponseEntity<ApiResponse<Void>> updateReview(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long reviewId,
+            @Valid @RequestBody ReviewRequest request
+    ) {
+        reviewService.updateReview(user, reviewId, request);
+        return ResponseEntity.ok(new ApiResponse<>("리뷰가 수정되었습니다."));
+    }
 }
