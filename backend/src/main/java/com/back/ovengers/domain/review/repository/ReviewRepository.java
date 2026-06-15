@@ -9,14 +9,24 @@ import org.springframework.data.repository.query.Param;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-    // 중복 리뷰 방지
-    boolean existsByReservationId(Long reservationId);
+        // 중복 리뷰 방지
+        boolean existsByReservationId(Long reservationId);
 
     // 캠핑장 리뷰 목록 조회
-    @Query("SELECT r FROM Review r " +
-            "JOIN FETCH r.user u " +
-            "WHERE r.camping.id = :campingId " +
-            "AND r.camping.deletedAt IS NULL")
+    @Query(
+            // 리뷰 + 유저 정보 한 번에 조회 (N+1 방지)
+            // 삭제된 캠핑장 제외
+            value = "SELECT r FROM Review r JOIN FETCH r.user u " +
+                    "WHERE r.camping.id = :campingId " +
+                    "AND r.camping.deletedAt IS NULL",
+
+            // Page 반환 시 Spring Data JPA가 자동으로 카운트 쿼리 실행
+            // totalElements, totalPages 계산에 사용
+            // 개수만 세면 되므로 JOIN 불필요 → 성능 최적화
+            countQuery = "SELECT COUNT(r) FROM Review r " +
+                    "WHERE r.camping.id = :campingId " +
+                    "AND r.camping.deletedAt IS NULL"
+    )
     Page<Review> findByCampingIdWithUser(
             @Param("campingId") Long campingId,
             Pageable pageable);

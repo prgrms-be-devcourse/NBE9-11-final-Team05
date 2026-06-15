@@ -1,24 +1,29 @@
 package com.back.ovengers.domain.review.service;
 
+import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
 import com.back.ovengers.domain.review.dto.ReviewRequest;
+import com.back.ovengers.domain.review.dto.ReviewResponse;
 import com.back.ovengers.domain.review.entity.Review;
 import com.back.ovengers.domain.review.repository.ReviewRepository;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReservationRepository reservationRepository;
+    private final CampingRepository campingRepository;
 
-    @Transactional
     public void createReview(User user, Long reservationId, ReviewRequest request){
 
         // 예약 존재 확인
@@ -44,4 +49,18 @@ public class ReviewService {
 
         reviewRepository.save(review);
     }
+
+    @Transactional(readOnly = true)
+    public Page<ReviewResponse> getCampingReviews(Long campingId, Pageable pageable) {
+
+        // 삭제된 캠핑장 포함 존재 여부 확인
+        if (!campingRepository.existsByIdAndDeletedAtIsNull(campingId)) {
+            throw new CustomException(ErrorCode.CAMPING_NOT_FOUND);
+        }
+
+        // 리뷰 목록 조회 (N+1 방지, 삭제된 캠핑장 제외)
+        return reviewRepository.findByCampingIdWithUser(campingId, pageable)
+                .map(ReviewResponse::from);
+    }
+
 }
