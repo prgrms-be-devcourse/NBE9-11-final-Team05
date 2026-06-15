@@ -4,11 +4,13 @@ import com.back.ovengers.domain.camping.dto.CampingCreateRequest;
 import com.back.ovengers.domain.camping.dto.CampingCreateResponse;
 import com.back.ovengers.domain.camping.dto.HostCampingListResponse;
 import com.back.ovengers.domain.camping.service.HostCampingService;
+import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,13 +24,12 @@ public class HostCampingController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<CampingCreateResponse>> register(
+            @AuthenticationPrincipal User user,
             @Valid @RequestBody CampingCreateRequest request
     ) {
-        // TODO: JWT 필터 구현 후 @AuthenticationPrincipal로 로그인 사용자 ID 추출
-        Long tempHostId = 1L;
 
         CampingCreateResponse response =
-                hostCampingService.register(tempHostId, request);
+                hostCampingService.register(user.getId(), request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -40,10 +41,10 @@ public class HostCampingController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<HostCampingListResponse>>> getMyCampings(
-            @RequestParam Long hostId
+            @AuthenticationPrincipal User user
     ) {
         List<HostCampingListResponse> response =
-                hostCampingService.getMyCampings(hostId);
+                hostCampingService.getMyCampings(user.getId());
 
         return ResponseEntity.ok(
                 new ApiResponse<>(
