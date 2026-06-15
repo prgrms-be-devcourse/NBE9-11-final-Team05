@@ -63,6 +63,18 @@ public class User extends BaseEntity {
         this.status = status;
     }
 
+    public void changeNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void changePhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void changeImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
 
     public void delete() {
         this.deletedAt = LocalDateTime.now();
