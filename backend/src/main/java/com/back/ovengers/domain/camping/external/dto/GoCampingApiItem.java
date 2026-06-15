@@ -1,9 +1,10 @@
-package com.back.ovengers.domain.camping.external;
+package com.back.ovengers.domain.camping.external.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record GoCampingApiItem(
+        String contentId,
         String firstImageUrl,
         String trsagntNo,
         String bizrno,

@@ -1,4 +1,4 @@
-package com.back.ovengers.domain.camping.external;
+package com.back.ovengers.domain.camping.external.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -13,7 +13,12 @@ public record GoCampingApiWrapper(
     }
 
     public List<GoCampingApiItem> items() {
-        return response().body().items().item();
+        if (response == null || response.body() == null || response.body().items() == null) {
+            return List.of();
+        }
+
+        List<GoCampingApiItem> item = response.body().items().item();
+        return item == null ? List.of() : item;
     }
 
     public record Response(

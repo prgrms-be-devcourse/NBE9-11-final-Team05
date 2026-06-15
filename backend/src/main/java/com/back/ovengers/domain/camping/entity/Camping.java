@@ -1,6 +1,6 @@
 package com.back.ovengers.domain.camping.entity;
 
-import com.back.ovengers.domain.camping.external.GoCampingApiItem;
+import com.back.ovengers.domain.camping.external.dto.GoCampingApiItem;
 import com.back.ovengers.domain.user.entity.User;
 import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.Column;
@@ -37,6 +37,9 @@ public class Camping extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "host_id")
     private User host;
+
+    @Column(name = "content_id", unique = true)
+    private Long contentId;
 
     @Column(name = "firstImageUrl")
     private String firstImageUrl;
@@ -85,6 +88,7 @@ public class Camping extends BaseEntity {
 
     public static Camping from(GoCampingApiItem item) {
         return Camping.builder()
+                .contentId(Long.valueOf(item.contentId()))
                 .firstImageUrl(item.firstImageUrl())
                 .tourNum(item.trsagntNo())
                 .businessNum(item.bizrno())
