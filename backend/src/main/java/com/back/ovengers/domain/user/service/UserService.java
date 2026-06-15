@@ -1,6 +1,8 @@
 package com.back.ovengers.domain.user.service;
 
 import com.back.ovengers.domain.user.dto.MyPageResponse;
+import com.back.ovengers.domain.user.dto.UserUpdateRequest;
+import com.back.ovengers.domain.user.dto.UserUpdateResponse;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
@@ -84,5 +86,42 @@ public class UserService {
 //                .reservations(reservations)
 //                .reviews(reviews)
                 .build();
+    }
+
+
+    @Transactional
+    public UserUpdateResponse updateProfile(Long userId, UserUpdateRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if (request.getNickname() != null) {
+
+            if (!user.getNickname().equals(request.getNickname()) && userRepository.existsByNickname(request.getNickname())) {
+
+                throw new CustomException(
+                        ErrorCode.DUPLICATE_NICKNAME
+                );
+            }
+
+            user.changeNickname(request.getNickname());
+        }
+
+        if (request.getPhone() != null) {
+            user.changePhone(request.getPhone());
+        }
+
+        if (request.getImageUrl() != null) {
+            user.changeImageUrl(request.getImageUrl());
+        }
+
+        return new UserUpdateResponse(
+                user.getId(),
+                user.getName(),
+                user.getNickname(),
+                user.getPhone(),
+                user.getImageUrl(),
+                user.getCreatedAt()
+        );
     }
 }
