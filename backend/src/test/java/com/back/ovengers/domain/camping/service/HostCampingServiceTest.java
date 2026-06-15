@@ -115,4 +115,36 @@ class HostCampingServiceTest {
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.HOST_REQUIRED);
     }
+
+    @Test
+    void 탈퇴한_회원은_캠핑장을_등록할_수_없다() {
+        User host = userRepository.save(
+                User.builder()
+                        .email("deleted-host@test.com")
+                        .password("password")
+                        .name("탈퇴호스트")
+                        .nickname("deleted_host")
+                        .phone("01012345678")
+                        .role(Role.HOST)
+                        .status(Status.ACTIVE)
+                        .build()
+        );
+        host.delete();
+
+        CampingCreateRequest request = new CampingCreateRequest(
+                null,
+                "123-45-67890",
+                "가평 캠핑장",
+                "경기도",
+                "가평군",
+                "경기도 가평군 어딘가"
+        );
+
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> hostCampingService.register(host.getId(), request)
+        );
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ALREADY_DELETED);
+    }
 }

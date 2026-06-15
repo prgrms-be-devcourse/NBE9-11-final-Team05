@@ -28,6 +28,10 @@ public class HostCampingService {
         User host = userRepository.findById(hostId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+        if (host.getDeletedAt() != null) {
+            throw new CustomException(ErrorCode.ALREADY_DELETED);
+        }
+
         if (host.getRole() != Role.HOST) {
             throw new CustomException(ErrorCode.HOST_REQUIRED);
         }
