@@ -209,4 +209,73 @@ class ReviewServiceTest {
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.CAMPING_NOT_FOUND);
     }
+
+    @Test
+    @DisplayName("리뷰를 수정할 수 있다")
+    void test7() {
+        // given
+        Review review = reviewRepository.save(Review.builder()
+                .user(user)
+                .camping(camping)
+                .reservation(reservation)
+                .rating(5)
+                .content("좋았어요")
+                .build());
+
+        ReviewRequest request = ReviewRequest.of(3, "그냥 그랬어요");
+
+        // when
+        reviewService.updateReview(user, review.getId(), request);
+
+        // then
+        Review updated = reviewRepository.findById(review.getId()).orElseThrow();
+        assertThat(updated.getRating()).isEqualTo(3);
+        assertThat(updated.getContent()).isEqualTo("그냥 그랬어요");
+    }
+
+    @Test
+    @DisplayName("본인 리뷰가 아니면 수정할 수 없다")
+    void test8() {
+        // given
+        Review review = reviewRepository.save(Review.builder()
+                .user(user)
+                .camping(camping)
+                .reservation(reservation)
+                .rating(5)
+                .content("좋았어요")
+                .build());
+
+        User other = userRepository.save(User.builder()
+                .email("other@test.com")
+                .password("1234")
+                .name("다른유저")
+                .nickname("other")
+                .phone("010-9999-9999")
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build());
+
+        ReviewRequest request = ReviewRequest.of(1, "별로였어요");
+
+        // when & then
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> reviewService.updateReview(other, review.getId(), request)
+        );
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_ACCESS_DENIED);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 리뷰 수정 시 예외가 발생한다")
+    void test9() {
+        ReviewRequest request = ReviewRequest.of(3, "그냥 그랬어요");
+
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> reviewService.updateReview(user, 999L, request)
+        );
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+    }
 }

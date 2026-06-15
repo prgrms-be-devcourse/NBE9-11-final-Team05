@@ -64,4 +64,16 @@ public class ReviewService {
         return reviews.map(ReviewResponse::from);
     }
 
+    public void updateReview(User user, Long reviewId, ReviewRequest request) {
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new CustomException(ErrorCode.REVIEW_NOT_FOUND));
+
+        // 본인 리뷰인지 확인
+        review.validateOwner(user.getId());
+
+        // 더티 체킹
+        review.update(request.getRating(), request.getContent());
+    }
+
 }

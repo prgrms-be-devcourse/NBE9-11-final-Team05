@@ -2,8 +2,10 @@ package com.back.ovengers.domain.review.entity;
 
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.reservation.entity.Reservation;
-import com.back.ovengers.global.entity.BaseEntity;
 import com.back.ovengers.domain.user.entity.User;
+import com.back.ovengers.global.entity.BaseEntity;
+import com.back.ovengers.global.exception.CustomException;
+import com.back.ovengers.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -42,5 +44,11 @@ public class Review extends BaseEntity {
     public void update(Integer rating, String content){
         this.rating = rating;
         this.content = content;
+    }
+
+    public void validateOwner(Long userId) {
+        if (this.user == null || !this.user.getId().equals(userId)) {
+            throw new CustomException(ErrorCode.REVIEW_ACCESS_DENIED);
+        }
     }
 }
