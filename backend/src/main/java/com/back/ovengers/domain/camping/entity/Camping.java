@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.camping.entity;
 
 import com.back.ovengers.domain.user.entity.User;
+import com.back.ovengers.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,11 +17,7 @@ import java.time.LocalTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Camping {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Camping extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "host_id")
@@ -68,14 +65,6 @@ public class Camping {
 
     @Column(precision = 10, scale = 7)
     private BigDecimal lng;
-
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
     private LocalDateTime deletedAt;
 }
