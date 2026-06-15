@@ -88,4 +88,8 @@ public class AuthService {
 
         return new LoginResponse(accessToken, user.getRole().name()); // 토큰은 쿠키에 있으므로 응답 바디에서 제거
     }
+
+    public void logout(HttpServletResponse response) {
+        cookieUtil.deleteAccessTokenCookie(response);
+    }
 }
