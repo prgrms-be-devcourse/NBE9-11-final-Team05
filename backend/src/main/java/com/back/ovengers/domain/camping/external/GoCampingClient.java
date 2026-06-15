@@ -1,8 +1,11 @@
 package com.back.ovengers.domain.camping.external;
 
+import com.back.ovengers.global.exception.CustomException;
+import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -44,16 +47,20 @@ public class GoCampingClient {
                 .build(true)
                 .toUri();
 
-        GoCampingApiWrapper result = restClient.get()
-                                        .uri(uri)
-                                        .retrieve()
-                                        .body(GoCampingApiWrapper.class);
+        try {
+            GoCampingApiWrapper result = restClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .body(GoCampingApiWrapper.class);
 
-        // TODO: 예외처리
-        if (result == null) {
-            throw new IllegalStateException("캠핑장 정보 조회 실패");
+            if (result == null) {
+                throw new CustomException(ErrorCode.GO_CAMPING_API_ERROR);
+            }
+
+            return result;
+        } catch (RestClientException e) {
+            throw new CustomException(ErrorCode.GO_CAMPING_API_ERROR);
         }
-
-        return result;
     }
+
 }
