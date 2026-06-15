@@ -10,6 +10,7 @@ import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Transactional
 @Service
@@ -97,21 +98,34 @@ public class UserService {
 
         if (request.getNickname() != null) {
 
-            if (!user.getNickname().equals(request.getNickname()) && userRepository.existsByNickname(request.getNickname())) {
+            if (!StringUtils.hasText(request.getNickname())) {
+                throw new CustomException(ErrorCode.EMPTY_NICKNAME);
+            }
 
-                throw new CustomException(
-                        ErrorCode.DUPLICATE_NICKNAME
-                );
+            if (!user.getNickname().equals(request.getNickname())
+                    && userRepository.existsByNickname(request.getNickname())) {
+
+                throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
             }
 
             user.changeNickname(request.getNickname());
         }
 
         if (request.getPhone() != null) {
+
+            if (!StringUtils.hasText(request.getPhone())) {
+                throw new CustomException(ErrorCode.EMPTY_PHONE);
+            }
+
             user.changePhone(request.getPhone());
         }
 
         if (request.getImageUrl() != null) {
+
+            if (!StringUtils.hasText(request.getImageUrl())) {
+                throw new CustomException(ErrorCode.EMPTY_IMAGE_URL);
+            }
+
             user.changeImageUrl(request.getImageUrl());
         }
 
