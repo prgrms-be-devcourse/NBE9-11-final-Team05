@@ -11,6 +11,8 @@ import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import com.back.ovengers.global.security.JwtProvider;
+import com.back.ovengers.global.util.CookieUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;              // JWT 토큰 생성 담당
+    private final CookieUtil cookieUtil;
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
@@ -65,28 +68,24 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public LoginResponse login(
-            LoginRequest request
-    ) {
+    public LoginResponse login(LoginRequest request, HttpServletResponse response) {
 
         User user = userRepository.findByEmailAndDeletedAtIsNull(request.email())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_LOGIN_CREDENTIALS));
-        //정지(BANNED) 상태인 계정인지 확인
+
         if (user.getStatus() == Status.BANNED) {
             throw new CustomException(ErrorCode.BANNED_USER);
         }
 
-        // 입력한 비밀번호와 저장된 암호화 비밀번호 비교
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new CustomException(ErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
 
-        //인증 성공 -> Access Token 발급 (유저 ID 기반)
         String accessToken = jwtProvider.createAccessToken(user.getId());
 
-        return new LoginResponse(
-                accessToken,
-                user.getRole().name()
-        );
+        cookieUtil.addAccessTokenCookie(response, accessToken);
+
+
+        return new LoginResponse(accessToken, user.getRole().name()); // 토큰은 쿠키에 있으므로 응답 바디에서 제거
     }
 }

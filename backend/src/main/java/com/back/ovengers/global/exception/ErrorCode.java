@@ -8,6 +8,19 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
 
+    EMPTY_NICKNAME(
+            HttpStatus.BAD_REQUEST,
+            "닉네임은 공백일 수 없습니다."
+    ),
+    EMPTY_PHONE(
+            HttpStatus.BAD_REQUEST,
+            "전화번호는 공백일 수 없습니다."
+    ),
+    EMPTY_IMAGE_URL(
+            HttpStatus.BAD_REQUEST,
+            "프로필 이미지는 공백일 수 없습니다."
+    ),
+
     MISSING_REQUIRED_FIELD(
             HttpStatus.BAD_REQUEST,
             "필수값이 누락되었습니다."
