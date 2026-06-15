@@ -79,7 +79,7 @@ public enum ErrorCode {
 
     HOST_REQUIRED(
             HttpStatus.FORBIDDEN,
-            "호스트만 등록 가능합니다."
+            "호스트 권한이 필요합니다."
     ),
 
     NOT_CAMPING_OWNER(

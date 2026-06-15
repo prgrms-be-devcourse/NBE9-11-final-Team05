@@ -2,6 +2,7 @@ package com.back.ovengers.domain.camping.service;
 
 import com.back.ovengers.domain.camping.dto.CampingCreateRequest;
 import com.back.ovengers.domain.camping.dto.CampingCreateResponse;
+import com.back.ovengers.domain.camping.dto.HostCampingListResponse;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -25,16 +28,7 @@ public class HostCampingService {
     @Transactional
     public CampingCreateResponse register(Long hostId, CampingCreateRequest request) {
 
-        User host = userRepository.findById(hostId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        if (host.getDeletedAt() != null) {
-            throw new CustomException(ErrorCode.ALREADY_DELETED);
-        }
-
-        if (host.getRole() != Role.HOST) {
-            throw new CustomException(ErrorCode.HOST_REQUIRED);
-        }
+        User host = validateHost(hostId);
 
         Camping camping = Camping.builder()
                 .host(host)
@@ -53,5 +47,37 @@ public class HostCampingService {
                 savedCamping.getId(),
                 savedCamping.getStatus()
         );
+    }
+
+    public List<HostCampingListResponse> getMyCampings(Long hostId) {
+        validateHost(hostId);
+
+        return campingRepository.findByHostIdAndDeletedAtIsNull(hostId)
+                .stream()
+                .map(camping -> new HostCampingListResponse(
+                        camping.getId(),
+                        camping.getName(),
+                        camping.getRegion(),
+                        camping.getCity(),
+                        camping.getAddress(),
+                        camping.getFirstImageUrl(),
+                        camping.getRating()
+                ))
+                .toList();
+    }
+
+    private User validateHost(Long hostId) {
+        User host = userRepository.findById(hostId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if (host.getRole() != Role.HOST) {
+            throw new CustomException(ErrorCode.HOST_REQUIRED);
+        }
+
+        if (host.getDeletedAt() != null) {
+            throw new CustomException(ErrorCode.ALREADY_DELETED);
+        }
+
+        return host;
     }
 }
