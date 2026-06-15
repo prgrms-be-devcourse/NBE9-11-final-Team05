@@ -55,4 +55,9 @@ public class AuthController {
         );
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletResponse response) {
+        authService.logout(response);
+        return ResponseEntity.ok(new ApiResponse<>("로그아웃이 완료되었습니다."));
+    }
 }
