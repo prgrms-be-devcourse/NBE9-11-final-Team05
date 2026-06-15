@@ -14,6 +14,7 @@ public class ReservationResponse {
     private Long userId;
     private Long siteId;
     private String rsvNum;
+    private String imageUrl;
     private LocalDate checkIn;
     private LocalDate checkOut;
     private Integer guestCount;
@@ -27,6 +28,7 @@ public class ReservationResponse {
                 .userId(reservation.getUser().getId())
                 .siteId(reservation.getSite().getId())
                 .rsvNum(reservation.getRsvNum())
+                .imageUrl(reservation.getSite().getCamping().getFirstImageUrl())
                 .checkIn(reservation.getCheckIn())
                 .checkOut(reservation.getCheckOut())
                 .guestCount(reservation.getGuestCount())
