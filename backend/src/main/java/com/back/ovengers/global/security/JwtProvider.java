@@ -1,19 +1,28 @@
 package com.back.ovengers.global.security;
 
+import com.back.ovengers.global.exception.CustomException;
+import com.back.ovengers.global.exception.ErrorCode;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtProvider {
 
-    private final Key key;
+    // JWT 서명/검증에 사용할 SecretKey 객체
+    private final SecretKey key;
+
+    // Access Token 만료 시간
     private final long accessExpiration;
+
+    // Refresh Token 만료 시간
     private final long refreshExpiration;
 
     public JwtProvider(
@@ -21,20 +30,19 @@ public class JwtProvider {
             @Value("${jwt.access-expiration}") long accessExpiration,
             @Value("${jwt.refresh-expiration}") long refreshExpiration
     ) {
+        // secret 문자열 → UTF-8 바이트 배열 → HMAC-SHA SecretKey 객체로 변환
+        // Keys.hmacShaKeyFor()는 키 길이에 따라 자동으로 HS256/384/512 결정
+        // HS256 기준 최소 32바이트(256bit) 이상이어야 하며, 짧으면 WeakKeyException 발생
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessExpiration = accessExpiration;
         this.refreshExpiration = refreshExpiration;
     }
 
 
-    /**
-     * JWT 서명에 사용할 Key 객체 생성
-     * - secret 문자열을 바이트 배열로 변환 후 HMAC-SHA 키로 변환
-     * - jjwt 라이브러리가 내부적으로 키 길이에 따라 HS256/384/512 중 알맞은 알고리즘 자동 선택
-     * - 주의: HS256 사용 시 secret은 최소 256bit(32byte) 이상이어야 함 (짧으면 예외 발생)
-     */
-    private Key getSigningKey() {
-        return this.key;
+    // 내부에서 서명 키를 꺼낼 때 사용하는 메서드
+    // 생성자에서 한 번만 만들어두고 재사용하기 때문에 매번 변환 비용이 발생하지 않음
+    private SecretKey getSigningKey() {
+        return key;
     }
 
 
@@ -82,5 +90,46 @@ public class JwtProvider {
                 )
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    // 사용자ID 추출
+    public Long getUserId(String token) {
+
+        return Long.parseLong(
+                Jwts.parser()
+                        .verifyWith(getSigningKey())
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload()
+                        .getSubject()
+        );
+    }
+
+    public boolean validateToken(String token) {
+
+        try {
+
+            // 서명 검증 + 만료 시간 검증을 동시에 수행
+            // 문제없으면 true 반환
+            Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token);
+
+            return true;
+
+        } catch (ExpiredJwtException e) {
+            // 토큰 만료: 서명은 유효하지만 exp 시각이 현재 시각보다 과거인 경우
+            // false 대신 예외를 던져 "만료됨"을 명확히 구분 → 클라이언트가 재발급 요청 가능
+            throw new CustomException(
+                    ErrorCode.ACCESS_TOKEN_EXPIRED
+            );
+
+        } catch (JwtException | IllegalArgumentException e) {
+            // JwtException: 서명 불일치, 토큰 형식 오류 등 그 외 JWT 관련 예외
+            // IllegalArgumentException: token이 null이거나 빈 문자열인 경우
+            // 만료와 달리 재발급 의미가 없으므로 그냥 false 반환
+            return false;
+        }
     }
 }
