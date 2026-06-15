@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.review.dto;
 
 import com.back.ovengers.domain.review.entity.Review;
+import com.back.ovengers.domain.user.entity.User;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -16,9 +17,14 @@ public class ReviewResponse {
     private LocalDateTime createdAt;
 
     private ReviewResponse(Review review) {
+        User user = review.getUser();
         this.reviewId = review.getId();
-        this.writerNickname = review.getUser().getNickname();
-        this.writerImageUrl = review.getUser().getImageUrl();
+        this.writerNickname = user.getDeletedAt() != null
+                ? "탈퇴한 사용자"
+                : user.getNickname();
+        this.writerImageUrl = user.getDeletedAt() != null
+                ? null
+                : user.getImageUrl();
         this.rating = review.getRating();
         this.content = review.getContent();
         this.createdAt = review.getCreatedAt();
