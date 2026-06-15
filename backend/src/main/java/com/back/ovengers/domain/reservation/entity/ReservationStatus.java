@@ -1,0 +1,8 @@
+package com.back.ovengers.domain.reservation.entity;
+
+public enum ReservationStatus {
+    PENDING,
+    CONFIRMED,
+    CANCELLED,
+    COMPLETED
+}
