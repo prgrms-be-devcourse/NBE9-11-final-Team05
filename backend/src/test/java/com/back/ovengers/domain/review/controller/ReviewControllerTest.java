@@ -131,7 +131,7 @@ class ReviewControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .param("reservationId", String.valueOf(reservation.getId())))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     // ===================== 캠핑장 리뷰 목록 조회 =====================
@@ -229,7 +229,7 @@ class ReviewControllerTest {
         mockMvc.perform(put("/api/reviews/{reviewId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     // ===================== 리뷰 삭제 =====================
@@ -296,7 +296,7 @@ class ReviewControllerTest {
     @DisplayName("리뷰 삭제 실패 - 미로그인")
     void t11() throws Exception {
         mockMvc.perform(delete("/api/reviews/{reviewId}", 1L))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
