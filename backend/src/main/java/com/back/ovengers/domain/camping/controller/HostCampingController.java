@@ -2,6 +2,8 @@ package com.back.ovengers.domain.camping.controller;
 
 import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.service.HostCampingService;
+import com.back.ovengers.domain.site.dto.SiteCreateRequest;
+import com.back.ovengers.domain.site.dto.SiteCreateResponse;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -79,6 +81,24 @@ public class HostCampingController {
 
         return ResponseEntity.ok(
                 new ApiResponse<>("캠핑장이 삭제되었습니다.")
+        );
+    }
+
+    @PostMapping("/{campingId}/sites")
+    public ApiResponse<SiteCreateResponse> addSite(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long campingId,
+            @Valid @RequestBody SiteCreateRequest request
+    ) {
+        SiteCreateResponse response = hostCampingService.addSite(
+                user.getId(),
+                campingId,
+                request
+        );
+
+        return new ApiResponse<>(
+                "구역 등록이 완료되었습니다.",
+                response
         );
     }
 }
