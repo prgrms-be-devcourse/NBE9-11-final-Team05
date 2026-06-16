@@ -1,7 +1,7 @@
 package com.back.ovengers.domain.payment.service;
 
-import com.back.ovengers.domain.payment.dto.PaymentRequest;
-import com.back.ovengers.domain.payment.dto.PaymentResponse;
+import com.back.ovengers.domain.payment.client.TossPaymentClient;
+import com.back.ovengers.domain.payment.dto.*;
 import com.back.ovengers.domain.payment.entity.Payment;
 import com.back.ovengers.domain.payment.entity.PaymentStatus;
 import com.back.ovengers.domain.payment.repository.PaymentRepository;
@@ -26,6 +26,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final ReservationRepository reservationRepository;
+    private final TossPaymentClient tossPaymentClient;
 
     public PaymentResponse create(Long userId, PaymentRequest request) {
 
@@ -75,5 +76,44 @@ public class PaymentService {
 
         // 예약 상태 변경 (같은 트랜잭션에서 처리)
         payment.getReservation().updateStatus(ReservationStatus.CONFIRMED);
+    }
+
+    // 토스페이먼츠 결제 승인
+    @Transactional
+    public PaymentConfirmResponse confirm(PaymentConfirmRequest request) {
+
+        // 1. 결제 조회
+        Payment payment = paymentRepository.findByOrderId(request.getOrderId())
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        // 2. 이미 완료된 결제인지 확인
+        if (payment.getStatus() == PaymentStatus.DONE) {
+            throw new CustomException(ErrorCode.ALREADY_PAID);
+        }
+
+        // 3. 금액 검증
+        if (!payment.getPaidPrice().equals(request.getAmount())) {
+            throw new CustomException(ErrorCode.AMOUNT_MISMATCH);
+        }
+
+        // 4. 토스페이먼츠 승인 API 호출
+        TossConfirmResponse tossResponse;
+        try {
+            tossResponse = tossPaymentClient.confirm(
+                    request.getPaymentKey(),
+                    request.getOrderId(),
+                    request.getAmount()
+            );
+        } catch (CustomException e) {
+            throw e;
+        }
+
+        // 5. 결제 상태 변경 + paymentKey 저장
+        payment.confirm(request.getPaymentKey());
+
+        // 6. 예약 상태 변경 (같은 트랜잭션 - 원자적 처리)
+        payment.getReservation().updateStatus(ReservationStatus.CONFIRMED);
+
+        return PaymentConfirmResponse.of(payment, tossResponse.getMethod(), tossResponse.getApprovedAt());
     }
 }

@@ -202,7 +202,8 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND,
         "결제 정보를 찾을 수 없습니다."
     ),
-
+    AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "결제 금액이 일치하지 않습니다."),
+    TOSS_CONFIRM_FAIL(HttpStatus.UNPROCESSABLE_ENTITY, "결제 승인에 실패했습니다."),
 
     // 외부 API 통신 관련 예외
     GO_CAMPING_API_ERROR(

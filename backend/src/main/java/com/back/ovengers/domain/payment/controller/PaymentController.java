@@ -1,5 +1,7 @@
 package com.back.ovengers.domain.payment.controller;
 
+import com.back.ovengers.domain.payment.dto.PaymentConfirmRequest;
+import com.back.ovengers.domain.payment.dto.PaymentConfirmResponse;
 import com.back.ovengers.domain.payment.dto.PaymentRequest;
 import com.back.ovengers.domain.payment.dto.PaymentResponse;
 import com.back.ovengers.domain.payment.service.PaymentService;
@@ -32,5 +34,17 @@ public class PaymentController {
                         "결제가 생성되었습니다.",
                         paymentService.create(user.getId(), request)
                 ));
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<ApiResponse<PaymentConfirmResponse>> confirm(
+            @RequestBody @Valid PaymentConfirmRequest request) {
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "결제가 완료되었습니다.",
+                        paymentService.confirm(request)
+                )
+        );
     }
 }
