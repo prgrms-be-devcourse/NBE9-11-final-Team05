@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-        // 중복 리뷰 방지
-        boolean existsByReservationId(Long reservationId);
+    // 중복 리뷰 방지
+    boolean existsByReservationId(Long reservationId);
 
     // 캠핑장 리뷰 목록 조회
     @Query(
@@ -30,4 +32,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByCampingIdWithUser(
             @Param("campingId") Long campingId,
             Pageable pageable);
+
+    // 아이디 목록에 포함되는 리뷰들 리스트로 가져옴
+    List<Review> findByReservationIdIn(List<Long> reservationIds);
 }

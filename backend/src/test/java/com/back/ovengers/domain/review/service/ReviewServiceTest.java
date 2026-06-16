@@ -6,6 +6,7 @@ import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
+import com.back.ovengers.domain.review.dto.MyReviewResponse;
 import com.back.ovengers.domain.review.dto.ReviewRequest;
 import com.back.ovengers.domain.review.dto.ReviewResponse;
 import com.back.ovengers.domain.review.entity.Review;
@@ -18,6 +19,7 @@ import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @Transactional
 class ReviewServiceTest {
 
+    @Autowired
+    EntityManager em;
     @Autowired
     ReviewService reviewService;
     @Autowired
@@ -338,5 +342,72 @@ class ReviewServiceTest {
         );
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("내 리뷰 목록을 조회할 수 있다")
+    void test13() {
+        // given
+        reviewRepository.save(Review.builder()
+                .user(user)
+                .camping(camping)
+                .reservation(reservation)
+                .rating(5)
+                .content("좋았어요")
+                .build());
+
+        em.flush();
+        em.clear();
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        // when
+        Page<MyReviewResponse> result = reviewService.getMyReviews(user, pageable);
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).isHasReview()).isTrue();
+        assertThat(result.getContent().get(0).getReview().getRating()).isEqualTo(5);
+        assertThat(result.getContent().get(0).getReview().getContent()).isEqualTo("좋았어요");
+    }
+
+    @Test
+    @DisplayName("리뷰가 없는 예약도 목록에 포함된다")
+    void test14() {
+        // given
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        // when
+        Page<MyReviewResponse> result = reviewService.getMyReviews(user, pageable);
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).isHasReview()).isFalse();
+        assertThat(result.getContent().get(0).getReview()).isNull();
+    }
+
+    @Test
+    @DisplayName("완료되지 않은 예약은 목록에 포함되지 않는다")
+    void test15() {
+        // given
+        reservationRepository.save(Reservation.builder()
+                .user(user)
+                .site(site)
+                .rsvNum("RV-002")
+                .rsvName("홍길동")
+                .checkIn(LocalDate.of(2026, 8, 1))
+                .checkOut(LocalDate.of(2026, 8, 3))
+                .guestCount(4)
+                .rsvPrice(100000)
+                .status(ReservationStatus.CONFIRMED)
+                .build());
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        // when
+        Page<MyReviewResponse> result = reviewService.getMyReviews(user, pageable);
+
+        // then
+        assertThat(result.getContent()).hasSize(1); // COMPLETED만 조회
     }
 }

@@ -2,7 +2,9 @@ package com.back.ovengers.domain.review.service;
 
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.entity.Reservation;
+import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
+import com.back.ovengers.domain.review.dto.MyReviewResponse;
 import com.back.ovengers.domain.review.dto.ReviewRequest;
 import com.back.ovengers.domain.review.dto.ReviewResponse;
 import com.back.ovengers.domain.review.entity.Review;
@@ -15,6 +17,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -84,6 +90,37 @@ public class ReviewService {
         review.validateOwner(user.getId());
 
         reviewRepository.delete(review);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MyReviewResponse> getMyReviews(User user, Pageable pageable) {
+
+        // 유저의 COMPLETED 예약 목록 조회 (Site, Camping fetch join)
+        Page<Reservation> reservations = reservationRepository
+                .findCompletedByUserId(user.getId(), ReservationStatus.COMPLETED, pageable);
+
+        // 완료된 예약이 없으면 리뷰 조회 없이 바로 반환
+        if (reservations.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        // 예약 ID 목록 추출
+        List<Long> reservationIds = reservations.getContent().stream()
+                .map(Reservation::getId)
+                .toList();
+
+        // 해당 예약들의 리뷰를 IN 쿼리로 한 번에 조회 (N+1 방지)
+        Map<Long, Review> reviewMap = reviewRepository
+                .findByReservationIdIn(reservationIds).stream()
+                .collect(Collectors.toMap(
+                        review -> review.getReservation().getId(),
+                        review -> review
+                ));
+
+        // 예약 + 리뷰(있으면) 합쳐서 응답 조립
+        return reservations.map(reservation ->
+                MyReviewResponse.from(reservation, reviewMap.get(reservation.getId()))
+        );
     }
 
 }

@@ -46,14 +46,16 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-//                                "/api/auth/**",
+                                HttpMethod.GET,
+                                "/api/users/me/reviews"  // 내 리뷰 목록 조회 - 인증 필요
+                        ).authenticated()
+                        .requestMatchers(
                                 "/api/auth/signup",
                                 "/api/auth/login",
                                 "/api/auth/logout",
                                 "/api/auth/refresh",
                                 "/api/reservations/**", // TODO: jwt filter 구현 후 제거
                                 "/api/users/**"
-
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,

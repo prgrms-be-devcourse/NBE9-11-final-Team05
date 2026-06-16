@@ -1,5 +1,6 @@
 package com.back.ovengers.domain.review.controller;
 
+import com.back.ovengers.domain.review.dto.MyReviewResponse;
 import com.back.ovengers.domain.review.dto.ReviewRequest;
 import com.back.ovengers.domain.review.dto.ReviewResponse;
 import com.back.ovengers.domain.review.service.ReviewService;
@@ -66,5 +67,17 @@ public class ReviewController {
     ) {
         reviewService.deleteReview(user, reviewId);
         return ResponseEntity.ok(new ApiResponse<>("리뷰가 삭제되었습니다."));
+    }
+
+    @GetMapping("/users/me/reviews")
+    public ResponseEntity<ApiResponse<PageResponse<MyReviewResponse>>> getMyReviews(
+            @AuthenticationPrincipal User user,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Page<MyReviewResponse> reviews = reviewService.getMyReviews(user, pageable);
+        return ResponseEntity.ok(new ApiResponse<>(
+                "리뷰 목록 조회 성공",
+                PageResponse.from(reviews)
+        ));
     }
 }
