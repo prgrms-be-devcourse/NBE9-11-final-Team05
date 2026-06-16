@@ -19,7 +19,7 @@ public class CookieUtil {
     private int accessExpiration;
 
     @Value("${jwt.refresh-expiration}")
-    private int refreshExpiration;
+    private long refreshExpiration;
 
 
     private static final String ACCESS_TOKEN_NAME = "accessToken";
@@ -79,8 +79,8 @@ public class CookieUtil {
         Cookie cookie = new Cookie(REFRESH_TOKEN_NAME, refreshToken);
         cookie.setHttpOnly(true);
 //        cookie.setSecure(cookieSecure);
-        cookie.setPath("/");
-        cookie.setMaxAge(refreshExpiration);
+        cookie.setPath("/api/auth");
+        cookie.setMaxAge((int) (refreshExpiration / 1000));
 //        cookie.setAttribute("SameSite", "Strict");
 
         response.addCookie(cookie);
@@ -109,7 +109,7 @@ public class CookieUtil {
         Cookie cookie = new Cookie(REFRESH_TOKEN_NAME, null);
         cookie.setHttpOnly(true);
 //        cookie.setSecure(cookieSecure);
-        cookie.setPath("/");
+        cookie.setPath("/api/auth");
         cookie.setMaxAge(0);
 //        cookie.setAttribute("SameSite", "Strict");
 
