@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>결제 완료</h1>
+<p id="params"></p>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    document.getElementById('params').innerText =
+        'paymentKey: ' + params.get('paymentKey') + '\n' +
+        'orderId: ' + params.get('orderId') + '\n' +
+        'amount: ' + params.get('amount');
+</script>
+</body>
+</html>

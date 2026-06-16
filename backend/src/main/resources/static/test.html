@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://js.tosspayments.com/v1/payment"></script>
+</head>
+<body>
+<button id="pay">결제하기</button>
+<script>
+    const tossPayments = TossPayments("test_ck_yL0qZ4G1VOdPdvOgZ1GProWb2MQY");
+
+    document.getElementById('pay').addEventListener('click', function() {
+        tossPayments.requestPayment('카드', {
+            amount: 50000,
+            orderId: 'EYJ-20260616-506FA156',
+            orderName: '테스트 캠핑장 2박',
+            customerName: '홍길동',
+            successUrl: 'http://localhost:8080/success',
+            failUrl: 'http://localhost:8080/fail'
+        });
+    });
+</script>
+</body>
+</html>
