@@ -102,6 +102,21 @@ public enum ErrorCode {
         "Access Token이 만료되었습니다."
     ),
 
+    REFRESH_TOKEN_MISSING(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh Token이 없습니다."
+    ),
+
+    REFRESH_TOKEN_EXPIRED(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh Token이 만료되었습니다."
+    ),
+
+    REFRESH_TOKEN_INVALID(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh Token이 유효하지 않습니다."
+    ),
+
     // 예약
     RESERVATION_NOT_FOUND(
             HttpStatus.NOT_FOUND,
@@ -163,7 +178,40 @@ public enum ErrorCode {
     REVIEW_ACCESS_DENIED(
             HttpStatus.FORBIDDEN,
         "리뷰 작성 권한이 없습니다."
-    );
+    ),
+    INVALID_PATH_VARIABLE(
+            HttpStatus.BAD_REQUEST,
+            "요청 값이 올바르지 않습니다."
+    ),
+
+    //결제
+    RESERVATION_FORBIDDEN(
+            HttpStatus.FORBIDDEN,
+            "본인 예약만 결제 가능합니다."),
+    ALREADY_PAID(
+            HttpStatus.CONFLICT,
+            "이미 결제된 예약입니다."),
+    NO_AVAILABLE_ROOM(
+            HttpStatus.CONFLICT,
+            "예약 가능한 자리가 없습니다."),
+    INVALID_RESERVATION_STATUS(
+            HttpStatus.BAD_REQUEST,
+        "결제 가능한 예약 상태가 아닙니다."
+    ),
+    PAYMENT_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "결제 정보를 찾을 수 없습니다."
+    ),
+
+
+    // 외부 API 통신 관련 예외
+    GO_CAMPING_API_ERROR(
+            HttpStatus.BAD_GATEWAY,
+            "고캠핑 API 통신 중 오류가 발생했습니다."),
+    INITIAL_DATA_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "초기 데이터가 이미 존재합니다.")
+            ;
 
     private final HttpStatus status;
     private final String message;
