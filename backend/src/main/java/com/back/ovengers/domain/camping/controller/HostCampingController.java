@@ -68,4 +68,16 @@ public class HostCampingController {
                 )
         );
     }
+
+    @DeleteMapping("/{campingId}")
+    public ResponseEntity<ApiResponse<Void>> deleteCamping(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long campingId
+    ) {
+        hostCampingService.deleteCamping(user.getId(), campingId);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>("캠핑장이 삭제되었습니다.")
+        );
+    }
 }

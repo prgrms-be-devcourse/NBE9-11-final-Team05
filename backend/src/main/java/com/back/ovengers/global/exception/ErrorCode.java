@@ -117,6 +117,11 @@ public enum ErrorCode {
             "Refresh Token이 유효하지 않습니다."
     ),
 
+    CONFIRMED_RESERVATION_EXISTS(
+        HttpStatus.CONFLICT,
+        "확정된 예약이 있어 삭제할 수 없습니다."
+    ),
+
     // 예약
     RESERVATION_NOT_FOUND(
             HttpStatus.NOT_FOUND,

@@ -4,6 +4,8 @@ import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.reservation.entity.ReservationStatus;
+import com.back.ovengers.domain.reservation.repository.ReservationRepository;
 import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
@@ -22,6 +24,7 @@ public class HostCampingService {
 
     private final CampingRepository campingRepository;
     private final UserRepository userRepository;
+    private final ReservationRepository reservationRepository;
 
     @Transactional
     public CampingCreateResponse register(Long hostId, CampingCreateRequest request) {
@@ -82,6 +85,27 @@ public class HostCampingService {
         camping.update(request);
 
         return CampingUpdateResponse.from(camping);
+    }
+
+    @Transactional
+    public void deleteCamping(Long hostId, Long campingId) {
+        validateHost(hostId);
+
+        Camping camping = campingRepository.findByIdAndDeletedAtIsNull(campingId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
+
+        if (!camping.getHost().getId().equals(hostId)) {
+            throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
+        }
+
+        if (reservationRepository.existsReservationByCampingIdAndStatus(
+                campingId,
+                ReservationStatus.CONFIRMED
+        )) {
+            throw new CustomException(ErrorCode.CONFIRMED_RESERVATION_EXISTS);
+        }
+
+        camping.delete();
     }
 
     private User validateHost(Long hostId) {

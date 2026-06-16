@@ -60,5 +60,15 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             Pageable pageable
     );
 
-
+    // 해당 캠핑장에 특정 상태(status)의 예약이 하나라도 있는지 확인
+    @Query("""
+    SELECT COUNT(r) > 0
+    FROM Reservation r
+    WHERE r.site.camping.id = :campingId
+    AND r.status = :status
+    """)
+    boolean existsReservationByCampingIdAndStatus(
+            @Param("campingId") Long campingId,
+            @Param("status") ReservationStatus status
+    );
 }

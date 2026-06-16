@@ -4,23 +4,8 @@ package com.back.ovengers.domain.camping.entity;
 import com.back.ovengers.domain.camping.dto.CampingUpdateRequest;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiItem;
 import com.back.ovengers.domain.user.entity.User;
-import io.micrometer.common.util.StringUtils;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import com.back.ovengers.global.entity.BaseEntity;
+import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -102,6 +87,10 @@ public class Camping extends BaseEntity {
         this.notice = request.notice();
         this.lat = request.lat();
         this.lng = request.lng();
+    }
+
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
     }
   
     public static Camping from(GoCampingApiItem item) {
