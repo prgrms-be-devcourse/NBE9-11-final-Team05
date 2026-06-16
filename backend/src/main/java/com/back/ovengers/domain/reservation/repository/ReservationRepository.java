@@ -2,6 +2,7 @@ package com.back.ovengers.domain.reservation.repository;
 
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
+import com.back.ovengers.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,5 +38,29 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             "JOIN FETCH s.camping " +
             "WHERE r.id = :id")
     Optional<Reservation> findByIdWithSiteAndCamping(@Param("id") Long id);
+
+    // 내 예약 기반 리뷰 목록 조회
+    // COMPLETED 예약만 조회 (리뷰 작성 가능한 예약)
+    // Site, Camping LEFT JOIN FETCH로 N+1 방지
+    // 소프트 딜리트된 캠핑장/사이트도 예약 내역은 보여줌
+    @Query(
+            value = "SELECT r FROM Reservation r " +
+                    "LEFT JOIN FETCH r.site s " +
+                    "LEFT JOIN FETCH s.camping c " +
+                    "WHERE r.user.id = :userId " +
+                    "AND r.status = :status",
+
+            // fetch join 제외하고 카운트만
+            countQuery = "SELECT COUNT(r) FROM Reservation r " +
+                    "WHERE r.user.id = :userId " +
+                    "AND r.status = :status"
+    )
+    Page<Reservation> findCompletedByUserId(
+            @Param("userId") Long userId,
+            @Param("status") ReservationStatus status,
+            Pageable pageable
+    );
+
+    Page<Reservation> findByUserAndStatus(User user, ReservationStatus status, Pageable pageable);
 
 }

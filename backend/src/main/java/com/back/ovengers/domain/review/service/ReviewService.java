@@ -2,7 +2,9 @@ package com.back.ovengers.domain.review.service;
 
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.entity.Reservation;
+import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
+import com.back.ovengers.domain.review.dto.MyReviewResponse;
 import com.back.ovengers.domain.review.dto.ReviewRequest;
 import com.back.ovengers.domain.review.dto.ReviewResponse;
 import com.back.ovengers.domain.review.entity.Review;
@@ -15,6 +17,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -84,6 +90,31 @@ public class ReviewService {
         review.validateOwner(user.getId());
 
         reviewRepository.delete(review);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MyReviewResponse> getMyReviews(User user, Pageable pageable) {
+
+        Page<Reservation> reservations = reservationRepository
+                .findByUserAndStatus(user, ReservationStatus.COMPLETED, pageable);
+
+        if (reservations.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        List<Long> reservationIds = reservations.getContent().stream()
+                .map(Reservation::getId)
+                .toList();
+
+        Map<Long, Review> reviewMap = new HashMap<>();
+        for (Long reservationId : reservationIds) {
+            reviewRepository.findByReservationId(reservationId)
+                    .ifPresent(review -> reviewMap.put(reservationId, review));
+        }
+
+        return reservations.map(reservation ->
+                MyReviewResponse.from(reservation, reviewMap.get(reservation.getId()))
+        );
     }
 
 }
