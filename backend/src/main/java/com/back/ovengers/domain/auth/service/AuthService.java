@@ -1,9 +1,9 @@
 package com.back.ovengers.domain.auth.service;
 
-import com.back.ovengers.domain.auth.dto.LoginRequest;
-import com.back.ovengers.domain.auth.dto.LoginResponse;
-import com.back.ovengers.domain.auth.dto.SignUpRequest;
-import com.back.ovengers.domain.auth.dto.SignUpResponse;
+import com.back.ovengers.domain.auth.dto.*;
+import com.back.ovengers.domain.camping.entity.Camping;
+import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.Status;
 import com.back.ovengers.domain.user.entity.User;
@@ -29,6 +29,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;              // JWT 토큰 생성 담당
     private final CookieUtil cookieUtil;
     private final RefreshTokenService refreshTokenService;
+    private final CampingRepository campingRepository;
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
@@ -61,6 +62,53 @@ public class AuthService {
 
 
         // 응답 DTO로 변환하여 반환 (비밀번호 등 민감 정보는 제외)
+        return SignUpResponse.builder()
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .nickname(savedUser.getNickname())
+                .role(savedUser.getRole().name())
+                .build();
+    }
+
+    @Transactional
+    public SignUpResponse hostSignUp(HostSignUpRequest request) {
+
+        if (userRepository.existsByEmailAndDeletedAtIsNull(request.getEmail())) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        }
+
+        if (userRepository.existsByNicknameAndDeletedAtIsNull(request.getNickname())) {
+            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+
+        // User 저장 (Role.HOST)
+        User user = User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .name(request.getName())
+                .nickname(request.getNickname())
+                .phone(request.getPhone())
+                .role(Role.HOST)
+                .status(Status.ACTIVE)
+                .build();
+
+        User savedUser = userRepository.save(user);
+
+        String[] addressParts = request.getAddress().trim().split("\\s+");
+
+        // Camping 저장 — status는 PENDING (관리자 승인 후 APPROVED)
+        Camping camping = Camping.builder()
+                .host(savedUser)
+                .businessNum(request.getBusinessNum())
+                .name(request.getCampingName())
+                .address(request.getAddress())
+                .region(addressParts.length > 0 ? addressParts[0] : "")  // 시/도
+                .city(addressParts.length > 1 ? addressParts[1] : "")    // 시/군/구
+                .status(CampingStatus.PENDING)  // 관리자 승인 대기
+                .build();
+
+        campingRepository.save(camping);
+
         return SignUpResponse.builder()
                 .id(savedUser.getId())
                 .email(savedUser.getEmail())
@@ -129,4 +177,6 @@ public class AuthService {
         cookieUtil.deleteAccessTokenCookie(response);
         cookieUtil.deleteRefreshTokenCookie(response);
     }
+
+
 }

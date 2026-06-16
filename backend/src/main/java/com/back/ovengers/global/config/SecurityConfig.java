@@ -2,6 +2,7 @@ package com.back.ovengers.global.config;
 
 
 import com.back.ovengers.global.security.JwtFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +45,19 @@ public class SecurityConfig {
                                 SessionCreationPolicy.STATELESS
                         )
                 )
+                .exceptionHandling(exception -> exception
+
+                        // 인증 실패(미로그인, 토큰 없음 등) → 401 Unauthorized
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        })
+
+                        // 인가 실패(권한 부족) → 403 Forbidden
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        })
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 HttpMethod.GET,
@@ -51,6 +65,7 @@ public class SecurityConfig {
                         ).authenticated()
                         .requestMatchers(
                                 "/api/auth/signup",
+                                "/api/auth/signup/host",
                                 "/api/auth/login",
                                 "/api/auth/logout",
                                 "/api/auth/refresh",
