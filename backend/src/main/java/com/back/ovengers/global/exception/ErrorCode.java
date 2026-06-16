@@ -182,7 +182,16 @@ public enum ErrorCode {
     INVALID_PATH_VARIABLE(
             HttpStatus.BAD_REQUEST,
             "요청 값이 올바르지 않습니다."
-    );
+    ),
+
+    // 외부 API 통신 관련 예외
+    GO_CAMPING_API_ERROR(
+            HttpStatus.BAD_GATEWAY,
+            "고캠핑 API 통신 중 오류가 발생했습니다."),
+    INITIAL_DATA_ALREADY_EXISTS(
+            HttpStatus.CONFLICT,
+            "초기 데이터가 이미 존재합니다.")
+            ;
 
     private final HttpStatus status;
     private final String message;

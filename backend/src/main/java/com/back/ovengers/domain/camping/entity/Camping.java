@@ -1,6 +1,23 @@
 package com.back.ovengers.domain.camping.entity;
 
+import com.back.ovengers.domain.camping.external.dto.GoCampingApiItem;
 import com.back.ovengers.domain.user.entity.User;
+import io.micrometer.common.util.StringUtils;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import com.back.ovengers.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,6 +37,9 @@ public class Camping extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "host_id")
     private User host;
+
+    @Column(name = "content_id", unique = true)
+    private Long contentId;
 
     @Column(name = "firstImageUrl")
     private String firstImageUrl;
@@ -65,4 +85,31 @@ public class Camping extends BaseEntity {
     private BigDecimal lng;
 
     private LocalDateTime deletedAt;
+
+    public static Camping from(GoCampingApiItem item) {
+        return Camping.builder()
+                .contentId(Long.valueOf(item.contentId()))
+                .firstImageUrl(item.firstImageUrl())
+                .tourNum(item.trsagntNo())
+                .businessNum(item.bizrno())
+                .name(item.facltNm())
+                .homepage(item.homepage())
+                .region(item.doNm())
+                .city(item.sigunguNm())
+                .address(item.addr1())
+                .description("%s\n%s\n%s".formatted(item.lineIntro(), item.intro(), item.featureNm()))
+                .phone(item.tel())
+                .notice("부대시설: %s\n주변이용가능시설: %s\n체험프로그램명: %s".formatted(item.sbrsCl(), item.posblFcltyCl(), item.exprnProgrm()))
+                .status(CampingStatus.APPROVED)
+                .lat(toBigDecimal(item.mapY()))
+                .lng(toBigDecimal(item.mapX()))
+                .build();
+    }
+
+    private static BigDecimal toBigDecimal(String value) {
+        return StringUtils.isBlank(value)
+                ? null
+                : new BigDecimal(value);
+    }
+
 }
