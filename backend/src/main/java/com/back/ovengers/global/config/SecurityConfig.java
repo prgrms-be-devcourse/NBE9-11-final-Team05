@@ -64,6 +64,9 @@ public class SecurityConfig {
                                 "/api/users/me/reviews"  // 내 리뷰 목록 조회 - 인증 필요
                         ).authenticated()
                         .requestMatchers(
+                                "/api/users/me/**"  // 내 정보 조회/수정/탈퇴 및 하위 API는 로그인 사용자만 접근 가능
+                        ).authenticated()
+                        .requestMatchers(
                                 "/api/auth/signup",
                                 "/api/auth/signup/host",
                                 "/api/auth/login",

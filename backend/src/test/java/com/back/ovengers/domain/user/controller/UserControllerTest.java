@@ -60,7 +60,7 @@ class UserControllerTest {
     @Test
     @DisplayName("회원 정보 조회 성공")
     void t1() throws Exception {
-        mockMvc.perform(get("/api/user/me")
+        mockMvc.perform(get("/api/users/me")
                         .cookie(accessTokenCookie))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("회원 정보 조회가 완료되었습니다."))
@@ -71,7 +71,7 @@ class UserControllerTest {
     @Test
     @DisplayName("회원 정보 조회 실패 - 미로그인")
     void t2() throws Exception {
-        mockMvc.perform(get("/api/user/me"))
+        mockMvc.perform(get("/api/users/me"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -80,7 +80,7 @@ class UserControllerTest {
     @Test
     @DisplayName("회원 정보 수정 성공 - 닉네임 변경")
     void t3() throws Exception {
-        mockMvc.perform(patch("/api/user/me")
+        mockMvc.perform(patch("/api/users/me")
                         .cookie(accessTokenCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -96,7 +96,7 @@ class UserControllerTest {
     @Test
     @DisplayName("회원 정보 수정 성공 - 전화번호 변경")
     void t4() throws Exception {
-        mockMvc.perform(patch("/api/user/me")
+        mockMvc.perform(patch("/api/users/me")
                         .cookie(accessTokenCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -121,7 +121,7 @@ class UserControllerTest {
                 .status(Status.ACTIVE)
                 .build());
 
-        mockMvc.perform(patch("/api/user/me")
+        mockMvc.perform(patch("/api/users/me")
                         .cookie(accessTokenCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -136,7 +136,7 @@ class UserControllerTest {
     @Test
     @DisplayName("회원 정보 수정 실패 - 미로그인")
     void t6() throws Exception {
-        mockMvc.perform(patch("/api/user/me")
+        mockMvc.perform(patch("/api/users/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -151,7 +151,7 @@ class UserControllerTest {
     @Test
     @DisplayName("회원 탈퇴 성공")
     void t7() throws Exception {
-        mockMvc.perform(delete("/api/user/me")
+        mockMvc.perform(delete("/api/users/me")
                         .cookie(accessTokenCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -170,7 +170,7 @@ class UserControllerTest {
     @Test
     @DisplayName("회원 탈퇴 실패 - 비밀번호 불일치")
     void t8() throws Exception {
-        mockMvc.perform(delete("/api/user/me")
+        mockMvc.perform(delete("/api/users/me")
                         .cookie(accessTokenCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -185,7 +185,7 @@ class UserControllerTest {
     @Test
     @DisplayName("회원 탈퇴 실패 - 미로그인")
     void t9() throws Exception {
-        mockMvc.perform(delete("/api/user/me")
+        mockMvc.perform(delete("/api/users/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
