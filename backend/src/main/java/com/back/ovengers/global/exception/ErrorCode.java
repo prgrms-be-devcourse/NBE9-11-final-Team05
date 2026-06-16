@@ -122,6 +122,11 @@ public enum ErrorCode {
         "확정된 예약이 있어 삭제할 수 없습니다."
     ),
 
+    INVALID_CAPACITY(
+            HttpStatus.BAD_REQUEST,
+            "기준 인원은 최대 인원보다 클 수 없습니다."
+    ),
+
     // 예약
     RESERVATION_NOT_FOUND(
             HttpStatus.NOT_FOUND,

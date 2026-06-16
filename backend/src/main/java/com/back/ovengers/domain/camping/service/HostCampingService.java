@@ -6,6 +6,9 @@ import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
+import com.back.ovengers.domain.site.dto.SiteCreateRequest;
+import com.back.ovengers.domain.site.entity.Site;
+import com.back.ovengers.domain.site.repository.SiteRepository;
 import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
@@ -25,6 +28,7 @@ public class HostCampingService {
     private final CampingRepository campingRepository;
     private final UserRepository userRepository;
     private final ReservationRepository reservationRepository;
+    private final SiteRepository siteRepository;
 
     @Transactional
     public CampingCreateResponse register(Long hostId, CampingCreateRequest request) {
@@ -44,8 +48,27 @@ public class HostCampingService {
 
         Camping savedCamping = campingRepository.save(camping);
 
+        List<Site> sites = request.sites().stream()
+                .map(siteRequest -> {
+                    validateSiteCapacity(siteRequest);
+
+                    return Site.builder()
+                            .camping(savedCamping)
+                            .name(siteRequest.name())
+                            .description(siteRequest.description())
+                            .baseCapacity(siteRequest.baseCapacity())
+                            .maxCapacity(siteRequest.maxCapacity())
+                            .totalAmount(siteRequest.totalAmount())
+                            .price(siteRequest.price())
+                            .build();
+                })
+                .toList();
+
+        siteRepository.saveAll(sites);
+
         return new CampingCreateResponse(
                 savedCamping.getId(),
+                savedCamping.getName(),
                 savedCamping.getStatus()
         );
     }
@@ -121,5 +144,11 @@ public class HostCampingService {
         }
 
         return host;
+    }
+
+    private void validateSiteCapacity(SiteCreateRequest request) {
+        if (request.baseCapacity() > request.maxCapacity()) {
+            throw new CustomException(ErrorCode.INVALID_CAPACITY);
+        }
     }
 }
