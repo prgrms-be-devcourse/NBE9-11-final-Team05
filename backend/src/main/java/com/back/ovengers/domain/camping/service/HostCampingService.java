@@ -2,7 +2,6 @@ package com.back.ovengers.domain.camping.service;
 
 import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.entity.Camping;
-import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
