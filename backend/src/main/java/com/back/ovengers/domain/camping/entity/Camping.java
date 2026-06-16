@@ -1,5 +1,7 @@
 package com.back.ovengers.domain.camping.entity;
 
+
+import com.back.ovengers.domain.camping.dto.CampingUpdateRequest;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiItem;
 import com.back.ovengers.domain.user.entity.User;
 import io.micrometer.common.util.StringUtils;
@@ -86,6 +88,22 @@ public class Camping extends BaseEntity {
 
     private LocalDateTime deletedAt;
 
+    public void update(CampingUpdateRequest request) {
+        this.firstImageUrl = request.firstImageUrl();
+        this.name = request.name();
+        this.homepage = request.homepage();
+        this.region = request.region();
+        this.city = request.city();
+        this.address = request.address();
+        this.description = request.description();
+        this.phone = request.phone();
+        this.checkInTime = request.checkInTime();
+        this.checkOutTime = request.checkOutTime();
+        this.notice = request.notice();
+        this.lat = request.lat();
+        this.lng = request.lng();
+    }
+  
     public static Camping from(GoCampingApiItem item) {
         return Camping.builder()
                 .contentId(Long.valueOf(item.contentId()))

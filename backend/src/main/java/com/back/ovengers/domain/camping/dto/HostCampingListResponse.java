@@ -1,7 +1,7 @@
 package com.back.ovengers.domain.camping.dto;
 
 public record HostCampingListResponse(
-        Long campingId,
+        Long id,
         String name,
         String region,
         String city,
