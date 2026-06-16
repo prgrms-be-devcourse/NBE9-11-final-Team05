@@ -1,8 +1,6 @@
 package com.back.ovengers.domain.camping.controller;
 
-import com.back.ovengers.domain.camping.dto.CampingCreateRequest;
-import com.back.ovengers.domain.camping.dto.CampingCreateResponse;
-import com.back.ovengers.domain.camping.dto.HostCampingListResponse;
+import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.service.HostCampingService;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
@@ -49,6 +47,23 @@ public class HostCampingController {
         return ResponseEntity.ok(
                 new ApiResponse<>(
                         "내 캠핑장 목록 조회 성공",
+                        response
+                )
+        );
+    }
+
+    @PatchMapping("/{campingId}")
+    public ResponseEntity<ApiResponse<CampingUpdateResponse>> updateCamping(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long campingId,
+            @RequestBody CampingUpdateRequest request
+    ) {
+        CampingUpdateResponse response =
+                hostCampingService.updateCamping(user.getId(), campingId, request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "캠핑장 정보 수정이 완료되었습니다.",
                         response
                 )
         );

@@ -1,8 +1,6 @@
 package com.back.ovengers.domain.camping.service;
 
-import com.back.ovengers.domain.camping.dto.CampingCreateRequest;
-import com.back.ovengers.domain.camping.dto.CampingCreateResponse;
-import com.back.ovengers.domain.camping.dto.HostCampingListResponse;
+import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
@@ -64,6 +62,26 @@ public class HostCampingService {
                         camping.getRating()
                 ))
                 .toList();
+    }
+
+    @Transactional
+    public CampingUpdateResponse updateCamping(
+            Long hostId,
+            Long campingId,
+            CampingUpdateRequest request
+    ) {
+        validateHost(hostId);
+
+        Camping camping = campingRepository.findByIdAndDeletedAtIsNull(campingId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
+
+        if (!camping.getHost().getId().equals(hostId)) {
+            throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
+        }
+
+        camping.update(request);
+
+        return CampingUpdateResponse.from(camping);
     }
 
     private User validateHost(Long hostId) {
