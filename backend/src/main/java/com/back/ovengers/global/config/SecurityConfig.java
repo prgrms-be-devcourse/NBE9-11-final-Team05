@@ -18,8 +18,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import static org.springframework.security.authorization.SingleResultAuthorizationManager.permitAll;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
