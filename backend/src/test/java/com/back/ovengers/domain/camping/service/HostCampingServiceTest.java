@@ -4,6 +4,8 @@ import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.reservation.repository.ReservationRepository;
+import com.back.ovengers.domain.site.repository.SiteRepository;
 import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.Status;
 import com.back.ovengers.domain.user.entity.User;
@@ -36,6 +38,12 @@ class HostCampingServiceTest {
 
     @Autowired
     CampingRepository campingRepository;
+
+    @Autowired
+    private SiteRepository siteRepository;
+
+    @Autowired
+    private ReservationRepository reservationRepository;
 
     @Test
     void 호스트는_캠핑장을_등록할_수_있다() {
@@ -375,5 +383,39 @@ class HostCampingServiceTest {
         );
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_CAMPING_OWNER);
+    }
+
+    @Test
+    void 호스트는_본인_캠핑장을_삭제할_수_있다() {
+        User host = userRepository.save(
+                User.builder()
+                        .email("delete-host@test.com")
+                        .password("password")
+                        .name("호스트")
+                        .nickname("delete_host")
+                        .phone("01012345678")
+                        .role(Role.HOST)
+                        .status(Status.ACTIVE)
+                        .build()
+        );
+
+        Camping camping = campingRepository.save(
+                Camping.builder()
+                        .host(host)
+                        .businessNum("123-45-67890")
+                        .name("삭제 테스트 캠핑장")
+                        .region("경기도")
+                        .city("가평군")
+                        .address("가평 주소")
+                        .status(CampingStatus.PENDING)
+                        .build()
+        );
+
+        hostCampingService.deleteCamping(host.getId(), camping.getId());
+
+        Camping deletedCamping = campingRepository.findById(camping.getId())
+                .orElseThrow();
+
+        assertThat(deletedCamping.getDeletedAt()).isNotNull();
     }
 }
