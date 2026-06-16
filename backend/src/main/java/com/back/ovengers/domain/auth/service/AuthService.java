@@ -94,7 +94,7 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        String[] addressParts = request.getAddress().split(" ");
+        String[] addressParts = request.getAddress().trim().split("\\s+");
 
         // Camping 저장 — status는 PENDING (관리자 승인 후 APPROVED)
         Camping camping = Camping.builder()
