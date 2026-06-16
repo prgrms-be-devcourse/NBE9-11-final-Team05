@@ -46,6 +46,12 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+//                                "/api/auth/**",
+                                "/api/auth/signup",
+                                "/api/auth/login",
+                                "/api/auth/logout",
+                                "/api/auth/refresh",
+                                "/api/reservations/**"   // TODO: jwt filter 구현 후 제거
                                 "/api/auth/**",
                                 "/api/reservations/**",   // TODO: jwt filter 구현 후 제거
                                 "/api/users/**"
