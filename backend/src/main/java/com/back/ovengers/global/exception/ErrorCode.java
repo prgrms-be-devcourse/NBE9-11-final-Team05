@@ -184,6 +184,26 @@ public enum ErrorCode {
             "요청 값이 올바르지 않습니다."
     ),
 
+    //결제
+    RESERVATION_FORBIDDEN(
+            HttpStatus.FORBIDDEN,
+            "본인 예약만 결제 가능합니다."),
+    ALREADY_PAID(
+            HttpStatus.CONFLICT,
+            "이미 결제된 예약입니다."),
+    NO_AVAILABLE_ROOM(
+            HttpStatus.CONFLICT,
+            "예약 가능한 자리가 없습니다."),
+    INVALID_RESERVATION_STATUS(
+            HttpStatus.BAD_REQUEST,
+        "결제 가능한 예약 상태가 아닙니다."
+    ),
+    PAYMENT_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "결제 정보를 찾을 수 없습니다."
+    ),
+
+
     // 외부 API 통신 관련 예외
     GO_CAMPING_API_ERROR(
             HttpStatus.BAD_GATEWAY,
