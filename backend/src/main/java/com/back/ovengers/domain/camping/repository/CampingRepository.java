@@ -1,8 +1,12 @@
 package com.back.ovengers.domain.camping.repository;
 
 import com.back.ovengers.domain.camping.entity.Camping;
+<<<<<<< HEAD
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+=======
+import com.back.ovengers.domain.camping.entity.CampingStatus;
+>>>>>>> 24ab3a7 (feat: 관리자 대시보드 조회 기능 구현 및 서비스 테스트 구현)
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -26,4 +30,7 @@ public interface CampingRepository extends JpaRepository<Camping, Long> {
                 or c.region like :keywordLike)
     """)
     Page<Camping> searchCamping(String keywordLike, Pageable pageable);
+
+    // 관리자 대시보드
+    long countByStatus(CampingStatus status);
 }
