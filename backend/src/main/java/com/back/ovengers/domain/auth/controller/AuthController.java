@@ -1,9 +1,6 @@
 package com.back.ovengers.domain.auth.controller;
 
-import com.back.ovengers.domain.auth.dto.LoginRequest;
-import com.back.ovengers.domain.auth.dto.LoginResponse;
-import com.back.ovengers.domain.auth.dto.SignUpRequest;
-import com.back.ovengers.domain.auth.dto.SignUpResponse;
+import com.back.ovengers.domain.auth.dto.*;
 import com.back.ovengers.domain.auth.service.AuthService;
 import com.back.ovengers.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +35,16 @@ public class AuthController {
                                 response
                         )
                 );
+    }
+
+    @PostMapping("/signup/host")
+    public ResponseEntity<ApiResponse<SignUpResponse>> hostSignup(
+            @Valid @RequestBody HostSignUpRequest request
+    ) {
+        SignUpResponse response = authService.hostSignUp(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>("호스트 회원가입이 완료되었습니다.", response));
     }
 
     @PostMapping("/login")

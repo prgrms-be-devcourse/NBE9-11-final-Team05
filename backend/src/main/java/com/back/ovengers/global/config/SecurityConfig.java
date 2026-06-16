@@ -51,6 +51,7 @@ public class SecurityConfig {
                         ).authenticated()
                         .requestMatchers(
                                 "/api/auth/signup",
+                                "/api/auth/signup/host",
                                 "/api/auth/login",
                                 "/api/auth/logout",
                                 "/api/auth/refresh",
