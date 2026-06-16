@@ -1,5 +1,7 @@
 package com.back.ovengers.domain.user.service;
 
+import com.back.ovengers.domain.auth.service.RefreshTokenService;
+import com.back.ovengers.domain.user.dto.DeleteAccountRequest;
 import com.back.ovengers.domain.user.dto.MyPageResponse;
 import com.back.ovengers.domain.user.dto.UserUpdateRequest;
 import com.back.ovengers.domain.user.dto.UserUpdateResponse;
@@ -7,7 +9,10 @@ import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
+import com.back.ovengers.global.util.CookieUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -18,6 +23,9 @@ import org.springframework.util.StringUtils;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenService refreshTokenService;
+    private final CookieUtil cookieUtil;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public MyPageResponse getMyPage(Long userId) {
@@ -137,5 +145,27 @@ public class UserService {
                 user.getImageUrl(),
                 user.getCreatedAt()
         );
+    }
+
+    @Transactional
+    public void deleteAccount(Long userId, DeleteAccountRequest request, HttpServletResponse response) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // 입력한 비밀번호와 저장된 암호화 비밀번호 비교
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new CustomException(ErrorCode.INVALID_LOGIN_CREDENTIALS);
+        }
+
+        // soft delete 처리
+        user.delete();
+
+        // DB에서 Refresh Token 삭제
+        refreshTokenService.delete(userId);
+
+        // 쿠키 삭제
+        cookieUtil.deleteAccessTokenCookie(response);
+        cookieUtil.deleteRefreshTokenCookie(response);
     }
 }
