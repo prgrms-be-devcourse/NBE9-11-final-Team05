@@ -12,6 +12,7 @@ import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import com.back.ovengers.global.security.JwtProvider;
 import com.back.ovengers.global.util.CookieUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +28,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;              // JWT 토큰 생성 담당
     private final CookieUtil cookieUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
@@ -67,7 +69,7 @@ public class AuthService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponse login(LoginRequest request, HttpServletResponse response) {
 
         User user = userRepository.findByEmailAndDeletedAtIsNull(request.email())
@@ -82,14 +84,49 @@ public class AuthService {
         }
 
         String accessToken = jwtProvider.createAccessToken(user.getId());
+        String refreshToken = jwtProvider.createRefreshToken(user.getId());
 
         cookieUtil.addAccessTokenCookie(response, accessToken);
+        cookieUtil.addRefreshTokenCookie(response, refreshToken);
 
+        refreshTokenService.save(user.getId(), refreshToken);
 
         return new LoginResponse(accessToken, user.getRole().name()); // 토큰은 쿠키에 있으므로 응답 바디에서 제거
     }
 
-    public void logout(HttpServletResponse response) {
+    public void reissue(HttpServletRequest request, HttpServletResponse response) {
+
+        // 쿠키에서 Refresh Token 추출
+        String refreshToken = cookieUtil.getRefreshToken(request)
+                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_MISSING));
+
+        // 서명 검증 + 만료 시간 체크
+        jwtProvider.validateRefreshToken(refreshToken);
+
+        Long userId = jwtProvider.getUserId(refreshToken);
+
+        // DB에서 토큰 일치 여부 + 만료 시간 확인
+        refreshTokenService.validate(userId, refreshToken);
+
+        // 새 Access Token 발급 후 쿠키에 저장
+        String newAccessToken = jwtProvider.createAccessToken(userId);
+        cookieUtil.addAccessTokenCookie(response, newAccessToken);
+    }
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+
+        // Refresh Token에서 userId 추출하여 DB 삭제
+        cookieUtil.getRefreshToken(request).ifPresent(refreshToken -> {
+            try {
+                Long userId = jwtProvider.getUserId(refreshToken);
+                refreshTokenService.delete(userId);
+            } catch (Exception e) {
+                // 토큰이 이미 만료되었거나 유효하지 않아도 쿠키는 삭제
+            }
+        });
+
+        // 쿠키 삭제
         cookieUtil.deleteAccessTokenCookie(response);
+        cookieUtil.deleteRefreshTokenCookie(response);
     }
 }

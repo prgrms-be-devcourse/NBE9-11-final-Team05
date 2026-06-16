@@ -102,6 +102,21 @@ public enum ErrorCode {
         "Access Token이 만료되었습니다."
     ),
 
+    REFRESH_TOKEN_MISSING(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh Token이 없습니다."
+    ),
+
+    REFRESH_TOKEN_EXPIRED(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh Token이 만료되었습니다."
+    ),
+
+    REFRESH_TOKEN_INVALID(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh Token이 유효하지 않습니다."
+    ),
+
     // 예약
     RESERVATION_NOT_FOUND(
             HttpStatus.NOT_FOUND,

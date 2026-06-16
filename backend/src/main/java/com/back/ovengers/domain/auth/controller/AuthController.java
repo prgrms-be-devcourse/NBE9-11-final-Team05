@@ -6,6 +6,7 @@ import com.back.ovengers.domain.auth.dto.SignUpRequest;
 import com.back.ovengers.domain.auth.dto.SignUpResponse;
 import com.back.ovengers.domain.auth.service.AuthService;
 import com.back.ovengers.global.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -56,8 +57,22 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(HttpServletResponse response) {
-        authService.logout(response);
+    public ResponseEntity<ApiResponse<Void>> logout(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        authService.logout(request, response);
+
         return ResponseEntity.ok(new ApiResponse<>("로그아웃이 완료되었습니다."));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<Void>> reissue(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        authService.reissue(request, response);
+
+        return ResponseEntity.ok(new ApiResponse<>("토큰이 재발급되었습니다."));
     }
 }

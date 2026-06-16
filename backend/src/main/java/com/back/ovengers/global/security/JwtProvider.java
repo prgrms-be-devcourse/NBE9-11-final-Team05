@@ -132,4 +132,19 @@ public class JwtProvider {
             return false;
         }
     }
+
+    public void validateRefreshToken(String token) {
+        try {
+            Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token);
+
+        } catch (ExpiredJwtException e) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
+        }
+    }
 }
