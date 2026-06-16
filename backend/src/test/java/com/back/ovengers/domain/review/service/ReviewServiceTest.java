@@ -278,4 +278,65 @@ class ReviewServiceTest {
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
     }
+
+    @Test
+    @DisplayName("리뷰를 삭제할 수 있다")
+    void test10() {
+        // given
+        Review review = reviewRepository.save(Review.builder()
+                .user(user)
+                .camping(camping)
+                .reservation(reservation)
+                .rating(5)
+                .content("좋았어요")
+                .build());
+
+        // when
+        reviewService.deleteReview(user, review.getId());
+
+        // then
+        assertThat(reviewRepository.findById(review.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("본인 리뷰가 아니면 삭제할 수 없다")
+    void test11() {
+        // given
+        Review review = reviewRepository.save(Review.builder()
+                .user(user)
+                .camping(camping)
+                .reservation(reservation)
+                .rating(5)
+                .content("좋았어요")
+                .build());
+
+        User other = userRepository.save(User.builder()
+                .email("other@test.com")
+                .password("1234")
+                .name("다른유저")
+                .nickname("other")
+                .phone("010-9999-9999")
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build());
+
+        // when & then
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> reviewService.deleteReview(other, review.getId())
+        );
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_ACCESS_DENIED);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 리뷰 삭제 시 예외가 발생한다")
+    void test12() {
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> reviewService.deleteReview(user, 999L)
+        );
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+    }
 }

@@ -43,9 +43,11 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         try {
-            // 쿠키에서 토큰 추출 — 없으면 CustomException 발생
-            String token = cookieUtil.getAccessToken(request)
-                    .orElseThrow(() -> new CustomException(ErrorCode.ACCESS_TOKEN_MISSING));
+            String token = cookieUtil.getAccessToken(request).orElse(null);
+            if (token == null) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             // 서명 검증 + 만료 시간 체크
             // 만료 시 CustomException(ACCESS_TOKEN_EXPIRED) 발생

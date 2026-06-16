@@ -26,7 +26,7 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    @PostMapping
+    @PostMapping("/reviews")
     public ResponseEntity<ApiResponse<Void>> createReview(
             @AuthenticationPrincipal User user,
             @RequestParam Long reservationId,

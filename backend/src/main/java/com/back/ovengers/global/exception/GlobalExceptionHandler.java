@@ -1,6 +1,7 @@
 package com.back.ovengers.global.exception;
 
 import com.back.ovengers.global.response.ApiResponse;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -48,6 +49,22 @@ public class GlobalExceptionHandler {
                         )
                 );
     }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse> handleConstraintViolationException(
+            ConstraintViolationException e
+    ) {
+        String message = e.getConstraintViolations().iterator().next().getMessage();
+        return ResponseEntity
+                .badRequest()
+                .body(
+                        new ApiResponse<>(
+                                ErrorCode.INVALID_REVIEW_ID.name(),
+                                message
+                        )
+                );
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleException(
