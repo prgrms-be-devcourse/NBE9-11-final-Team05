@@ -7,6 +7,7 @@ import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
 import com.back.ovengers.global.response.PageResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,16 +15,18 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
+@Validated
 public class ReviewController {
 
     private final ReviewService reviewService;
 
-    @PostMapping
+    @PostMapping("/reviews")
     public ResponseEntity<ApiResponse<Void>> createReview(
             @AuthenticationPrincipal User user,
             @RequestParam Long reservationId,
@@ -54,5 +57,14 @@ public class ReviewController {
     ) {
         reviewService.updateReview(user, reviewId, request);
         return ResponseEntity.ok(new ApiResponse<>("리뷰가 수정되었습니다."));
+    }
+
+    @DeleteMapping("/reviews/{reviewId}")
+    public ResponseEntity<ApiResponse<Void>> deleteReview(
+            @AuthenticationPrincipal User user,
+            @PathVariable @Min(value = 1, message = "리뷰 ID가 올바르지 않습니다.") Long reviewId
+    ) {
+        reviewService.deleteReview(user, reviewId);
+        return ResponseEntity.ok(new ApiResponse<>("리뷰가 삭제되었습니다."));
     }
 }

@@ -163,6 +163,10 @@ public enum ErrorCode {
     REVIEW_ACCESS_DENIED(
             HttpStatus.FORBIDDEN,
         "리뷰 작성 권한이 없습니다."
+    ),
+    INVALID_PATH_VARIABLE(
+            HttpStatus.BAD_REQUEST,
+            "요청 값이 올바르지 않습니다."
     );
 
     private final HttpStatus status;
