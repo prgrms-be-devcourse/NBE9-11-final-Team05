@@ -260,7 +260,7 @@ class ReviewControllerTest {
         mockMvc.perform(delete("/api/reviews/{reviewId}", 0L)
                         .cookie(accessTokenCookie))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("INVALID_REVIEW_ID"));
+                .andExpect(jsonPath("$.message").value("INVALID_PATH_VARIABLE"));
     }
 
     @Test

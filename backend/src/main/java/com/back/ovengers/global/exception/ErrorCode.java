@@ -164,9 +164,9 @@ public enum ErrorCode {
             HttpStatus.FORBIDDEN,
         "리뷰 작성 권한이 없습니다."
     ),
-    INVALID_REVIEW_ID(
+    INVALID_PATH_VARIABLE(
             HttpStatus.BAD_REQUEST,
-            "리뷰 ID가 올바르지 않습니다."
+            "요청 값이 올바르지 않습니다."
     );
 
     private final HttpStatus status;

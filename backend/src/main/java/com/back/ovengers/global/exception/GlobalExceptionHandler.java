@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(
                         new ApiResponse<>(
-                                ErrorCode.INVALID_REVIEW_ID.name(),
+                                ErrorCode.INVALID_PATH_VARIABLE.name(),
                                 message
                         )
                 );
