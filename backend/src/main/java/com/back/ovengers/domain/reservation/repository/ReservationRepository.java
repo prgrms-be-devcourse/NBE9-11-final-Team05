@@ -2,7 +2,6 @@ package com.back.ovengers.domain.reservation.repository;
 
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
-import com.back.ovengers.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -61,6 +60,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             Pageable pageable
     );
 
-    Page<Reservation> findByUserAndStatus(User user, ReservationStatus status, Pageable pageable);
 
 }

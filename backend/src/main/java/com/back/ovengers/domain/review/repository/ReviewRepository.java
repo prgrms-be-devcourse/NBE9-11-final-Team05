@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Optional;
+import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
@@ -33,5 +33,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             @Param("campingId") Long campingId,
             Pageable pageable);
 
-    Optional<Review> findByReservationId(Long reservationId);
+    // 아이디 목록에 포함되는 리뷰들 리스트로 가져옴
+    List<Review> findByReservationIdIn(List<Long> reservationIds);
 }

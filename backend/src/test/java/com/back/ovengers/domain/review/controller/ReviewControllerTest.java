@@ -298,4 +298,40 @@ class ReviewControllerTest {
         mockMvc.perform(delete("/api/reviews/{reviewId}", 1L))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("내 리뷰 목록 조회 성공")
+    void t12() throws Exception {
+        reviewRepository.save(Review.builder()
+                .user(user)
+                .camping(camping)
+                .reservation(reservation)
+                .rating(5)
+                .content("좋았어요")
+                .build());
+
+        mockMvc.perform(get("/api/users/me/reviews")
+                        .cookie(accessTokenCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("리뷰 목록 조회 성공"))
+                .andExpect(jsonPath("$.data.content[0].hasReview").value(true))
+                .andExpect(jsonPath("$.data.content[0].review.rating").value(5));
+    }
+
+    @Test
+    @DisplayName("내 리뷰 목록 조회 성공 - 리뷰 없는 예약도 포함")
+    void t13() throws Exception {
+        mockMvc.perform(get("/api/users/me/reviews")
+                        .cookie(accessTokenCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].hasReview").value(false))
+                .andExpect(jsonPath("$.data.content[0].review").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("내 리뷰 목록 조회 실패 - 미로그인")
+    void t14() throws Exception {
+        mockMvc.perform(get("/api/users/me/reviews"))
+                .andExpect(status().isForbidden());
+    }
 }
