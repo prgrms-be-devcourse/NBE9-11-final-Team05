@@ -5,6 +5,7 @@ import com.back.ovengers.domain.camping.service.HostCampingService;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +67,18 @@ public class HostCampingController {
                         "캠핑장 정보 수정이 완료되었습니다.",
                         response
                 )
+        );
+    }
+
+    @DeleteMapping("/{campingId}")
+    public ResponseEntity<ApiResponse<Void>> deleteCamping(
+            @AuthenticationPrincipal User user,
+            @PathVariable @Min(1) Long campingId
+    ) {
+        hostCampingService.deleteCamping(user.getId(), campingId);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>("캠핑장이 삭제되었습니다.")
         );
     }
 }
