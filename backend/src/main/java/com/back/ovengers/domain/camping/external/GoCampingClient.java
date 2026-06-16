@@ -7,6 +7,7 @@ import com.back.ovengers.domain.camping.external.dto.GoCampingApiWrapper;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class GoCampingClient {
 
     private final RestClient restClient;
@@ -74,6 +76,12 @@ public class GoCampingClient {
 
             return result;
         } catch (RestClientException e) {
+            String res = restClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .body(String.class);
+            log.error("RESPONSE:" + res);
+            log.error("ERROR:", e);
             throw new CustomException(ErrorCode.GO_CAMPING_API_ERROR);
         }
     }
