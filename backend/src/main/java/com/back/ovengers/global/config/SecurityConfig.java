@@ -60,6 +60,10 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/users/me/reviews"  // 내 리뷰 목록 조회 - 인증 필요
                         ).authenticated()
