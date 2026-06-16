@@ -4,7 +4,10 @@ import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.reservation.entity.Reservation;
+import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
+import com.back.ovengers.domain.site.entity.Site;
 import com.back.ovengers.domain.site.repository.SiteRepository;
 import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.Status;
@@ -12,6 +15,7 @@ import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -417,5 +422,87 @@ class HostCampingServiceTest {
                 .orElseThrow();
 
         assertThat(deletedCamping.getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("확정 예약이 존재하면 캠핑장 삭제에 실패한다")
+    void deleteCamping_fail_whenConfirmedReservationExists() {
+        // given
+        User host = userRepository.save(
+                User.builder()
+                        .email("host@test.com")
+                        .password("1234")
+                        .name("호스트")
+                        .nickname("host")
+                        .phone("01012341234")
+                        .role(Role.HOST)
+                        .status(Status.ACTIVE)
+                        .build()
+        );
+
+        User user = userRepository.save(
+                User.builder()
+                        .email("user@test.com")
+                        .password("1234")
+                        .name("유저")
+                        .nickname("user")
+                        .phone("01056785678")
+                        .role(Role.USER)
+                        .status(Status.ACTIVE)
+                        .build()
+        );
+
+        Camping camping = campingRepository.save(
+                Camping.builder()
+                        .host(host)
+                        .name("테스트 캠핑장")
+                        .region("경기")
+                        .city("가평")
+                        .address("가평군")
+                        .status(CampingStatus.APPROVED)
+                        .build()
+        );
+
+        Site site = siteRepository.save(
+                Site.builder()
+                        .camping(camping)
+                        .name("A구역")
+                        .description("테스트 사이트")
+                        .baseCapacity(2)
+                        .maxCapacity(4)
+                        .totalAmount(10)
+                        .price(50000)
+                        .build()
+        );
+
+        reservationRepository.save(
+                Reservation.builder()
+                        .user(user)
+                        .site(site)
+                        .rsvNum("RSV-001")
+                        .rsvName("예약자")
+                        .rsvPhone("01099998888")
+                        .checkIn(LocalDate.now().plusDays(1))
+                        .checkOut(LocalDate.now().plusDays(2))
+                        .guestCount(2)
+                        .rsvPrice(50000)
+                        .request("조용한 자리 부탁드립니다.")
+                        .status(ReservationStatus.CONFIRMED)
+                        .build()
+        );
+
+        // when & then
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> hostCampingService.deleteCamping(host.getId(), camping.getId())
+        );
+
+        assertThat(exception.getErrorCode())
+                .isEqualTo(ErrorCode.CONFIRMED_RESERVATION_EXISTS);
+
+        Camping foundCamping = campingRepository.findById(camping.getId())
+                .orElseThrow();
+
+        assertThat(foundCamping.getDeletedAt()).isNull();
     }
 }

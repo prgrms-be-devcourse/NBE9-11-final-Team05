@@ -5,6 +5,7 @@ import com.back.ovengers.domain.camping.service.HostCampingService;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -72,7 +73,7 @@ public class HostCampingController {
     @DeleteMapping("/{campingId}")
     public ResponseEntity<ApiResponse<Void>> deleteCamping(
             @AuthenticationPrincipal User user,
-            @PathVariable Long campingId
+            @PathVariable @Min(1) Long campingId
     ) {
         hostCampingService.deleteCamping(user.getId(), campingId);
 

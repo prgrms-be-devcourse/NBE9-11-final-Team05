@@ -98,7 +98,7 @@ public class HostCampingService {
             throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
         }
 
-        if (reservationRepository.existsReservationByCampingIdAndStatus(
+        if (reservationRepository.existsBySiteCampingIdAndStatus(
                 campingId,
                 ReservationStatus.CONFIRMED
         )) {
