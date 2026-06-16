@@ -2,6 +2,7 @@ package com.back.ovengers.domain.camping.service;
 
 import com.back.ovengers.domain.camping.dto.CampingCreateRequest;
 import com.back.ovengers.domain.camping.dto.CampingCreateResponse;
+import com.back.ovengers.domain.camping.dto.HostCampingListResponse;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
@@ -14,12 +15,16 @@ import com.back.ovengers.global.exception.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 class HostCampingServiceTest {
 
@@ -146,5 +151,72 @@ class HostCampingServiceTest {
         );
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ALREADY_DELETED);
+    }
+
+    @Test
+    void 내_캠핑장_목록을_조회한다() {
+        User host = userRepository.save(
+                User.builder()
+                        .email("list-host@test.com")
+                        .password("password")
+                        .name("호스트")
+                        .nickname("list_host")
+                        .phone("01012345678")
+                        .role(Role.HOST)
+                        .status(Status.ACTIVE)
+                        .build()
+        );
+
+        campingRepository.save(
+                Camping.builder()
+                        .host(host)
+                        .businessNum("123-45-67890")
+                        .name("가평 캠핑장")
+                        .region("경기도")
+                        .city("가평군")
+                        .address("가평읍 123")
+                        .status(CampingStatus.PENDING)
+                        .build()
+        );
+
+        campingRepository.save(
+                Camping.builder()
+                        .host(host)
+                        .businessNum("111-22-33333")
+                        .name("양평 캠핑장")
+                        .region("경기도")
+                        .city("양평군")
+                        .address("양평읍 456")
+                        .status(CampingStatus.PENDING)
+                        .build()
+        );
+
+        List<HostCampingListResponse> result =
+                hostCampingService.getMyCampings(host.getId());
+
+        assertThat(result).hasSize(2);
+        assertThat(result)
+                .extracting(HostCampingListResponse::name)
+                .containsExactlyInAnyOrder("가평 캠핑장", "양평 캠핑장");
+    }
+
+    @Test
+    void 등록된_캠핑장이_없으면_빈_목록을_반환한다() {
+        User host = userRepository.save(
+                User.builder()
+                        .email("empty-host@test.com")
+                        .password("password")
+                        .name("빈호스트")
+                        .nickname("empty_host")
+                        .phone("01011112222")
+                        .role(Role.HOST)
+                        .status(Status.ACTIVE)
+                        .build()
+        );
+
+        List<HostCampingListResponse> result =
+                hostCampingService.getMyCampings(host.getId());
+
+        assertThat(result).isEmpty();
     }
 }

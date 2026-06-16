@@ -58,12 +58,12 @@ public enum ErrorCode {
 
     ALREADY_DELETED(
             HttpStatus.BAD_REQUEST,
-        "탈퇴한 회원입니다."
+            "탈퇴한 회원입니다."
     ),
 
     BANNED_USER(
             HttpStatus.FORBIDDEN,
-        "이용이 정지된 계정입니다."
+            "이용이 정지된 계정입니다."
     ),
 
     // 호스트 도메인
@@ -79,7 +79,7 @@ public enum ErrorCode {
 
     HOST_REQUIRED(
             HttpStatus.FORBIDDEN,
-            "호스트만 등록 가능합니다."
+            "호스트 권한이 필요합니다."
     ),
 
     NOT_CAMPING_OWNER(
@@ -100,6 +100,21 @@ public enum ErrorCode {
     ACCESS_TOKEN_EXPIRED(
             HttpStatus.UNAUTHORIZED,
         "Access Token이 만료되었습니다."
+    ),
+
+    REFRESH_TOKEN_MISSING(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh Token이 없습니다."
+    ),
+
+    REFRESH_TOKEN_EXPIRED(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh Token이 만료되었습니다."
+    ),
+
+    REFRESH_TOKEN_INVALID(
+            HttpStatus.UNAUTHORIZED,
+            "Refresh Token이 유효하지 않습니다."
     ),
 
     // 예약
@@ -163,6 +178,10 @@ public enum ErrorCode {
     REVIEW_ACCESS_DENIED(
             HttpStatus.FORBIDDEN,
         "리뷰 작성 권한이 없습니다."
+    ),
+    INVALID_PATH_VARIABLE(
+            HttpStatus.BAD_REQUEST,
+            "요청 값이 올바르지 않습니다."
     );
 
     private final HttpStatus status;
