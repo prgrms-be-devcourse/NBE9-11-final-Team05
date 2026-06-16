@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.camping.entity;
 
 
+import com.back.ovengers.domain.camping.dto.CampingCreateRequest;
 import com.back.ovengers.domain.camping.dto.CampingUpdateRequest;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiItem;
 import com.back.ovengers.domain.user.entity.User;
@@ -72,6 +73,19 @@ public class Camping extends BaseEntity {
     private BigDecimal lng;
 
     private LocalDateTime deletedAt;
+
+    public static Camping create(User host, CampingCreateRequest request) {
+        return Camping.builder()
+                .host(host)
+                .tourNum(request.tourNum())
+                .businessNum(request.businessNum())
+                .name(request.name())
+                .region(request.region())
+                .city(request.city())
+                .address(request.address())
+                .status(CampingStatus.PENDING)
+                .build();
+    }
 
     public void update(CampingUpdateRequest request) {
         this.firstImageUrl = request.firstImageUrl();

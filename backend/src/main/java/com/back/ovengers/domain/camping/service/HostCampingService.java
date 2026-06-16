@@ -35,35 +35,13 @@ public class HostCampingService {
 
         User host = validateHost(hostId);
 
-        Camping camping = Camping.builder()
-                .host(host)
-                .tourNum(request.tourNum())
-                .businessNum(request.businessNum())
-                .name(request.name())
-                .region(request.region())
-                .city(request.city())
-                .address(request.address())
-                .status(CampingStatus.PENDING)
-                .build();
-
+        Camping camping = Camping.create(host, request);
         Camping savedCamping = campingRepository.save(camping);
 
         List<Site> sites = request.sites().stream()
-                .map(siteRequest -> {
-                    validateSiteCapacity(siteRequest);
-
-                    return Site.builder()
-                            .camping(savedCamping)
-                            .name(siteRequest.name())
-                            .description(siteRequest.description())
-                            .baseCapacity(siteRequest.baseCapacity())
-                            .maxCapacity(siteRequest.maxCapacity())
-                            .totalAmount(siteRequest.totalAmount())
-                            .price(siteRequest.price())
-                            .build();
-                })
+                .peek(this::validateSiteCapacity)
+                .map(siteRequest -> Site.create(savedCamping, siteRequest))
                 .toList();
-
         siteRepository.saveAll(sites);
 
         return new CampingCreateResponse(
