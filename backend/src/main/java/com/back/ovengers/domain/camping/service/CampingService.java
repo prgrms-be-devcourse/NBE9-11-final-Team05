@@ -2,7 +2,7 @@ package com.back.ovengers.domain.camping.service;
 
 import com.back.ovengers.domain.camping.dto.CampingDetailResponse;
 import com.back.ovengers.domain.camping.dto.CampingListResponse;
-import com.back.ovengers.domain.camping.dto.CampingSiteResponse;
+import com.back.ovengers.domain.site.dto.SiteResponse;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingImage;
 import com.back.ovengers.domain.camping.repository.CampingImageRepository;
@@ -43,9 +43,9 @@ public class CampingService {
                 .map(CampingImage::getImageUrl)
                 .toList();
 
-        List<CampingSiteResponse> sites = siteRepository.findByCampingId(campingId)
+        List<SiteResponse> sites = siteRepository.findByCampingId(campingId)
                 .stream()
-                .map(CampingSiteResponse::from)
+                .map(SiteResponse::from)
                 .toList();
 
         return CampingDetailResponse.from(camp, imageUrls, sites);
