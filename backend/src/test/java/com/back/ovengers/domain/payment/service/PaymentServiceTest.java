@@ -102,7 +102,7 @@ class PaymentServiceTest {
                 .status(ReservationStatus.PENDING)
                 .build());
 
-        accessToken = jwtProvider.createAccessToken(user.getId());
+        accessToken = jwtProvider.createRefreshToken(user.getId(), user.getRole().name());
     }
 
     @AfterEach
@@ -156,7 +156,7 @@ class PaymentServiceTest {
                 .status(Status.ACTIVE)
                 .build());
 
-        String otherToken = jwtProvider.createAccessToken(otherUser.getId());
+        String otherToken = jwtProvider.createRefreshToken(otherUser.getId(), otherUser.getRole().name());
 
         PaymentRequest request = new PaymentRequest();
         ReflectionTestUtils.setField(request, "reservationId", reservation.getId());

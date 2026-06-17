@@ -58,8 +58,8 @@ class AuthControllerTest {
                 .status(Status.ACTIVE)
                 .build());
 
-        String accessToken = jwtProvider.createAccessToken(user.getId());
-        String refreshToken = jwtProvider.createRefreshToken(user.getId());
+        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole().name());
+        String refreshToken = jwtProvider.createRefreshToken(user.getId(), user.getRole().name());
 
         accessTokenCookie = new Cookie("accessToken", accessToken);
         refreshTokenCookie = new Cookie("refreshToken", refreshToken);

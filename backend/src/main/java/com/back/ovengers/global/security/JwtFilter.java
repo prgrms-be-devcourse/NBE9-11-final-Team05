@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -54,7 +56,10 @@ public class JwtFilter extends OncePerRequestFilter {
             if (jwtProvider.validateToken(token)) {
 
                 Long userId = jwtProvider.getUserId(token);
+                String role = jwtProvider.getRole(token);
 
+                // DB 조회 제거 — 토큰에 Role이 있으므로 불필요
+                // 단, soft delete 체크는 DB 조회가 필요하므로 유지
                 User user = userRepository.findById(userId)
                         .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
@@ -66,7 +71,7 @@ public class JwtFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(
                                 user,
                                 null,
-                                null
+                                List.of(new SimpleGrantedAuthority(role))
                         );
 
                 auth.setDetails(

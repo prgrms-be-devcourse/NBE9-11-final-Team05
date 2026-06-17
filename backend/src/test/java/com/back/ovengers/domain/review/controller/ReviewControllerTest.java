@@ -99,7 +99,7 @@ class ReviewControllerTest {
                 .status(ReservationStatus.COMPLETED)
                 .build());
 
-        String token = jwtProvider.createAccessToken(user.getId());
+        String token = jwtProvider.createAccessToken(user.getId(), user.getRole().name());
         accessTokenCookie = new Cookie("accessToken", token);
     }
 
@@ -210,7 +210,7 @@ class ReviewControllerTest {
                 .content("좋았어요")
                 .build());
 
-        Cookie otherCookie = new Cookie("accessToken", jwtProvider.createAccessToken(other.getId()));
+        Cookie otherCookie = new Cookie("accessToken", jwtProvider.createAccessToken(other.getId(), other.getRole().name()));
         ReviewRequest request = ReviewRequest.of(1, "별로였어요");
 
         mockMvc.perform(put("/api/reviews/{reviewId}", review.getId())
@@ -284,7 +284,7 @@ class ReviewControllerTest {
                 .content("좋았어요")
                 .build());
 
-        Cookie otherCookie = new Cookie("accessToken", jwtProvider.createAccessToken(other.getId()));
+        Cookie otherCookie = new Cookie("accessToken", jwtProvider.createAccessToken(other.getId(), other.getRole().name()));
 
         mockMvc.perform(delete("/api/reviews/{reviewId}", review.getId())
                         .cookie(otherCookie))

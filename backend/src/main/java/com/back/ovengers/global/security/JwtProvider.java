@@ -54,12 +54,13 @@ public class JwtProvider {
      * - 서명(signWith)으로 위변조 방지
      * - compact()로 최종 JWT 문자열(xxx.yyy.zzz 형태) 생성
      */
-    public String createAccessToken(Long userId) {
+    public String createAccessToken(Long userId, String role) {
 
         Date now = new Date();
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))           // 토큰 주체 = 유저 ID
+                .claim("role", role)
                 .issuedAt(now)                              // 발급 시각
                 .expiration(
                         new Date(
@@ -76,12 +77,13 @@ public class JwtProvider {
      * - Access Token과 구조는 동일하나, 만료 기간이 더 길게 설정됨 (refreshExpiration)
      * - Access Token 재발급용으로 사용
      */
-    public String createRefreshToken(Long userId) {
+    public String createRefreshToken(Long userId, String role) {
 
         Date now = new Date();
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
+                .claim("role", role)
                 .issuedAt(now)
                 .expiration(
                         new Date(
@@ -90,6 +92,16 @@ public class JwtProvider {
                 )
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    // 토큰에서 Role 추출
+    public String getRole(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
     }
 
     // 사용자ID 추출

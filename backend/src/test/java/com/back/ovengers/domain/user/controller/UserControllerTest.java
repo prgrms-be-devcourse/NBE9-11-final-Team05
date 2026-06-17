@@ -51,7 +51,7 @@ class UserControllerTest {
                 .status(Status.ACTIVE)
                 .build());
 
-        String accessToken = jwtProvider.createAccessToken(user.getId());
+        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole().name());
         accessTokenCookie = new Cookie("accessToken", accessToken);
     }
 
