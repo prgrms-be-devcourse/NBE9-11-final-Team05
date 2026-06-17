@@ -10,7 +10,6 @@ import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
 import com.back.ovengers.domain.site.entity.Site;
 import com.back.ovengers.domain.site.repository.SiteRepository;
-import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
@@ -143,12 +142,6 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public Page<HostReservationResponse> getHostReservations(Long hostId, Pageable pageable) {
-
-        User host = userRepository.findByIdAndDeletedAtIsNull(hostId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        if(host.getRole() != Role.HOST) throw new CustomException(ErrorCode.HOST_REQUIRED);
-
         return reservationRepository.findHostReservations(hostId, pageable);
     }
 }

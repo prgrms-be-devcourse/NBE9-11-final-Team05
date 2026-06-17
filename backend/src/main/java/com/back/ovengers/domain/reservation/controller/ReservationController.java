@@ -25,7 +25,6 @@ public class ReservationController {
             @AuthenticationPrincipal User user,
             @RequestBody @Valid ReservationRequest request) {
 
-
         ReservationResponse response = reservationService.create(user.getId(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -41,7 +40,6 @@ public class ReservationController {
     public ResponseEntity<ApiResponse<ReservationDetailResponse>> getReservation(
             @AuthenticationPrincipal User user,
             @PathVariable Long id) {
-
 
         return ResponseEntity.ok(
                 new ApiResponse<>(
