@@ -48,7 +48,12 @@ public class CampingController {
     }
 
     @GetMapping("/{campingId}")
+    @Operation(
+            summary = "캠핑장 상세 조회",
+            description = "campingId를 통해 캠핑장의 기본 정보, 이미지 목록, 사이트 정보를 조회할 수 있습니다."
+    )
     public ResponseEntity<ApiResponse<CampingDetailResponse>> getCampDetail(
+            @Parameter(description = "조회할 캠핑장 ID", example = "1")
             @PathVariable Long campingId
     ) {
 
