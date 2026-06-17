@@ -4,6 +4,7 @@ import com.back.ovengers.domain.payment.dto.TossConfirmResponse;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Base64;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TossPaymentClient {
@@ -22,6 +24,7 @@ public class TossPaymentClient {
     private String secretKey;
 
     private static final String TOSS_CONFIRM_URL = "https://api.tosspayments.com/v1/payments/confirm";
+    private static final String TOSS_CANCEL_URL = "https://api.tosspayments.com/v1/payments/%s/cancel";
 
     public TossConfirmResponse confirm(String paymentKey, String orderId, Integer amount) {
         HttpHeaders headers = new HttpHeaders();
@@ -45,6 +48,29 @@ public class TossPaymentClient {
             return response.getBody();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.TOSS_CONFIRM_FAIL);
+        }
+    }
+
+    public void cancel(String paymentKey, String cancelReason) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + Base64.getEncoder()
+                .encodeToString((secretKey + ":").getBytes()));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> body = Map.of(
+                "cancelReason", cancelReason
+        );
+
+        try {
+            restTemplate.exchange(
+                    String.format(TOSS_CANCEL_URL, paymentKey),
+                    HttpMethod.POST,
+                    new HttpEntity<>(body, headers),
+                    Void.class
+            );
+        } catch (Exception e) {
+            // 망취소 자체가 실패하면 로그만 남기고 별도 알림/배치로 처리해야 함
+            log.error("망취소 실패: paymentKey={}, reason={}", paymentKey, e.getMessage());
         }
     }
 }

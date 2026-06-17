@@ -17,17 +17,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final ReservationRepository reservationRepository;
     private final TossPaymentClient tossPaymentClient;
 
+    @Transactional
     public PaymentResponse create(Long userId, PaymentRequest request) {
 
         // 1. 예약 조회
@@ -44,8 +45,12 @@ public class PaymentService {
             throw new CustomException(ErrorCode.INVALID_RESERVATION_STATUS);
         }
 
-        // 4. 이미 결제된 예약인지 확인
-        if (paymentRepository.findByReservation_Id(request.getReservationId()).isPresent()) {
+        // 4. 이미 결제된 예약인지 확인, DONE 상태 결제가 있으면 차단
+        List<Payment> existingPayments = paymentRepository.findAllByReservation_Id(request.getReservationId());
+        boolean alreadyPaid = existingPayments.stream()
+                .anyMatch(p -> p.getStatus() == PaymentStatus.DONE);
+
+        if (alreadyPaid) {
             throw new CustomException(ErrorCode.ALREADY_PAID);
         }
 
@@ -65,18 +70,6 @@ public class PaymentService {
         return PaymentResponse.of(paymentRepository.save(payment), reservation);
     }
 
-    // 결제 완료 후 예약 상태 원자적 처리
-    public void confirm(String orderId) {
-
-        Payment payment = paymentRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
-
-        // 결제 상태 변경
-        payment.updateStatus(PaymentStatus.DONE);
-
-        // 예약 상태 변경 (같은 트랜잭션에서 처리)
-        payment.getReservation().updateStatus(ReservationStatus.CONFIRMED);
-    }
 
     // 토스페이먼츠 결제 승인
     @Transactional
@@ -108,11 +101,14 @@ public class PaymentService {
             throw e;
         }
 
-        // 5. 결제 상태 변경 + paymentKey 저장
-        payment.confirm(request.getPaymentKey());
-
-        // 6. 예약 상태 변경 (같은 트랜잭션 - 원자적 처리)
-        payment.getReservation().updateStatus(ReservationStatus.CONFIRMED);
+        // 5. DB 반영 (실패 시 망취소 처리)
+        try {
+            payment.confirm(request.getPaymentKey());
+            payment.getReservation().updateStatus(ReservationStatus.CONFIRMED);
+        } catch (Exception e) {
+            tossPaymentClient.cancel(request.getPaymentKey(), "서버 오류로 인한 자동 취소");
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
 
         return PaymentConfirmResponse.of(payment, tossResponse.getMethod(), tossResponse.getApprovedAt());
     }
