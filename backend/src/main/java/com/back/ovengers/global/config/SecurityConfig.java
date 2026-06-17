@@ -2,6 +2,7 @@ package com.back.ovengers.global.config;
 
 
 import com.back.ovengers.global.security.JwtFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,13 +45,42 @@ public class SecurityConfig {
                                 SessionCreationPolicy.STATELESS
                         )
                 )
+                .exceptionHandling(exception -> exception
+
+                        // 인증 실패(미로그인, 토큰 없음 등) → 401 Unauthorized
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"message\":\"ACCESS_TOKEN_MISSING\",\"data\":\"Access Token이 없습니다.\"}"
+                            );
+                        })
+
+                        // 인가 실패(권한 부족) → 403 Forbidden
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"message\":\"FORBIDDEN\",\"data\":\"접근 권한이 없습니다.\"}"
+                            );
+                        })
+                )
+
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/users/me/reviews"  // 내 리뷰 목록 조회 - 인증 필요
                         ).authenticated()
                         .requestMatchers(
+                                "/api/users/me/**"  // 내 정보 조회/수정/탈퇴 및 하위 API는 로그인 사용자만 접근 가능
+                        ).authenticated()
+                        .requestMatchers(
                                 "/api/auth/signup",
+                                "/api/auth/signup/host",
                                 "/api/auth/login",
                                 "/api/auth/logout",
                                 "/api/auth/refresh",

@@ -99,7 +99,7 @@ class ReviewControllerTest {
                 .status(ReservationStatus.COMPLETED)
                 .build());
 
-        String token = jwtProvider.createAccessToken(user.getId());
+        String token = jwtProvider.createAccessToken(user.getId(), user.getRole().name());
         accessTokenCookie = new Cookie("accessToken", token);
     }
 
@@ -131,7 +131,7 @@ class ReviewControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .param("reservationId", String.valueOf(reservation.getId())))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     // ===================== 캠핑장 리뷰 목록 조회 =====================
@@ -210,7 +210,7 @@ class ReviewControllerTest {
                 .content("좋았어요")
                 .build());
 
-        Cookie otherCookie = new Cookie("accessToken", jwtProvider.createAccessToken(other.getId()));
+        Cookie otherCookie = new Cookie("accessToken", jwtProvider.createAccessToken(other.getId(), other.getRole().name()));
         ReviewRequest request = ReviewRequest.of(1, "별로였어요");
 
         mockMvc.perform(put("/api/reviews/{reviewId}", review.getId())
@@ -229,7 +229,7 @@ class ReviewControllerTest {
         mockMvc.perform(put("/api/reviews/{reviewId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     // ===================== 리뷰 삭제 =====================
@@ -284,7 +284,7 @@ class ReviewControllerTest {
                 .content("좋았어요")
                 .build());
 
-        Cookie otherCookie = new Cookie("accessToken", jwtProvider.createAccessToken(other.getId()));
+        Cookie otherCookie = new Cookie("accessToken", jwtProvider.createAccessToken(other.getId(), other.getRole().name()));
 
         mockMvc.perform(delete("/api/reviews/{reviewId}", review.getId())
                         .cookie(otherCookie))
@@ -296,7 +296,7 @@ class ReviewControllerTest {
     @DisplayName("리뷰 삭제 실패 - 미로그인")
     void t11() throws Exception {
         mockMvc.perform(delete("/api/reviews/{reviewId}", 1L))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -332,6 +332,6 @@ class ReviewControllerTest {
     @DisplayName("내 리뷰 목록 조회 실패 - 미로그인")
     void t14() throws Exception {
         mockMvc.perform(get("/api/users/me/reviews"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

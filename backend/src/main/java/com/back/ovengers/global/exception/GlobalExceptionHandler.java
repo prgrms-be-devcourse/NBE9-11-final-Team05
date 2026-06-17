@@ -4,6 +4,7 @@ import com.back.ovengers.global.response.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -77,6 +78,20 @@ public class GlobalExceptionHandler {
                         new ApiResponse<>(
                                 ErrorCode.INTERNAL_SERVER_ERROR.name(),
                                 ErrorCode.INTERNAL_SERVER_ERROR.getMessage()
+                        )
+                );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse> handleAccessDeniedException(
+            AccessDeniedException e
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(
+                        new ApiResponse<>(
+                                ErrorCode.FORBIDDEN.name(),
+                                ErrorCode.FORBIDDEN.getMessage()
                         )
                 );
     }
