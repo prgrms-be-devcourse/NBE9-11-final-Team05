@@ -9,7 +9,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
 @Entity
 @Table(name = "camping_image")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

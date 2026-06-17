@@ -61,19 +61,6 @@ public class UserController {
         );
     }
 
-    @GetMapping("/me/reservations")
-    public ResponseEntity<ApiResponse<List<ReservationResponse>>> getMyReservations(
-            @AuthenticationPrincipal User user,
-            @RequestParam(defaultValue = "0") int page) {
-
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        "예약 목록 조회가 완료되었습니다.",
-                        reservationService.getMyReservations(user.getId(), page)
-                )
-        );
-    }
 
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<Void>> deleteAccount(

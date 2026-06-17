@@ -137,4 +137,17 @@ public class ReservationService {
                 .map(ReservationResponse::of)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public ReservationResponse getSummary(Long reservationId, Long userId) {
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        if (!reservation.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        return ReservationResponse.of(reservation);
+    }
 }

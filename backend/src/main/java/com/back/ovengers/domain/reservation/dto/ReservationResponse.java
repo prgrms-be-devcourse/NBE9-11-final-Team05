@@ -22,6 +22,11 @@ public class ReservationResponse {
     private String status;
     private LocalDateTime createdAt;
 
+    // summary용으로 추가
+    private String campingName;
+    private String rsvName;
+    private String siteName;
+
     public static ReservationResponse of(Reservation reservation) {
         return ReservationResponse.builder()
                 .id(reservation.getId())
@@ -35,6 +40,9 @@ public class ReservationResponse {
                 .rsvPrice(reservation.getRsvPrice())
                 .status(reservation.getStatus().name())
                 .createdAt(reservation.getCreatedAt())
+                .campingName(reservation.getSite().getCamping().getName())
+                .rsvName(reservation.getRsvName())
+                .siteName(reservation.getSite().getName())
                 .build();
     }
 }

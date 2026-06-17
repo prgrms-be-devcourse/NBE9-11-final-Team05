@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reservations")
@@ -47,6 +49,33 @@ public class ReservationController {
                 new ApiResponse<>(
                         "예약 상세 조회가 완료되었습니다.",
                         reservationService.getReservation(id, user.getId())
+                )
+        );
+    }
+
+    @GetMapping("/{id}/summary")
+    public ResponseEntity<ApiResponse<ReservationResponse>> getSummary(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "결제 완료 조회가 완료되었습니다.",
+                        reservationService.getSummary(id, user.getId())
+                )
+        );
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<ReservationResponse>>> getMyReservations(
+            @AuthenticationPrincipal User user,
+            @RequestParam(defaultValue = "0") int page) {
+
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "예약 목록 조회가 완료되었습니다.",
+                        reservationService.getMyReservations(user.getId(), page)
                 )
         );
     }
