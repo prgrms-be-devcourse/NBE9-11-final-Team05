@@ -23,15 +23,24 @@ RUN ./gradlew bootJar --no-daemon
 # JRE만 있는 가벼운 이미지로 교체 (빌드 도구, 소스코드는 여기 안 들어감)
 FROM eclipse-temurin:25-jre AS run
 WORKDIR /app
+# 이 시점에 /app 디렉토리가 만들어지는데, 아직 USER 선언 전이라 소유자가 root로 찍힘
 
 # 보안: root가 아닌 별도 유저로 컨테이너 실행
 # -m: 홈 디렉토리 생성, -u 1001: UID 명시 (베이스 이미지에 기본 유저가 있든 없든 항상 동작)
-RUN useradd -m -u 1001 appuser
+# && chown appuser:appuser /app
+# → WORKDIR에서 root 소유로 생성된 /app 디렉토리를 appuser 소유로 바꿔줌
+# → 이걸 안 해두면, 나중에 앱이 /app 안에 로그/임시파일 등을 쓰려고 할 때
+#   appuser는 그 디렉토리의 주인이 아니라서 Permission denied 에러가 날 수 있음
+RUN useradd -m -u 1001 appuser && chown appuser:appuser /app
 USER appuser
+# 이 줄 이후의 모든 명령(COPY, ENTRYPOINT)은 appuser 권한으로 수행됨
 
 # build.gradle에서 plain jar 생성을 막아뒀기 때문에
 # build/libs/ 안에는 실행 가능한 jar 하나만 있어서 *.jar 와일드카드를 안전하게 쓸 수 있음
-COPY --from=build /app/build/libs/*.jar app.jar
+# --chown=appuser:appuser
+# → 파일을 복사하면서 동시에 소유자를 appuser로 지정
+# → /app 디렉토리뿐 아니라 그 안의 jar 파일도 appuser 소유로 일관되게 맞춰줌
+COPY --chown=appuser:appuser --from=build /app/build/libs/*.jar app.jar
 
 # 컨테이너가 8080 포트를 쓴다는 걸 명시 (문서 역할, 실제 포트 매핑은 docker-compose에서)
 EXPOSE 8080
