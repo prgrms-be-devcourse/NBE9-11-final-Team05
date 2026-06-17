@@ -34,7 +34,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("""
         select
-            r.id, c.name, s.name, r.rsvNum, r.rsvName, r.rsvPhone, r.checkIn, r.checkOut, r.guestCount, r.rsvPrice, r.status, r.createdAt
+            new com.back.ovengers.domain.reservation.dto.HostReservationResponse(
+                r.id, c.name, s.name, r.rsvNum, r.rsvName, r.rsvPhone, r.checkIn, r.checkOut, r.guestCount, r.rsvPrice, r.status, r.createdAt
+            )
             from Reservation r
                join r.site s
                join s.camping c
