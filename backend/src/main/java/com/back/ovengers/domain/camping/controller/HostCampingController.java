@@ -89,7 +89,7 @@ public class HostCampingController {
     @PostMapping("/{campingId}/sites")
     public ApiResponse<SiteCreateResponse> addSite(
             @AuthenticationPrincipal User user,
-            @PathVariable Long campingId,
+            @PathVariable @Min(1) Long campingId,
             @Valid @RequestBody SiteCreateRequest request
     ) {
         SiteCreateResponse response = hostCampingService.addSite(
@@ -104,10 +104,10 @@ public class HostCampingController {
         );
     }
 
-    @PatchMapping("{campingId}/sites/{siteId}")
+    @PatchMapping("/{campingId}/sites/{siteId}")
     public ApiResponse<SiteUpdateResponse> updateSite(
             @AuthenticationPrincipal User user,
-            @PathVariable Long siteId,
+            @PathVariable @Min(1) Long siteId,
             @Valid @RequestBody SiteUpdateRequest request
     ) {
         SiteUpdateResponse response = hostCampingService.updateSite(
@@ -122,10 +122,10 @@ public class HostCampingController {
         );
     }
 
-    @DeleteMapping("{campingId}/sites/{siteId}")
+    @DeleteMapping("/{campingId}/sites/{siteId}")
     public ApiResponse<Void> deleteSite(
             @AuthenticationPrincipal User user,
-            @PathVariable Long siteId
+            @PathVariable @Min(1) Long siteId
     ) {
         hostCampingService.deleteSite(user.getId(), siteId);
 

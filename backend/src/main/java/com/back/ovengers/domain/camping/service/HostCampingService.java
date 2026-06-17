@@ -37,6 +37,8 @@ public class HostCampingService {
 
         User host = validateHost(hostId);
 
+        validateDuplicateSiteNameInRequest(request.sites());
+
         Camping camping = Camping.create(host, request);
         Camping savedCamping = campingRepository.save(camping);
 
@@ -97,15 +99,15 @@ public class HostCampingService {
             Long campingId,
             SiteCreateRequest request
     ) {
+        validateHost(hostId);
+        Camping camping = getOwnedCamping(hostId, campingId);
+
         if (siteRepository.existsByCampingIdAndNameAndDeletedAtIsNull(
                 campingId,
                 request.name()
         )) {
             throw new CustomException(ErrorCode.DUPLICATE_SITE_NAME);
         }
-
-        validateHost(hostId);
-        Camping camping = getOwnedCamping(hostId, campingId);
 
         validateSiteCapacity(request);
 
@@ -132,9 +134,9 @@ public class HostCampingService {
             throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
         }
 
-        validateSiteCapacity(request);
+        validateSiteCapacity(site, request);
 
-        if (siteRepository.existsByCampingIdAndNameAndIdNotAndDeletedAtIsNull(
+        if (request.name() != null && siteRepository.existsByCampingIdAndNameAndIdNotAndDeletedAtIsNull(
                 camping.getId(),
                 request.name(),
                 siteId
@@ -200,11 +202,28 @@ public class HostCampingService {
         }
     }
 
-    private void validateSiteCapacity(SiteUpdateRequest request) {
-        if (request.baseCapacity() != null
-                && request.maxCapacity() != null
-                && request.baseCapacity() > request.maxCapacity()) {
+    private void validateSiteCapacity(Site site, SiteUpdateRequest request) {
+        Integer baseCapacity = request.baseCapacity() != null
+                ? request.baseCapacity()
+                : site.getBaseCapacity();
+
+        Integer maxCapacity = request.maxCapacity() != null
+                ? request.maxCapacity()
+                : site.getMaxCapacity();
+
+        if (baseCapacity > maxCapacity) {
             throw new CustomException(ErrorCode.INVALID_CAPACITY);
+        }
+    }
+
+    private void validateDuplicateSiteNameInRequest(List<SiteCreateRequest> sites) {
+        long uniqueNameCount = sites.stream()
+                .map(SiteCreateRequest::name)
+                .distinct()
+                .count();
+
+        if (uniqueNameCount < sites.size()) {
+            throw new CustomException(ErrorCode.DUPLICATE_SITE_NAME);
         }
     }
 }
