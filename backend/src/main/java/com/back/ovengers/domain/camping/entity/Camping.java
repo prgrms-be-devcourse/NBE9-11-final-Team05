@@ -109,6 +109,10 @@ public class Camping extends BaseEntity {
         this.deletedAt = LocalDateTime.now();
     }
 
+    public void changeFirstImageUrl(String firstImageUrl) {
+        this.firstImageUrl = firstImageUrl;
+    }
+
     public static Camping from(GoCampingApiItem item) {
         return Camping.builder()
                 .contentId(Long.valueOf(item.contentId()))

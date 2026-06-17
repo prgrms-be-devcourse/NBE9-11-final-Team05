@@ -125,6 +125,11 @@ public enum ErrorCode {
         "확정된 예약이 있어 삭제할 수 없습니다."
     ),
 
+    CAMPING_IMAGE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "캠핑장 이미지를 찾을 수 없습니다."
+    ),
+
     // 예약
     RESERVATION_NOT_FOUND(
             HttpStatus.NOT_FOUND,
