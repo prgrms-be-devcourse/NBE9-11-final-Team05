@@ -32,6 +32,19 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     Page<Reservation> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
+    @Query(value = """
+    SELECT r FROM Reservation r
+    JOIN FETCH r.site s
+    JOIN FETCH s.camping c
+    WHERE r.user.id = :userId
+    ORDER BY r.createdAt DESC
+""",
+            countQuery = """
+    SELECT COUNT(r) FROM Reservation r
+    WHERE r.user.id = :userId
+""")
+    Page<Reservation> findByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
+
     @Query("""
         select
             new com.back.ovengers.domain.reservation.dto.HostReservationResponse(

@@ -1,8 +1,7 @@
-package com.back.ovengers.domain.reservation;
+package com.back.ovengers.domain.reservation.service;
 
 import com.back.ovengers.domain.reservation.dto.HostReservationResponse;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
-import com.back.ovengers.domain.reservation.service.ReservationService;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
