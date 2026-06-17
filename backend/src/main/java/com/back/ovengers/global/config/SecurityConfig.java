@@ -92,6 +92,7 @@ public class SecurityConfig {
                                 HttpMethod.GET,
                                 "/api/campings/*/reviews"  // 리뷰 목록 조회 비인증 허용
                         ).permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

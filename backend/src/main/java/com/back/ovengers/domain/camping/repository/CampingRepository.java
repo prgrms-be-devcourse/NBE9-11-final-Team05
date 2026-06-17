@@ -42,4 +42,7 @@ public interface CampingRepository extends JpaRepository<Camping, Long> {
                     "WHERE c.status = :status"
     )
     Page<Camping> findByStatusWithHost(@Param("status") CampingStatus status, Pageable pageable);
+
+    // IN 쿼리로 한 번에 가져와서 쿼리 1번에 완료
+    List<Camping> findByIdIn(List<Long> campingIds);
 }

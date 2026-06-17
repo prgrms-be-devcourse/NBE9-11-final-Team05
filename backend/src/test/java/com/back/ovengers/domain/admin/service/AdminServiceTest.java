@@ -2,6 +2,8 @@ package com.back.ovengers.domain.admin.service;
 
 import com.back.ovengers.domain.admin.dto.AdminDashboardResponse;
 import com.back.ovengers.domain.admin.dto.AdminPendingCampingResponse;
+import com.back.ovengers.domain.admin.dto.CampingBulkApproveRequest;
+import com.back.ovengers.domain.admin.dto.CampingRejectRequest;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
@@ -17,6 +19,8 @@ import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.Status;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
+import com.back.ovengers.global.exception.CustomException;
+import com.back.ovengers.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +31,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -205,5 +211,130 @@ class AdminServiceTest {
         // then
         assertThat(response.pendingCampingCount()).isEqualTo(0L);
         assertThat(response.content()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("캠핑장을 승인할 수 있다")
+    void test5() {
+        // given
+        Camping pendingCamping = campingRepository.save(Camping.builder()
+                .name("승인 대기 캠핑장")
+                .region("강원도")
+                .city("강릉시")
+                .address("강원도 강릉시 ...")
+                .status(CampingStatus.PENDING)
+                .build());
+
+        // when
+        adminService.approveCamping(pendingCamping.getId());
+
+        // then
+        Camping updated = campingRepository.findById(pendingCamping.getId()).orElseThrow();
+        assertThat(updated.getStatus()).isEqualTo(CampingStatus.APPROVED);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 캠핑장 승인 시 예외가 발생한다")
+    void test6() {
+        // when & then
+        assertThatThrownBy(() -> adminService.approveCamping(999L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CAMPING_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("PENDING이 아닌 캠핑장은 승인할 수 없다")
+    void test7() {
+        // given
+        Camping approvedCamping = campingRepository.save(Camping.builder()
+                .name("이미 승인된 캠핑장")
+                .region("강원도")
+                .city("강릉시")
+                .address("강원도 강릉시 ...")
+                .status(CampingStatus.APPROVED)
+                .build());
+
+        // when & then
+        assertThatThrownBy(() -> adminService.approveCamping(approvedCamping.getId()))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CAMPING_NOT_PENDING);
+    }
+
+    @Test
+    @DisplayName("캠핑장을 거절할 수 있다")
+    void test8() {
+        // given
+        Camping pendingCamping = campingRepository.save(Camping.builder()
+                .name("승인 대기 캠핑장")
+                .region("강원도")
+                .city("강릉시")
+                .address("강원도 강릉시 ...")
+                .status(CampingStatus.PENDING)
+                .build());
+
+        CampingRejectRequest request = new CampingRejectRequest("사업자 정보가 일치하지 않습니다.");
+
+        // when
+        adminService.rejectCamping(pendingCamping.getId(), request);
+
+        // then
+        Camping updated = campingRepository.findById(pendingCamping.getId()).orElseThrow();
+        assertThat(updated.getStatus()).isEqualTo(CampingStatus.REJECTED);
+    }
+
+    @Test
+    @DisplayName("캠핑장을 일괄 승인할 수 있다")
+    void test9() {
+        // given
+        Camping camping1 = campingRepository.save(Camping.builder()
+                .name("캠핑장1")
+                .region("강원도")
+                .city("강릉시")
+                .address("강원도 강릉시 ...")
+                .status(CampingStatus.PENDING)
+                .build());
+
+        Camping camping2 = campingRepository.save(Camping.builder()
+                .name("캠핑장2")
+                .region("강원도")
+                .city("강릉시")
+                .address("강원도 강릉시 ...")
+                .status(CampingStatus.PENDING)
+                .build());
+
+        CampingBulkApproveRequest request = new CampingBulkApproveRequest(
+                List.of(camping1.getId(), camping2.getId())
+        );
+
+        // when
+        adminService.approveCampingList(request);
+
+        // then
+        assertThat(campingRepository.findById(camping1.getId()).orElseThrow().getStatus())
+                .isEqualTo(CampingStatus.APPROVED);
+        assertThat(campingRepository.findById(camping2.getId()).orElseThrow().getStatus())
+                .isEqualTo(CampingStatus.APPROVED);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 캠핑장이 포함되면 일괄 승인이 실패한다")
+    void test10() {
+        // given
+        Camping camping1 = campingRepository.save(Camping.builder()
+                .name("캠핑장1")
+                .region("강원도")
+                .city("강릉시")
+                .address("강원도 강릉시 ...")
+                .status(CampingStatus.PENDING)
+                .build());
+
+        CampingBulkApproveRequest request = new CampingBulkApproveRequest(
+                List.of(camping1.getId(), 999L)
+        );
+
+        // when & then
+        assertThatThrownBy(() -> adminService.approveCampingList(request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CAMPING_NOT_FOUND);
     }
 }

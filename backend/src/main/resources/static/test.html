@@ -6,12 +6,12 @@
 <body>
 <button id="pay">결제하기</button>
 <script>
-    const tossPayments = TossPayments("test_ck_yL0qZ4G1VOdPdvOgZ1GProWb2MQY");
+    const tossPayments = TossPayments("토스클라이언트키");
 
     document.getElementById('pay').addEventListener('click', function() {
         tossPayments.requestPayment('카드', {
             amount: 50000,
-            orderId: 'EYJ-20260616-506FA156',
+            orderId: '예약번호_입력',
             orderName: '테스트 캠핑장 2박',
             customerName: '홍길동',
             successUrl: 'http://localhost:8080/success',
