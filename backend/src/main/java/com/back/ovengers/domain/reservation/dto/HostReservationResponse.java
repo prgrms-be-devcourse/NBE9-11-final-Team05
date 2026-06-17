@@ -11,7 +11,7 @@ public record HostReservationResponse(
     String siteName,
     String rsvNum,
     String rsvName,
-    String rsvPone,
+    String rsvPhone,
     LocalDate checkIn,
     LocalDate checkOut,
     int guestCount,
