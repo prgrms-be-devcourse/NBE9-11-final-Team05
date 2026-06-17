@@ -152,6 +152,6 @@ public class HostCampingController {
     ) {
         hostCampingService.deleteCampingImage(user.getId(), campingId, imageId);
 
-        return new ApiResponse<>("캠핑장 이미지가 삭제되었습니다.", null);
+        return new ApiResponse<>("캠핑장 이미지가 삭제되었습니다.");
     }
 }
