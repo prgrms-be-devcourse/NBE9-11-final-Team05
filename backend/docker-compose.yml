@@ -1,0 +1,58 @@
+services:
+  db:
+    image: mysql:8.0            # MySQL 8.0 공식 이미지 사용
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}  # .env 파일에서 값 가져옴, MySQL root 계정 비밀번호
+      - MYSQL_DATABASE=camping              # 컨테이너 처음 뜰 때 자동으로 만들어줄 DB 이름
+    ports:
+      - "3306:3306"
+      # 내 컴퓨터의 3306 포트 → 컨테이너의 3306 포트 연결
+      # IDE에서 직접 실행하는 백엔드가 localhost:3306으로 접속할 수 있게 꼭 필요
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # 컨테이너를 지워도(docker-compose down) 실제 DB 데이터는 mysql_data 볼륨에 남아있음
+      # 볼륨 안 걸어두면 컨테이너 삭제 시 DB 안의 데이터도 같이 사라짐
+    healthcheck:
+      # 5초마다 "mysqladmin ping" 명령으로 MySQL이 진짜 응답 가능한 상태인지 체크
+      # docker ps에서 "healthy"로 표시되어, 단순히 컨테이너가 켜진 것과
+      # MySQL이 실제로 연결 받을 준비가 된 것을 구분해서 확인할 수 있게 해줌
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$${MYSQL_ROOT_PASSWORD}"]
+      # $$ 두 개를 쓰는 이유: docker-compose.yml 안에서 $ 하나는 환경변수 치환 문자로 쓰이기 때문에
+      # 컨테이너 안 쉘에서 진짜 $ 문자로 해석되게 하려면 $$로 이스케이프해야 함
+      interval: 5s    # 5초마다 한 번씩 체크 반복
+      timeout: 5s     # 한 번 체크할 때 5초 안에 응답 없으면 그 시도는 실패로 간주
+      retries: 5      # 5번 연속 실패해야 최종적으로 "unhealthy"로 판정 (그 전엔 "starting" 상태)
+
+  prometheus:
+    image: prom/prometheus       # Prometheus 공식 이미지
+    ports:
+      - "9090:9090"               # 브라우저에서 Prometheus 자체 웹 UI 확인용 (http://localhost:9090)
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      # 내가 작성한 설정 파일을 컨테이너 안 정해진 위치에 그대로 넣어줌
+      # 이 파일이 있어야 Prometheus가 "어디서 메트릭을 가져올지" 알 수 있음
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      # 컨테이너 안에서 "내 컴퓨터(호스트)"를 가리키는 특수 주소를 쓸 수 있게 해줌
+      # Mac/Windows는 기본 지원되지만, Linux에서는 이 한 줄을 추가해야 동작함
+      # (백엔드가 컨테이너 밖, 즉 내 컴퓨터에서 직접 떠있기 때문에 필요)
+
+  grafana:
+    image: grafana/grafana        # Grafana 공식 이미지
+    ports:
+      - "3000:3000"                # 브라우저에서 Grafana 대시보드 접속용 (http://localhost:3000)
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      # 로컬 테스트용 초기 관리자(admin) 비밀번호, 처음 로그인할 때 이 값으로 들어감
+    volumes:
+      - grafana_data:/var/lib/grafana
+      # Grafana에서 만든 대시보드, 연결한 데이터소스 설정 등이 저장되는 경로
+      # 볼륨 안 걸어두면 docker-compose down 할 때 그동안 만든 대시보드가 다 사라짐
+    depends_on:
+      - prometheus
+      # Prometheus가 먼저 떠있어야 Grafana에서 데이터소스로 연결할 수 있으니
+      # 시작 순서만 Prometheus 다음으로 지정 (healthy까지는 기다리지 않음, 단순 순서 보장)
+
+volumes:
+  mysql_data:      # MySQL 데이터 보존용 볼륨 (디스크 어딘가에 실제로 저장됨)
+  grafana_data:    # Grafana 설정/대시보드 보존용 볼륨

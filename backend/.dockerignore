@@ -1,0 +1,9 @@
+build/
+.gradle/
+.git/
+.gitignore
+*.md
+.idea/
+*.iml
+out/
+src/main/resources/application-secret.yml
