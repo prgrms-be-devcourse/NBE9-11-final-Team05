@@ -121,4 +121,14 @@ public class HostCampingController {
                 response
         );
     }
+
+    @DeleteMapping("{campingId}/sites/{siteId}")
+    public ApiResponse<Void> deleteSite(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long siteId
+    ) {
+        hostCampingService.deleteSite(user.getId(), siteId);
+
+        return new ApiResponse<>("구역 삭제가 완료되었습니다.");
+    }
 }

@@ -66,4 +66,8 @@ public class Site extends BaseEntity {
         if (request.totalAmount() != null) this.totalAmount = request.totalAmount();
         if (request.price() != null) this.price = request.price();
     }
+
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
+    }
 }

@@ -147,6 +147,27 @@ public class HostCampingService {
         return SiteUpdateResponse.from(site);
     }
 
+    @Transactional
+    public void deleteSite(Long hostId, Long siteId) {
+        validateHost(hostId);
+
+        Site site = siteRepository.findByIdAndDeletedAtIsNull(siteId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SITE_NOT_FOUND));
+
+        if (!site.getCamping().getHost().getId().equals(hostId)) {
+            throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
+        }
+
+        if (reservationRepository.existsBySiteIdAndStatus(
+                siteId,
+                ReservationStatus.CONFIRMED
+        )) {
+            throw new CustomException(ErrorCode.CONFIRMED_RESERVATION_EXISTS);
+        }
+
+        site.delete();
+    }
+
     private User validateHost(Long hostId) {
         User host = userRepository.findById(hostId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
