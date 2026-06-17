@@ -221,6 +221,28 @@ public enum ErrorCode {
         "결제 정보를 찾을 수 없습니다."
     ),
 
+    // 관리자
+    INVALID_CAMPING_ID(
+            HttpStatus.BAD_REQUEST,
+            "캠핑장 ID가 올바르지 않습니다."
+    ),
+    CAMPING_NOT_PENDING(
+            HttpStatus.BAD_REQUEST,
+            "승인 대기 상태의 캠핑장만 처리할 수 있습니다."
+    ),
+    ADMIN_REQUIRED(
+            HttpStatus.FORBIDDEN,
+            "관리자 권한이 필요합니다."
+    ),
+    EMPTY_CAMPING_ID_LIST(
+            HttpStatus.BAD_REQUEST,
+            "승인할 캠핑장을 선택해주세요."
+    ),
+    REJECT_REASON_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "거절 사유는 필수입니다."
+    ),
+
 
     // 외부 API 통신 관련 예외
     GO_CAMPING_API_ERROR(
