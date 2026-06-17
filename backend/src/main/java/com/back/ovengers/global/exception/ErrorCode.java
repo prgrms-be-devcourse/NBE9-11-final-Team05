@@ -8,6 +8,18 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
 
+    // 공통
+    MISSING_REQUIRED_FIELD(
+            HttpStatus.BAD_REQUEST,
+            "필수값이 누락되었습니다."
+    ),
+
+    INTERNAL_SERVER_ERROR(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "서버 오류가 발생했습니다."
+    ),
+
+    // 회원
     EMPTY_NICKNAME(
             HttpStatus.BAD_REQUEST,
             "닉네임은 공백일 수 없습니다."
@@ -19,11 +31,6 @@ public enum ErrorCode {
     EMPTY_IMAGE_URL(
             HttpStatus.BAD_REQUEST,
             "프로필 이미지는 공백일 수 없습니다."
-    ),
-
-    MISSING_REQUIRED_FIELD(
-            HttpStatus.BAD_REQUEST,
-            "필수값이 누락되었습니다."
     ),
 
     INVALID_EMAIL_FORMAT(
@@ -46,11 +53,6 @@ public enum ErrorCode {
             "이미 사용 중인 닉네임입니다."
     ),
 
-    INTERNAL_SERVER_ERROR(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "서버 오류가 발생했습니다."
-    ),
-
     INVALID_LOGIN_CREDENTIALS(
             HttpStatus.UNAUTHORIZED,
             "이메일 또는 비밀번호가 올바르지 않습니다."
@@ -66,40 +68,25 @@ public enum ErrorCode {
             "이용이 정지된 계정입니다."
     ),
 
-    // 호스트 도메인
-    LOGIN_REQUIRED(
-            HttpStatus.UNAUTHORIZED,
-            "로그인이 필요합니다."
-    ),
-
+    // 인증
     INVALID_TOKEN(
             HttpStatus.UNAUTHORIZED,
             "유효하지 않은 토큰입니다."
     ),
 
-    HOST_REQUIRED(
-            HttpStatus.FORBIDDEN,
-            "호스트 권한이 필요합니다."
-    ),
-
-    NOT_CAMPING_OWNER(
-            HttpStatus.FORBIDDEN,
-            "해당 캠핑장에 대한 권한이 없습니다."
-    ),
-
-    CAMPING_NOT_FOUND(
-            HttpStatus.NOT_FOUND,
-            "존재하지 않는 캠핑장입니다."
+    LOGIN_REQUIRED(
+            HttpStatus.UNAUTHORIZED,
+            "로그인이 필요합니다."
     ),
 
     ACCESS_TOKEN_MISSING(
             HttpStatus.UNAUTHORIZED,
-        "Access Token이 없습니다."
+            "Access Token이 없습니다."
     ),
 
     ACCESS_TOKEN_EXPIRED(
             HttpStatus.UNAUTHORIZED,
-        "Access Token이 만료되었습니다."
+            "Access Token이 만료되었습니다."
     ),
 
     REFRESH_TOKEN_MISSING(
@@ -115,6 +102,22 @@ public enum ErrorCode {
     REFRESH_TOKEN_INVALID(
             HttpStatus.UNAUTHORIZED,
             "Refresh Token이 유효하지 않습니다."
+    ),
+
+    // 호스트
+    HOST_REQUIRED(
+            HttpStatus.FORBIDDEN,
+            "호스트 권한이 필요합니다."
+    ),
+
+    NOT_CAMPING_OWNER(
+            HttpStatus.FORBIDDEN,
+            "해당 캠핑장에 대한 권한이 없습니다."
+    ),
+
+    CAMPING_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "존재하지 않는 캠핑장입니다."
     ),
 
     CONFIRMED_RESERVATION_EXISTS(
@@ -160,6 +163,16 @@ public enum ErrorCode {
     SITE_NOT_AVAILABLE(
             HttpStatus.CONFLICT,
             "해당 구역의 재고가 없습니다."
+    ),
+
+    INVALID_CAPACITY(
+            HttpStatus.BAD_REQUEST,
+            "기준 인원은 최대 인원보다 클 수 없습니다."
+    ),
+
+    DUPLICATE_SITE_NAME(
+            HttpStatus.CONFLICT,
+            "이미 존재하는 구역 이름입니다."
     ),
 
     // 권한

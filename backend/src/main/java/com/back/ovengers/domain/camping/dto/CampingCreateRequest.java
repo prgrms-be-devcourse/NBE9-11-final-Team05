@@ -1,6 +1,11 @@
 package com.back.ovengers.domain.camping.dto;
 
+import com.back.ovengers.domain.site.dto.SiteCreateRequest;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+
+import java.util.List;
 
 public record CampingCreateRequest(
 
@@ -18,7 +23,11 @@ public record CampingCreateRequest(
         String city,
 
         @NotBlank(message = "주소는 필수입니다.")
-        String address
+        String address,
+
+        @Valid
+        @NotEmpty(message = "최소 1개의 구역을 등록해야 합니다.")
+        List<SiteCreateRequest> sites
 
 ) {
 }

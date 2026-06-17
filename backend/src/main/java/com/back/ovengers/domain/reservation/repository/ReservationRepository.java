@@ -65,4 +65,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             Long campingId,
             ReservationStatus status
     );
+
+    boolean existsBySiteIdAndStatus(
+            Long siteId,
+            ReservationStatus status
+    );
 }
