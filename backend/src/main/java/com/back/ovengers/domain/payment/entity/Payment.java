@@ -13,13 +13,14 @@ import lombok.*;
 @AllArgsConstructor
 public class Payment extends BaseEntity {
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
 
     @Column(nullable = false)
     private String orderId;
 
+    @Column(unique = true)
     private String paymentKey;
 
     @Column(nullable = false)
