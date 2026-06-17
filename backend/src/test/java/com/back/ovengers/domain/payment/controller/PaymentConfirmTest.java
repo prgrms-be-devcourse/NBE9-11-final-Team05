@@ -22,6 +22,7 @@ import com.back.ovengers.global.exception.ErrorCode;
 import com.back.ovengers.domain.payment.client.TossPaymentClient;
 import com.back.ovengers.global.security.JwtProvider;
 import org.springframework.mock.web.MockCookie;
+import org.springframework.test.context.ActiveProfiles;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -45,6 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Transactional
 class PaymentConfirmTest {
 
