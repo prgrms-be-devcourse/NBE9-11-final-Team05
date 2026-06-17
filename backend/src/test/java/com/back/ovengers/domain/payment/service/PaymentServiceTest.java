@@ -176,7 +176,7 @@ class PaymentServiceTest {
                 .reservation(reservation)
                 .orderId("ORD-" + UUID.randomUUID())
                 .paidPrice(100000)
-                .status(PaymentStatus.READY)
+                .status(PaymentStatus.DONE)
                 .build());
 
         PaymentRequest request = new PaymentRequest();
@@ -205,5 +205,31 @@ class PaymentServiceTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.data").value("결제 가능한 예약 상태가 아닙니다."));  // data 필드로 변경
+    }
+
+    @Test
+    @DisplayName("결제 생성 성공 - 이전 취소 이력이 있어도 새 결제 가능")
+    void createPayment_success_withCanceledHistory() throws Exception {
+        // 이전에 취소된 결제 이력
+        paymentRepository.save(Payment.builder()
+                .reservation(reservation)
+                .orderId("ORD-" + UUID.randomUUID())
+                .paidPrice(100000)
+                .status(PaymentStatus.CANCELLED)
+                .build());
+
+        PaymentRequest request = new PaymentRequest();
+        ReflectionTestUtils.setField(request, "reservationId", reservation.getId());
+
+        mockMvc.perform(post("/api/payments")
+                        .cookie(new MockCookie("accessToken", accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.amount").value(100000));
+
+        // 취소 이력이 삭제되지 않고 그대로 남아있는지 확인
+        long count = paymentRepository.findAllByReservation_Id(reservation.getId()).size();
+        org.junit.jupiter.api.Assertions.assertEquals(2, count); // 취소 1건 + 새 결제 1건
     }
 }

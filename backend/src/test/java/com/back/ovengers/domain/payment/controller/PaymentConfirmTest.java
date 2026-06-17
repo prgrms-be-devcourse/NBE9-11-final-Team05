@@ -94,7 +94,7 @@ class PaymentConfirmTest {
                 .build());
 
         // setUp()에서 user 저장 직후 추가
-        accessToken = jwtProvider.createAccessToken(user.getId());
+        accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole().name());
 
         Camping camping = campingRepository.save(Camping.builder()
                 .name("테스트 캠핑장")
