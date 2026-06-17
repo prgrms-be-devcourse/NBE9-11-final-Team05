@@ -131,4 +131,27 @@ public class HostCampingController {
 
         return new ApiResponse<>("구역 삭제가 완료되었습니다.");
     }
+
+    @PostMapping("/{campingId}/images")
+    public ApiResponse<CampingImageCreateResponse> addCampingImage(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long campingId,
+            @Valid @RequestBody CampingImageCreateRequest request
+    ) {
+        CampingImageCreateResponse response =
+                hostCampingService.addCampingImage(user.getId(), campingId, request);
+
+        return new ApiResponse<>("캠핑장 이미지가 등록되었습니다.", response);
+    }
+
+    @DeleteMapping("/{campingId}/images/{imageId}")
+    public ApiResponse<Void> deleteCampingImage(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long campingId,
+            @PathVariable Long imageId
+    ) {
+        hostCampingService.deleteCampingImage(user.getId(), campingId, imageId);
+
+        return new ApiResponse<>("캠핑장 이미지가 삭제되었습니다.");
+    }
 }
