@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -106,6 +107,7 @@ public class PaymentService {
             payment.confirm(request.getPaymentKey());
             payment.getReservation().updateStatus(ReservationStatus.CONFIRMED);
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             tossPaymentClient.cancel(request.getPaymentKey(), "서버 오류로 인한 자동 취소");
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
