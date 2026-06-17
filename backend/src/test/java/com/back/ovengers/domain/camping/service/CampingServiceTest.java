@@ -2,7 +2,7 @@ package com.back.ovengers.domain.camping.service;
 
 import com.back.ovengers.domain.camping.dto.CampingDetailResponse;
 import com.back.ovengers.domain.camping.dto.CampingListResponse;
-import com.back.ovengers.domain.camping.dto.CampingSiteResponse;
+import com.back.ovengers.domain.site.dto.SiteResponse;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingImage;
 import com.back.ovengers.domain.camping.repository.CampingImageRepository;
@@ -191,7 +191,7 @@ class CampingServiceTest {
                 .containsExactly("image1.jpg", "image2.jpg");
 
         assertThat(result.sites())
-                .extracting(CampingSiteResponse::name)
+                .extracting(SiteResponse::name)
                 .containsExactly("A구역");
     }
 
