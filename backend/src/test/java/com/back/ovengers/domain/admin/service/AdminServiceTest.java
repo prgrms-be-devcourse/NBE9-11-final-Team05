@@ -140,6 +140,7 @@ class AdminServiceTest {
 
         // then
         assertThat(response.totalSalesAmount()).isEqualTo(0L);
+        assertThat(response.activeUserCount()).isEqualTo(0L);
         assertThat(response.pendingCampingCount()).isEqualTo(0L);
     }
 }

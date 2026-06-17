@@ -4,6 +4,7 @@ package com.back.ovengers.domain.admin.service;
 import com.back.ovengers.domain.admin.dto.AdminDashboardResponse;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.payment.entity.PaymentStatus;
 import com.back.ovengers.domain.payment.repository.PaymentRepository;
 import com.back.ovengers.domain.user.entity.Status;
 import com.back.ovengers.domain.user.repository.UserRepository;
@@ -23,9 +24,9 @@ public class AdminService {
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboard() {
 
-        Long totalSalesAmount = paymentRepository.getTotalSalesAmount();
-        Long activeUserCount = userRepository.countByStatus(Status.ACTIVE);
-        Long pendingCampingCount = campingRepository.countByStatus(CampingStatus.PENDING);
+        long totalSalesAmount = paymentRepository.getTotalSalesAmount(PaymentStatus.DONE);
+        long activeUserCount = userRepository.countByStatus(Status.ACTIVE);
+        long pendingCampingCount = campingRepository.countByStatus(CampingStatus.PENDING);
 
         return AdminDashboardResponse.of(totalSalesAmount, activeUserCount, pendingCampingCount);
     }
