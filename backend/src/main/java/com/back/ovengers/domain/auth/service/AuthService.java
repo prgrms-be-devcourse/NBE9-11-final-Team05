@@ -131,8 +131,11 @@ public class AuthService {
             throw new CustomException(ErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
 
-        String accessToken = jwtProvider.createAccessToken(user.getId());
-        String refreshToken = jwtProvider.createRefreshToken(user.getId());
+        String role = user.getRole().name();
+
+        //Role을 토큰에 포함
+        String accessToken = jwtProvider.createAccessToken(user.getId(), role);
+        String refreshToken = jwtProvider.createRefreshToken(user.getId(), role);
 
         cookieUtil.addAccessTokenCookie(response, accessToken);
         cookieUtil.addRefreshTokenCookie(response, refreshToken);
@@ -152,12 +155,13 @@ public class AuthService {
         jwtProvider.validateRefreshToken(refreshToken);
 
         Long userId = jwtProvider.getUserId(refreshToken);
+        String role = jwtProvider.getRole(refreshToken);
 
         // DB에서 토큰 일치 여부 + 만료 시간 확인
         refreshTokenService.validate(userId, refreshToken);
 
         // 새 Access Token 발급 후 쿠키에 저장
-        String newAccessToken = jwtProvider.createAccessToken(userId);
+        String newAccessToken = jwtProvider.createAccessToken(userId, role);
         cookieUtil.addAccessTokenCookie(response, newAccessToken);
     }
 

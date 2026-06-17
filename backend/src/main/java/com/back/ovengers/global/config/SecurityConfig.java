@@ -50,11 +50,19 @@ public class SecurityConfig {
                         // 인증 실패(미로그인, 토큰 없음 등) → 401 Unauthorized
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"message\":\"ACCESS_TOKEN_MISSING\",\"data\":\"Access Token이 없습니다.\"}"
+                            );
                         })
 
                         // 인가 실패(권한 부족) → 403 Forbidden
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"message\":\"FORBIDDEN\",\"data\":\"접근 권한이 없습니다.\"}"
+                            );
                         })
                 )
 

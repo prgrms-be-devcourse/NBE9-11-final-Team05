@@ -219,7 +219,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("토큰 재발급 성공")
     void t11() {
-        String refreshToken = jwtProvider.createRefreshToken(user.getId());
+        String refreshToken = jwtProvider.createRefreshToken(user.getId(), user.getRole().name());
 
         refreshTokenRepository.save(RefreshToken.builder()
                 .userId(user.getId())
@@ -251,7 +251,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("토큰 재발급 실패 - DB 토큰과 불일치")
     void t13() {
-        String savedToken = jwtProvider.createRefreshToken(user.getId());
+        String savedToken = jwtProvider.createRefreshToken(user.getId(), user.getRole().name());
 
         //같은 userId지만 DB에 저장된 토큰과 다른 값으로 조작
         String requestToken = savedToken + "tampered";
@@ -278,7 +278,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("토큰 재발급 실패 - Refresh Token 만료")
     void t14() {
-        String refreshToken = jwtProvider.createRefreshToken(user.getId());
+        String refreshToken = jwtProvider.createRefreshToken(user.getId(), user.getRole().name());
 
         refreshTokenRepository.save(RefreshToken.builder()
                 .userId(user.getId())
@@ -303,7 +303,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("로그아웃 성공 - DB에서 Refresh Token 삭제")
     void t15() {
-        String refreshToken = jwtProvider.createRefreshToken(user.getId());
+        String refreshToken = jwtProvider.createRefreshToken(user.getId(), user.getRole().name());
 
         refreshTokenRepository.save(RefreshToken.builder()
                 .userId(user.getId())
