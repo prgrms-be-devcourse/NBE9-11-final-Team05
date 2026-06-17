@@ -7,6 +7,8 @@ import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
 import com.back.ovengers.domain.site.dto.SiteCreateRequest;
 import com.back.ovengers.domain.site.dto.SiteCreateResponse;
+import com.back.ovengers.domain.site.dto.SiteUpdateRequest;
+import com.back.ovengers.domain.site.dto.SiteUpdateResponse;
 import com.back.ovengers.domain.site.entity.Site;
 import com.back.ovengers.domain.site.repository.SiteRepository;
 import com.back.ovengers.domain.user.entity.Role;
@@ -56,15 +58,7 @@ public class HostCampingService {
 
         return campingRepository.findByHostIdAndDeletedAtIsNull(hostId)
                 .stream()
-                .map(camping -> new HostCampingListResponse(
-                        camping.getId(),
-                        camping.getName(),
-                        camping.getRegion(),
-                        camping.getCity(),
-                        camping.getAddress(),
-                        camping.getFirstImageUrl(),
-                        camping.getRating()
-                ))
+                .map(HostCampingListResponse::from)
                 .toList();
     }
 
@@ -103,6 +97,13 @@ public class HostCampingService {
             Long campingId,
             SiteCreateRequest request
     ) {
+        if (siteRepository.existsByCampingIdAndNameAndDeletedAtIsNull(
+                campingId,
+                request.name()
+        )) {
+            throw new CustomException(ErrorCode.DUPLICATE_SITE_NAME);
+        }
+
         validateHost(hostId);
         Camping camping = getOwnedCamping(hostId, campingId);
 
@@ -112,6 +113,38 @@ public class HostCampingService {
         Site savedSite = siteRepository.save(site);
 
         return SiteCreateResponse.from(savedSite);
+    }
+
+    @Transactional
+    public SiteUpdateResponse updateSite(
+            Long hostId,
+            Long siteId,
+            SiteUpdateRequest request
+    ) {
+        validateHost(hostId);
+
+        Site site = siteRepository.findByIdAndDeletedAtIsNull(siteId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SITE_NOT_FOUND));
+
+        Camping camping = site.getCamping();
+
+        if (!camping.getHost().getId().equals(hostId)) {
+            throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
+        }
+
+        validateSiteCapacity(request);
+
+        if (siteRepository.existsByCampingIdAndNameAndIdNotAndDeletedAtIsNull(
+                camping.getId(),
+                request.name(),
+                siteId
+        )) {
+            throw new CustomException(ErrorCode.DUPLICATE_SITE_NAME);
+        }
+
+        site.update(request);
+
+        return SiteUpdateResponse.from(site);
     }
 
     private User validateHost(Long hostId) {
@@ -142,6 +175,14 @@ public class HostCampingService {
 
     private void validateSiteCapacity(SiteCreateRequest request) {
         if (request.baseCapacity() > request.maxCapacity()) {
+            throw new CustomException(ErrorCode.INVALID_CAPACITY);
+        }
+    }
+
+    private void validateSiteCapacity(SiteUpdateRequest request) {
+        if (request.baseCapacity() != null
+                && request.maxCapacity() != null
+                && request.baseCapacity() > request.maxCapacity()) {
             throw new CustomException(ErrorCode.INVALID_CAPACITY);
         }
     }

@@ -2,6 +2,7 @@ package com.back.ovengers.domain.site.entity;
 
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.site.dto.SiteCreateRequest;
+import com.back.ovengers.domain.site.dto.SiteUpdateRequest;
 import com.back.ovengers.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -55,5 +56,14 @@ public class Site extends BaseEntity {
                 .totalAmount(request.totalAmount())
                 .price(request.price())
                 .build();
+    }
+
+    public void update(SiteUpdateRequest request) {
+        if (request.name() != null) this.name = request.name();
+        if (request.description() != null) this.description = request.description();
+        if (request.baseCapacity() != null) this.baseCapacity = request.baseCapacity();
+        if (request.maxCapacity() != null) this.maxCapacity = request.maxCapacity();
+        if (request.totalAmount() != null) this.totalAmount = request.totalAmount();
+        if (request.price() != null) this.price = request.price();
     }
 }

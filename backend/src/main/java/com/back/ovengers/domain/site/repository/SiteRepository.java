@@ -12,9 +12,21 @@ import java.util.Optional;
 
 public interface SiteRepository extends JpaRepository<Site, Long> {
 
-
     // 사이트 조회 비관적 락 적용
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Site s WHERE s.id = :id")
     Optional<Site> findByIdWithLock(@Param("id") Long id);
+
+    Optional<Site> findByIdAndDeletedAtIsNull(Long siteId);
+
+    boolean existsByCampingIdAndNameAndDeletedAtIsNull(
+            Long campingId,
+            String name
+    );
+
+    boolean existsByCampingIdAndNameAndIdNotAndDeletedAtIsNull(
+            Long campingId,
+            String name,
+            Long siteId
+    );
 }

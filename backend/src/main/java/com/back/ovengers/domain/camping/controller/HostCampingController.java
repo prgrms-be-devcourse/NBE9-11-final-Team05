@@ -4,6 +4,8 @@ import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.service.HostCampingService;
 import com.back.ovengers.domain.site.dto.SiteCreateRequest;
 import com.back.ovengers.domain.site.dto.SiteCreateResponse;
+import com.back.ovengers.domain.site.dto.SiteUpdateRequest;
+import com.back.ovengers.domain.site.dto.SiteUpdateResponse;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -98,6 +100,24 @@ public class HostCampingController {
 
         return new ApiResponse<>(
                 "구역 등록이 완료되었습니다.",
+                response
+        );
+    }
+
+    @PatchMapping("{campingId}/sites/{siteId}")
+    public ApiResponse<SiteUpdateResponse> updateSite(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long siteId,
+            @Valid @RequestBody SiteUpdateRequest request
+    ) {
+        SiteUpdateResponse response = hostCampingService.updateSite(
+                user.getId(),
+                siteId,
+                request
+        );
+
+        return new ApiResponse<>(
+                "구역 수정이 완료되었습니다.",
                 response
         );
     }
