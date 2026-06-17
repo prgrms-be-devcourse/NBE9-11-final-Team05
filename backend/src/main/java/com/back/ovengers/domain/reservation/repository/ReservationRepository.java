@@ -36,9 +36,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
         select
             r.id, c.name, s.name, r.rsvNum, r.rsvName, r.rsvPhone, r.checkIn, r.checkOut, r.guestCount, r.rsvPrice, r.status, r.createdAt
             from Reservation r
-            join fetch r.site s
-            join fetch s.camping c
-                    where c.host.id = :hostId order by r.createdAt desc
+               join r.site s
+               join s.camping c
+               where c.host.id = :hostId
+                    order by r.createdAt desc
     """)
     Page<HostReservationResponse> findHostReservations(Long hostId, Pageable pageable);
 
