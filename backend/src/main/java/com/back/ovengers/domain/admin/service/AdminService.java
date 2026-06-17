@@ -2,6 +2,9 @@ package com.back.ovengers.domain.admin.service;
 
 
 import com.back.ovengers.domain.admin.dto.AdminDashboardResponse;
+import com.back.ovengers.domain.admin.dto.AdminPendingCampingResponse;
+import com.back.ovengers.domain.admin.dto.PendingCampingResponse;
+import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.payment.entity.PaymentStatus;
@@ -9,6 +12,8 @@ import com.back.ovengers.domain.payment.repository.PaymentRepository;
 import com.back.ovengers.domain.user.entity.Status;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,5 +34,17 @@ public class AdminService {
         long pendingCampingCount = campingRepository.countByStatus(CampingStatus.PENDING);
 
         return AdminDashboardResponse.of(totalSalesAmount, activeUserCount, pendingCampingCount);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminPendingCampingResponse getPendingCampingList(Pageable pageable) {
+
+        Page<Camping> campingList = campingRepository.findByStatusWithHost(CampingStatus.PENDING, pageable);
+
+        Page<PendingCampingResponse> responsePage = campingList.map(PendingCampingResponse::from);
+
+        long pendingCampingCount = campingRepository.countByStatus(CampingStatus.PENDING);
+
+        return AdminPendingCampingResponse.of(pendingCampingCount, responsePage);
     }
 }
