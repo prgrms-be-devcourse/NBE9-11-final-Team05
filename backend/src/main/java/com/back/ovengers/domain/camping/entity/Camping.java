@@ -6,6 +6,8 @@ import com.back.ovengers.domain.camping.dto.CampingUpdateRequest;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiItem;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.entity.BaseEntity;
+import com.back.ovengers.global.exception.CustomException;
+import com.back.ovengers.global.exception.ErrorCode;
 import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.*;
 import lombok.*;
@@ -135,6 +137,21 @@ public class Camping extends BaseEntity {
         return StringUtils.isBlank(value)
                 ? null
                 : new BigDecimal(value);
+    }
+
+
+    public void approve() {
+        if (this.status != CampingStatus.PENDING) {
+            throw new CustomException(ErrorCode.CAMPING_NOT_PENDING);
+        }
+        this.status = CampingStatus.APPROVED;
+    }
+
+    public void reject() {
+        if (this.status != CampingStatus.PENDING) {
+            throw new CustomException(ErrorCode.CAMPING_NOT_PENDING);
+        }
+        this.status = CampingStatus.REJECTED;
     }
 
 }

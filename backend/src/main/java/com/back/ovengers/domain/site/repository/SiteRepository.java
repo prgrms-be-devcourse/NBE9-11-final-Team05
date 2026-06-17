@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -18,6 +19,8 @@ public interface SiteRepository extends JpaRepository<Site, Long> {
     Optional<Site> findByIdWithLock(@Param("id") Long id);
 
     Optional<Site> findByIdAndDeletedAtIsNull(Long siteId);
+
+    List<Site> findByCampingId(Long campingId);
 
     boolean existsByCampingIdAndNameAndDeletedAtIsNull(
             Long campingId,
