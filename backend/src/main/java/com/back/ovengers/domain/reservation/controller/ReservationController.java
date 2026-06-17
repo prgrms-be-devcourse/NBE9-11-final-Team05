@@ -1,12 +1,15 @@
 package com.back.ovengers.domain.reservation.controller;
 
+import com.back.ovengers.domain.payment.dto.PaymentSummaryResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationDetailResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationRequest;
 import com.back.ovengers.domain.reservation.dto.ReservationResponse;
 import com.back.ovengers.domain.reservation.service.ReservationService;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
+import com.back.ovengers.global.response.PageResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +44,7 @@ public class ReservationController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ReservationDetailResponse>> getReservation(
             @AuthenticationPrincipal User user,
-            @PathVariable Long id) {
+            @PathVariable @Min(1) Long id) {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(
@@ -52,7 +55,7 @@ public class ReservationController {
     }
 
     @GetMapping("/{id}/summary")
-    public ResponseEntity<ApiResponse<ReservationResponse>> getSummary(
+    public ResponseEntity<ApiResponse<PaymentSummaryResponse>> getSummary(
             @AuthenticationPrincipal User user,
             @PathVariable Long id) {
 
@@ -65,7 +68,7 @@ public class ReservationController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<ReservationResponse>>> getMyReservations(
+    public ResponseEntity<ApiResponse<PageResponse<ReservationResponse>>> getMyReservations(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page) {
 
