@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+  # 15초마다 한 번씩 메트릭을 가져옴 (수집 주기)
+  # 너무 짧으면 부하가 늘고, 너무 길면 그래프가 거칠어짐
+
+scrape_configs:
+  - job_name: 'spring-boot'
+    # 이 수집 작업의 이름, Prometheus/Grafana UI에서 이 이름으로 구분됨
+
+    metrics_path: '/actuator/prometheus'
+    # Spring Boot Actuator가 메트릭을 노출하는 기본 경로
+
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+        # 메트릭을 가져올 대상 주소
+        # 백엔드가 컨테이너 안이 아니라 내 컴퓨터(IDE)에서 직접 떠있기 때문에
+        # 'backend:8080'이 아니라 컨테이너에서 호스트를 가리키는 이 특수 주소를 써야 함
