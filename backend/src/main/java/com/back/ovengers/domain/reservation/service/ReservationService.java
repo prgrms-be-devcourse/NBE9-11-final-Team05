@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.reservation.service;
 
 import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.reservation.dto.HostReservationResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationDetailResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationRequest;
 import com.back.ovengers.domain.reservation.dto.ReservationResponse;
@@ -9,12 +10,14 @@ import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
 import com.back.ovengers.domain.site.entity.Site;
 import com.back.ovengers.domain.site.repository.SiteRepository;
+import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -136,5 +139,16 @@ public class ReservationService {
                 .stream()
                 .map(ReservationResponse::of)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<HostReservationResponse> getHostReservations(Long hostId, Pageable pageable) {
+
+        User host = userRepository.findByIdAndDeletedAtIsNull(hostId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if(host.getRole() != Role.HOST) throw new CustomException(ErrorCode.HOST_REQUIRED);
+
+        return reservationRepository.findHostReservations(hostId, pageable);
     }
 }
