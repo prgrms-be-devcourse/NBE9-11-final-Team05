@@ -3,20 +3,24 @@ package com.back.ovengers.domain.admin.controller;
 
 import com.back.ovengers.domain.admin.dto.AdminDashboardResponse;
 import com.back.ovengers.domain.admin.dto.AdminPendingCampingResponse;
+import com.back.ovengers.domain.admin.dto.CampingBulkApproveRequest;
+import com.back.ovengers.domain.admin.dto.CampingRejectRequest;
 import com.back.ovengers.domain.admin.service.AdminService;
 import com.back.ovengers.domain.camping.external.GoCampingSyncService;
 import com.back.ovengers.global.response.ApiResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
+@Validated
 public class AdminController {
 
     private final GoCampingSyncService goCampingSyncService;
@@ -54,4 +58,31 @@ public class AdminController {
         ));
     }
 
+    // 캠핑장 승인
+    @PatchMapping("/campings/{campingId}/approve")
+    public ResponseEntity<ApiResponse<Void>> approveCamping(
+            @PathVariable @Min(1) Long campingId
+    ) {
+        adminService.approveCamping(campingId);
+        return ResponseEntity.ok(new ApiResponse<>("캠핑장 승인 성공"));
+    }
+
+    // 캠핑장 거절
+    @PatchMapping("/campings/{campingId}/reject")
+    public ResponseEntity<ApiResponse<Void>> rejectCamping(
+            @PathVariable @Min(1) Long campingId,
+            @Valid @RequestBody CampingRejectRequest request
+    ) {
+        adminService.rejectCamping(campingId, request);
+        return ResponseEntity.ok(new ApiResponse<>("캠핑장 거절 성공"));
+    }
+
+    // 캠핑장 일괄 승인
+    @PatchMapping("/campings/approve")
+    public ResponseEntity<ApiResponse<Void>> approveCampingList(
+            @Valid @RequestBody CampingBulkApproveRequest request
+    ) {
+        adminService.approveCampingList(request);
+        return ResponseEntity.ok(new ApiResponse<>("캠핑장 일괄 승인 성공"));
+    }
 }
