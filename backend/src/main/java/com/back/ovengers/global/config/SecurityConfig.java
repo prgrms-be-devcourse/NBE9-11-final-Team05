@@ -85,7 +85,8 @@ public class SecurityConfig {
                                 "/api/auth/logout",
                                 "/api/auth/refresh",
                                 "/api/reservations/**", // TODO: jwt filter 구현 후 제거
-                                "/api/users/**"
+                                "/api/users/**",
+                                "/success" // 프론트 완성시 제거 예정
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,

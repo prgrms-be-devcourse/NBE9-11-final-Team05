@@ -1,7 +1,7 @@
 package com.back.ovengers.domain.payment.service;
 
-import com.back.ovengers.domain.payment.dto.PaymentRequest;
-import com.back.ovengers.domain.payment.dto.PaymentResponse;
+import com.back.ovengers.domain.payment.client.TossPaymentClient;
+import com.back.ovengers.domain.payment.dto.*;
 import com.back.ovengers.domain.payment.entity.Payment;
 import com.back.ovengers.domain.payment.entity.PaymentStatus;
 import com.back.ovengers.domain.payment.repository.PaymentRepository;
@@ -14,19 +14,22 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final ReservationRepository reservationRepository;
+    private final TossPaymentClient tossPaymentClient;
 
+    @Transactional
     public PaymentResponse create(Long userId, PaymentRequest request) {
 
         // 1. 예약 조회
@@ -43,8 +46,12 @@ public class PaymentService {
             throw new CustomException(ErrorCode.INVALID_RESERVATION_STATUS);
         }
 
-        // 4. 이미 결제된 예약인지 확인
-        if (paymentRepository.findByReservation_Id(request.getReservationId()).isPresent()) {
+        // 4. 이미 결제된 예약인지 확인, DONE 상태 결제가 있으면 차단
+        List<Payment> existingPayments = paymentRepository.findAllByReservation_Id(request.getReservationId());
+        boolean alreadyPaid = existingPayments.stream()
+                .anyMatch(p -> p.getStatus() == PaymentStatus.DONE);
+
+        if (alreadyPaid) {
             throw new CustomException(ErrorCode.ALREADY_PAID);
         }
 
@@ -64,16 +71,56 @@ public class PaymentService {
         return PaymentResponse.of(paymentRepository.save(payment), reservation);
     }
 
-    // 결제 완료 후 예약 상태 원자적 처리
-    public void confirm(String orderId) {
 
-        Payment payment = paymentRepository.findByOrderId(orderId)
+    // 토스페이먼츠 결제 승인
+    @Transactional
+    public PaymentConfirmResponse confirm(PaymentConfirmRequest request) {
+
+        // 1. 결제 조회
+        Payment payment = paymentRepository.findByOrderId(request.getOrderId())
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        // 결제 상태 변경
-        payment.updateStatus(PaymentStatus.DONE);
+        // 2. 이미 완료된 결제인지 확인
+        if (payment.getStatus() == PaymentStatus.DONE) {
+            throw new CustomException(ErrorCode.ALREADY_PAID);
+        }
 
-        // 예약 상태 변경 (같은 트랜잭션에서 처리)
-        payment.getReservation().updateStatus(ReservationStatus.CONFIRMED);
+        // 3. 금액 검증
+        if (!payment.getPaidPrice().equals(request.getAmount())) {
+            throw new CustomException(ErrorCode.AMOUNT_MISMATCH);
+        }
+
+        // 4. 토스페이먼츠 승인 API 호출
+        TossConfirmResponse tossResponse;
+        try {
+            tossResponse = tossPaymentClient.confirm(
+                    request.getPaymentKey(),
+                    request.getOrderId(),
+                    request.getAmount()
+            );
+        } catch (CustomException e) {
+            throw e;
+        }
+
+        // 5. DB 반영 (실패 시 망취소 처리)
+        try {
+            payment.confirm(request.getPaymentKey());
+            payment.getReservation().updateStatus(ReservationStatus.CONFIRMED);
+
+            // 5-1. 같은 예약의 나머지 READY 결제 정리
+            List<Payment> otherPayments = paymentRepository.findAllByReservation_Id(
+                    payment.getReservation().getId());
+
+            otherPayments.stream()
+                    .filter(p -> !p.getId().equals(payment.getId()))
+                    .filter(p -> p.getStatus() == PaymentStatus.READY)
+                    .forEach(p -> p.updateStatus(PaymentStatus.CANCELLED));
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            tossPaymentClient.cancel(request.getPaymentKey(), "서버 오류로 인한 자동 취소");
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+
+        return PaymentConfirmResponse.of(payment, tossResponse.getMethod(), tossResponse.getApprovedAt());
     }
 }

@@ -15,3 +15,6 @@ go-camping:
     mobileOS: ETC
     mobileApp: OVENGERS
     type: json
+
+toss:
+  secret-key: ${toss.secret-key}

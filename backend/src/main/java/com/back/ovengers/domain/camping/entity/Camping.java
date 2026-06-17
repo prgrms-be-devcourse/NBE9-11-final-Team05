@@ -112,7 +112,7 @@ public class Camping extends BaseEntity {
     public void changeFirstImageUrl(String firstImageUrl) {
         this.firstImageUrl = firstImageUrl;
     }
-  
+
     public static Camping from(GoCampingApiItem item) {
         return Camping.builder()
                 .contentId(Long.valueOf(item.contentId()))
