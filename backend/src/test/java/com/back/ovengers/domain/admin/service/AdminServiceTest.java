@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.admin.service;
 
 import com.back.ovengers.domain.admin.dto.AdminDashboardResponse;
+import com.back.ovengers.domain.admin.dto.AdminPendingCampingResponse;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
@@ -20,6 +21,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,5 +145,65 @@ class AdminServiceTest {
         assertThat(response.totalSalesAmount()).isEqualTo(0L);
         assertThat(response.activeUserCount()).isEqualTo(0L);
         assertThat(response.pendingCampingCount()).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("승인 대기 캠핑장 목록을 조회할 수 있다")
+    void test3() {
+        // given
+        User host = userRepository.save(User.builder()
+                .email("host@test.com")
+                .password("1234")
+                .name("부산멋쟁이")
+                .nickname("부산호스트")
+                .phone("010-1111-2222")
+                .role(Role.HOST)
+                .status(Status.ACTIVE)
+                .build());
+
+        campingRepository.save(Camping.builder()
+                .host(host)
+                .name("숲속의 캠핑장")
+                .region("강원도")
+                .city("강릉시")
+                .address("강원도 강릉시 ...")
+                .businessNum("123-45-67890")
+                .status(CampingStatus.PENDING)
+                .build());
+
+        campingRepository.save(Camping.builder()
+                .host(host)
+                .name("승인된 캠핑장")
+                .region("강원도")
+                .city("강릉시")
+                .address("강원도 강릉시 ...")
+                .status(CampingStatus.APPROVED)
+                .build());
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // when
+        AdminPendingCampingResponse response = adminService.getPendingCampingList(pageable);
+
+        // then
+        assertThat(response.pendingCampingCount()).isEqualTo(1L);
+        assertThat(response.content()).hasSize(1);
+        assertThat(response.content().get(0).campingName()).isEqualTo("숲속의 캠핑장");
+        assertThat(response.content().get(0).hostName()).isEqualTo("부산멋쟁이");
+        assertThat(response.content().get(0).businessNum()).isEqualTo("123-45-67890");
+    }
+
+    @Test
+    @DisplayName("승인 대기 캠핑장이 없으면 빈 목록을 반환한다")
+    void test4() {
+        // given
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // when
+        AdminPendingCampingResponse response = adminService.getPendingCampingList(pageable);
+
+        // then
+        assertThat(response.pendingCampingCount()).isEqualTo(0L);
+        assertThat(response.content()).isEmpty();
     }
 }
