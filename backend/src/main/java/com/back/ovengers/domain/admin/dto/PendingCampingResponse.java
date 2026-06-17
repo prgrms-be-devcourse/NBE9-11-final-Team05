@@ -5,7 +5,7 @@ import com.back.ovengers.domain.camping.entity.Camping;
 import java.time.LocalDate;
 
 public record PendingCampingResponse(
-        Long campingId,
+        long campingId,
         String campingName,
         String hostName,
         LocalDate createdAt,

@@ -38,13 +38,8 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminPendingCampingResponse getPendingCampingList(Pageable pageable) {
-
         Page<Camping> campingList = campingRepository.findByStatusWithHost(CampingStatus.PENDING, pageable);
-
         Page<PendingCampingResponse> responsePage = campingList.map(PendingCampingResponse::from);
-
-        long pendingCampingCount = campingRepository.countByStatus(CampingStatus.PENDING);
-
-        return AdminPendingCampingResponse.of(pendingCampingCount, responsePage);
+        return AdminPendingCampingResponse.of(campingList.getTotalElements(), responsePage);
     }
 }
