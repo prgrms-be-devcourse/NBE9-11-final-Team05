@@ -332,6 +332,6 @@ class ReviewControllerTest {
     @DisplayName("내 리뷰 목록 조회 실패 - 미로그인")
     void t14() throws Exception {
         mockMvc.perform(get("/api/users/me/reviews"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }
