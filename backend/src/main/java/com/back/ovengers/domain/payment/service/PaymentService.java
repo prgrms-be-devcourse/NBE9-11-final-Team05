@@ -106,6 +106,15 @@ public class PaymentService {
         try {
             payment.confirm(request.getPaymentKey());
             payment.getReservation().updateStatus(ReservationStatus.CONFIRMED);
+
+            // 5-1. 같은 예약의 나머지 READY 결제 정리
+            List<Payment> otherPayments = paymentRepository.findAllByReservation_Id(
+                    payment.getReservation().getId());
+
+            otherPayments.stream()
+                    .filter(p -> !p.getId().equals(payment.getId()))
+                    .filter(p -> p.getStatus() == PaymentStatus.READY)
+                    .forEach(p -> p.updateStatus(PaymentStatus.CANCELLED));
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             tossPaymentClient.cancel(request.getPaymentKey(), "서버 오류로 인한 자동 취소");
