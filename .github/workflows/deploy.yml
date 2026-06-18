@@ -48,7 +48,7 @@ jobs:
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
-        # Dockerfile, 소스코드가 있어야 이미지를 빌드할 수 있으니 다시 받아옴
+        # Dockerfile, 소스코드, docker-compose.prod.yml이 있어야 하니 다시 받아옴
         # (각 job은 서로 독립된 새 서버에서 실행돼서, test job에서 받은 코드가 여기엔 안 남아있음)
 
       - name: Docker Hub 로그인
@@ -67,6 +67,24 @@ jobs:
         # backend/Dockerfile을 기준으로 이미지를 빌드하고
         # Docker Hub 계정의 team5-backend 저장소로 업로드
 
+      # ---- docker-compose.prod.yml 파일을 EC2로 전송 ----
+      - name: docker-compose.prod.yml 전송
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "backend/docker-compose.prod.yml"
+          # GitHub Actions Runner 안에 체크아웃되어 있는 이 경로의 파일을 그대로 가져다 씀
+          target: "~/app"
+          # EC2의 이 경로에 복사함 (폴더 없으면 자동으로 만들어줌)
+          strip_components: 1
+          # source가 "backend/docker-compose.prod.yml" 인데
+          # 이 옵션이 없으면 EC2에 ~/app/backend/docker-compose.prod.yml 로 들어가버림
+          # strip_components: 1 → 맨 앞 폴더(backend/) 한 단계를 떼어내고
+          # ~/app/docker-compose.prod.yml 로 깔끔하게 위치시킴
+
+      # ---- EC2 접속해서 실제 배포 실행 ----
       - name: EC2에 배포
         uses: appleboy/ssh-action@v1
         env:
@@ -74,36 +92,17 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
           GO_CAMPING_SERVICE_KEY: ${{ secrets.GO_CAMPING_SERVICE_KEY }}
-          # 중요: secrets.* 값은 워크플로우 문법 안에서만 읽히는 값이라서
+          # secrets.* 값은 워크플로우 문법 안에서만 읽히는 값이라서
           # 이렇게 env: 블록에서 한 번 "진짜 환경변수"로 바꿔줘야
           # 아래 envs: 옵션이 그 값을 찾아서 EC2로 전달할 수 있음
-          # (이 단계 빠지면 EC2에 빈 값이 전달돼서 DB 연결이 실패함)
         with:
           host: ${{ secrets.EC2_HOST }}       # 탄력적 IP
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}      # .pem 키 내용 전체
           envs: DB_PASSWORD,JWT_SECRET,TOSS_SECRET_KEY,GO_CAMPING_SERVICE_KEY
-          # 위 env: 블록에서 등록한 값들을 SSH 세션 안으로 같이 넘겨줌
+          # 위 env: 블록에서 만든 값들을 SSH 세션 안으로 같이 넘겨줌
           script: |
-            mkdir -p ~/app
             cd ~/app
-
-            cat > docker-compose.prod.yml << 'COMPOSE_EOF'
-            services:
-              backend:
-                image: artiffect/team5-backend:latest
-                ports:
-                  - "8080:8080"
-                environment:
-                  - SPRING_PROFILES_ACTIVE=prod
-                  - CUSTOM_PROD_DB_URL=jdbc:mysql://team5-db.czvbgr7hie3i.ap-northeast-2.rds.amazonaws.com:3306/camping
-                  - CUSTOM_PROD_DB_USERNAME=admin
-                  - CUSTOM_PROD_DB_PASSWORD=${DB_PASSWORD}
-                  - CUSTOM_PROD_JWT_SECRET=${JWT_SECRET}
-                  - CUSTOM_PROD_TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
-                  - CUSTOM_PROD_GO_CAMPING_SERVICE_KEY=${GO_CAMPING_SERVICE_KEY}
-                restart: unless-stopped
-            COMPOSE_EOF
 
             cat > .env << ENV_EOF
             DB_PASSWORD=${DB_PASSWORD}
@@ -116,5 +115,8 @@ jobs:
             docker compose -f docker-compose.prod.yml --env-file .env up -d --force-recreate
             docker image prune -af
 
-            sleep 30
-            curl -f http://localhost:8080/actuator/health
+            for i in {1..12}; do
+              docker compose -f docker-compose.prod.yml exec -T backend curl -f http://localhost:8080/actuator/health && exit 0
+              sleep 5
+            done
+            exit 1
