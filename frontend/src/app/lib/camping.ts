@@ -18,3 +18,29 @@ export async function getCampingDetail(
     `/api/campings/${campingId}`
   );
 }
+
+export async function getCampings(
+  keyword?: string,
+  page: number = 0,
+  size: number = 10
+): Promise<{
+  content: Camping[];
+  hasNext: boolean;
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}> {
+  const params = new URLSearchParams();
+  
+  params.append("page", String(page));
+  params.append("size", String(size));
+
+  if (keyword) {
+    params.append("keyword", keyword);
+  }
+
+  return fetchApi(
+    `/api/campings?${params.toString()}`
+  );
+}

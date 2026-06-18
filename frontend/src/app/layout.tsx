@@ -45,11 +45,11 @@ export default function RootLayout({
                   호스트 페이지
                 </Link>
 
-                <Link href="/login" className="hover:text-[#4B6945]">
+                <Link href="/auth/login" className="hover:text-[#4B6945]">
                   로그인
                 </Link>
 
-                <Link href="/signup" className="hover:text-[#4B6945]">
+                <Link href="auth/signup" className="hover:text-[#4B6945]">
                   회원가입
                 </Link>
               </nav>
