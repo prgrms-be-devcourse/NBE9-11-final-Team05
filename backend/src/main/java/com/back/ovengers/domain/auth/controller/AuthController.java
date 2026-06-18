@@ -9,10 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -81,5 +78,23 @@ public class AuthController {
         authService.reissue(request, response);
 
         return ResponseEntity.ok(new ApiResponse<>("토큰이 재발급되었습니다."));
+    }
+
+    @GetMapping("/check/email")
+    public ResponseEntity<ApiResponse<Void>>  checkEmail(
+            @RequestParam String email
+    ){
+        authService.checkEmail(email);
+
+        return ResponseEntity.ok(new ApiResponse<>("사용 가능한 이메일입니다"));
+    }
+
+    @GetMapping("/check/nickname")
+    public ResponseEntity<ApiResponse<Void>>  checkNickname(
+            @RequestParam String nickname
+    ){
+        authService.checkNickname(nickname);
+
+        return ResponseEntity.ok(new ApiResponse<>("사용 가능한 이메일입니다"));
     }
 }

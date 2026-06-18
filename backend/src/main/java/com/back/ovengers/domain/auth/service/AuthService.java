@@ -182,5 +182,19 @@ public class AuthService {
         cookieUtil.deleteRefreshTokenCookie(response);
     }
 
+    @Transactional(readOnly = true)
+    public void checkEmail(String email) {
+        if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public void checkNickname(String nickname) {
+        if (userRepository.existsByNicknameAndDeletedAtIsNull(nickname)) {
+            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+    }
+
 
 }
