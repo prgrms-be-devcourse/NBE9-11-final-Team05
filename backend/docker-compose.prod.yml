@@ -16,8 +16,8 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       # 이 값 때문에 application-prod.yml이 활성화됨
 
-      - CUSTOM_PROD_DB_URL=jdbc:mysql://team5-db.czvbgr7hie3i.ap-northeast-2.rds.amazonaws.com:3306/camping
-      - CUSTOM_PROD_DB_USERNAME=admin
+      - CUSTOM_PROD_DB_URL=${DB_URL}
+      - CUSTOM_PROD_DB_USERNAME=${DB_USERNAME}
       - CUSTOM_PROD_DB_PASSWORD=${DB_PASSWORD}
       - CUSTOM_PROD_JWT_SECRET=${JWT_SECRET}
       - CUSTOM_PROD_TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
@@ -30,7 +30,7 @@ services:
     # EC2가 재부팅되거나 컨테이너가 죽으면 자동으로 다시 시작
 
   nginx-proxy-manager:
-    image: jc21/nginx-proxy-manager:latest
+    image: jc21/nginx-proxy-manager:2.15.1
     ports:
       - "80:80"    # 일반 HTTP 트래픽
       - "443:443"  # HTTPS 트래픽
