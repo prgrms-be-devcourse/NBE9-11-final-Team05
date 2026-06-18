@@ -1,0 +1,114 @@
+name: Deploy
+
+on:
+  push:
+    branches: [dev]   # dev 브랜치에 push될 때만 이 workflow가 실행됨
+
+jobs:
+  # ---- 1번째 job: CI (테스트) ----
+  test:
+    runs-on: ubuntu-latest   # GitHub가 제공하는 임시 우분투 서버에서 실행
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+        # GitHub 저장소의 코드를 이 임시 서버(Runner) 안으로 받아옴
+        # (이게 없으면 Runner 안에 우리 소스코드가 전혀 없는 빈 서버 상태)
+
+      - name: JDK 25 설치
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+        # Gradle로 빌드/테스트하려면 Java가 필요하니 미리 설치
+
+      - name: gradlew 실행 권한 부여
+        run: chmod +x backend/gradlew
+        # git에서 받은 gradlew 파일은 실행 권한이 없는 경우가 있어서
+        # 직접 실행 가능하게 권한을 부여해줌
+
+      - name: 테스트 실행
+        run: |
+          cd backend
+          ./gradlew test --no-daemon
+        # 실제 테스트 코드(src/test)를 실행
+        # 여기서 하나라도 실패하면 이 job이 실패로 끝나고,
+        # 아래 build-and-deploy job은 절대 실행되지 않음 (안전장치)
+
+  # ---- 2번째 job: CD (빌드 + Docker Hub 업로드 + EC2 배포) ----
+  build-and-deploy:
+    needs: test
+    # needs: test → 위 test job이 성공해야만 이 job이 시작됨
+    # 테스트 실패 시 배포 자체가 일어나지 않게 막아주는 핵심 키워드
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+        # Dockerfile, 소스코드가 있어야 이미지를 빌드할 수 있으니 다시 받아옴
+        # (각 job은 서로 독립된 새 서버에서 실행돼서, test job에서 받은 코드가 여기엔 안 남아있음)
+
+      - name: Docker Hub 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        # GitHub Secrets에 등록해둔 Docker Hub 계정 정보로 로그인
+        # 이 로그인이 있어야 다음 단계에서 이미지를 push(업로드)할 수 있음
+
+      - name: 이미지 빌드 + push
+        run: |
+          cd backend
+          docker build -t artiffect/team5-backend:latest .
+          docker push artiffect/team5-backend:latest
+        # backend/Dockerfile을 기준으로 이미지를 빌드하고
+        # Docker Hub 계정의 team5-backend 저장소로 업로드
+
+      - name: EC2에 배포
+        uses: appleboy/ssh-action@v1
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          # 중요: secrets.* 값은 워크플로우 문법 안에서만 읽히는 값이라서
+          # 이렇게 env: 블록에서 한 번 "진짜 환경변수"로 바꿔줘야
+          # 아래 envs: 옵션이 그 값을 찾아서 EC2로 전달할 수 있음
+          # (이 단계 빠지면 EC2에 빈 값이 전달돼서 DB 연결이 실패함)
+        with:
+          host: ${{ secrets.EC2_HOST }}       # 탄력적 IP
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}      # .pem 키 내용 전체
+          envs: DB_PASSWORD,JWT_SECRET
+          # 위 env: 블록에서 등록한 두 값을 SSH 세션 안으로 같이 넘겨줌
+          script: |
+            mkdir -p ~/app
+            cd ~/app
+
+            cat > docker-compose.prod.yml << 'COMPOSE_EOF'
+            services:
+              backend:
+                image: artiffect/team5-backend:latest
+                ports:
+                  - "8080:8080"
+                environment:
+                  - SPRING_PROFILES_ACTIVE=prod
+                  - CUSTOM_PROD_DB_URL=jdbc:mysql://team5-db.czvbgr7hie3i.ap-northeast-2.rds.amazonaws.com:3306/camping
+                  - CUSTOM_PROD_DB_USERNAME=admin
+                  - CUSTOM_PROD_DB_PASSWORD=${DB_PASSWORD}
+                  - CUSTOM_PROD_JWT_SECRET=${JWT_SECRET}
+                restart: unless-stopped
+            COMPOSE_EOF
+
+            cat > .env << ENV_EOF
+            DB_PASSWORD=${DB_PASSWORD}
+            JWT_SECRET=${JWT_SECRET}
+            ENV_EOF
+
+            docker pull artiffect/team5-backend:latest
+
+            docker compose -f docker-compose.prod.yml --env-file .env up -d --force-recreate
+
+            docker image prune -af
+
+            sleep 30
+            curl -f http://localhost:8080/actuator/health

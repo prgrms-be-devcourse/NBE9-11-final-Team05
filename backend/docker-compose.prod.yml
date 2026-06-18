@@ -1,0 +1,12 @@
+services:
+  backend:
+    image: artiffect/team5-backend:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CUSTOM_PROD_DB_URL=jdbc:mysql://team5-db.czvbgr7hie3i.ap-northeast-2.rds.amazonaws.com:3306/camping
+      - CUSTOM_PROD_DB_USERNAME=admin
+      - CUSTOM_PROD_DB_PASSWORD=${DB_PASSWORD}
+      - CUSTOM_PROD_JWT_SECRET=${JWT_SECRET}
+    restart: unless-stopped
