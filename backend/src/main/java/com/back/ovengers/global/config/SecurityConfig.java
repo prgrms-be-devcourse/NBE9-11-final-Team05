@@ -86,6 +86,8 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/logout",
                                 "/api/auth/refresh",
+                                "/api/auth/check/email",
+                                "/api/auth/check/nickname",
                                 "/api/users/**",
                                 "/success" // 프론트 완성시 제거 예정
                         ).permitAll()
