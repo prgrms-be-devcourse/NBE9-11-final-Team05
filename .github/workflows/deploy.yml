@@ -88,6 +88,8 @@ jobs:
       - name: EC2에 배포
         uses: appleboy/ssh-action@v1
         env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
@@ -99,12 +101,14 @@ jobs:
           host: ${{ secrets.EC2_HOST }}       # 탄력적 IP
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}      # .pem 키 내용 전체
-          envs: DB_PASSWORD,JWT_SECRET,TOSS_SECRET_KEY,GO_CAMPING_SERVICE_KEY
+          envs: DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,TOSS_SECRET_KEY,GO_CAMPING_SERVICE_KEY
           # 위 env: 블록에서 만든 값들을 SSH 세션 안으로 같이 넘겨줌
           script: |
             cd ~/app
 
             cat > .env << ENV_EOF
+            DB_URL=${DB_URL}
+            DB_USERNAME=${DB_USERNAME}
             DB_PASSWORD=${DB_PASSWORD}
             JWT_SECRET=${JWT_SECRET}
             TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
