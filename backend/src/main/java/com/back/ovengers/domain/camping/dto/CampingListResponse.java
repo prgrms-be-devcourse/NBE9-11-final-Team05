@@ -2,6 +2,8 @@ package com.back.ovengers.domain.camping.dto;
 
 import com.back.ovengers.domain.camping.entity.Camping;
 
+import java.time.LocalDateTime;
+
 public record CampingListResponse(
         Long id,
         String name,
@@ -9,7 +11,8 @@ public record CampingListResponse(
         String city,
         String address,
         String firstImageUrl,
-        Float rating
+        Float rating,
+        LocalDateTime createdAt
 ) {
 
     public static CampingListResponse from(Camping camping) {
@@ -20,7 +23,8 @@ public record CampingListResponse(
                 camping.getCity(),
                 camping.getAddress(),
                 camping.getFirstImageUrl(),
-                camping.getRating()
+                camping.getRating(),
+                camping.getCreatedAt()
         );
     }
 

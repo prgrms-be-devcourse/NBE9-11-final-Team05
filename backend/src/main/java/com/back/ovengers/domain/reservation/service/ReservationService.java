@@ -1,6 +1,8 @@
 package com.back.ovengers.domain.reservation.service;
 
 import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.payment.dto.PaymentSummaryResponse;
+import com.back.ovengers.domain.reservation.dto.HostReservationResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationDetailResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationRequest;
 import com.back.ovengers.domain.reservation.dto.ReservationResponse;
@@ -13,8 +15,10 @@ import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
+import com.back.ovengers.global.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -124,17 +128,35 @@ public class ReservationService {
 
     // 사용자 예약 목록 조회 - 페이지당 10개
     @Transactional(readOnly = true)
-    public List<ReservationResponse> getMyReservations(Long userId, int page) {
+    public PageResponse<ReservationResponse> getMyReservations(Long userId, int page) {
 
         userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        Pageable pageable = PageRequest.of(page, 10);  // 한 페이지 10개
+        Pageable pageable = PageRequest.of(page, 10);
 
-        return reservationRepository.findByUserIdOrderByCreatedAtDesc(
-                        userId, pageable)
-                .stream()
-                .map(ReservationResponse::of)
-                .toList();
+        Page<ReservationResponse> responsePage = reservationRepository
+                .findByUserIdWithDetails(userId, pageable)
+                .map(ReservationResponse::of);
+
+        return PageResponse.from(responsePage);
+    }
+
+    @Transactional(readOnly = true)
+    public PaymentSummaryResponse getSummary(Long reservationId, Long userId) {
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        if (!reservation.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        return PaymentSummaryResponse.of(reservation);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<HostReservationResponse> getHostReservations(Long hostId, Pageable pageable) {
+        return reservationRepository.findHostReservations(hostId, pageable);
     }
 }

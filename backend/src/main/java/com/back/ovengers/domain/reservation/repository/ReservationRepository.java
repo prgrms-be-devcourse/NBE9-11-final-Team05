@@ -1,5 +1,6 @@
 package com.back.ovengers.domain.reservation.repository;
 
+import com.back.ovengers.domain.reservation.dto.HostReservationResponse;
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,32 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     );
 
     Page<Reservation> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
+    @Query(value = """
+    SELECT r FROM Reservation r
+    JOIN FETCH r.site s
+    JOIN FETCH s.camping c
+    WHERE r.user.id = :userId
+    ORDER BY r.createdAt DESC
+""",
+            countQuery = """
+    SELECT COUNT(r) FROM Reservation r
+    WHERE r.user.id = :userId
+""")
+    Page<Reservation> findByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("""
+        select
+            new com.back.ovengers.domain.reservation.dto.HostReservationResponse(
+                r.id, c.name, s.name, r.rsvNum, r.rsvName, r.rsvPhone, r.checkIn, r.checkOut, r.guestCount, r.rsvPrice, r.status, r.createdAt
+            )
+            from Reservation r
+               join r.site s
+               join s.camping c
+               where c.host.id = :hostId
+                    order by r.createdAt desc
+    """)
+    Page<HostReservationResponse> findHostReservations(Long hostId, Pageable pageable);
 
     // site, camping 한번에 조회(리뷰에서 사용)
     @Query("SELECT r FROM Reservation r " +

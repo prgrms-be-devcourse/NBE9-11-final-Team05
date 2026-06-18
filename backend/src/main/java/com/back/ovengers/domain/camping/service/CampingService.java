@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class CampingService {
     private final CampingImageRepository campingImageRepository;
     private final SiteRepository siteRepository;
 
+    @Transactional(readOnly = true)
     public Page<CampingListResponse> getCampList(String keyword, Pageable pageable) {
 
         String keywordLike = !StringUtils.hasText(keyword) ? null : "%" + keyword + "%";
@@ -34,6 +36,7 @@ public class CampingService {
         return pagedCamps.map(CampingListResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public CampingDetailResponse getCampDetail(Long campingId) {
         Camping camp = campingRepository.findById(campingId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));

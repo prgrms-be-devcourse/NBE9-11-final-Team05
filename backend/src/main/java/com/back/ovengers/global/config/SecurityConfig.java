@@ -71,6 +71,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/prometheus")
+                        .permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/users/me/reviews"  // 내 리뷰 목록 조회 - 인증 필요
@@ -84,8 +86,10 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/logout",
                                 "/api/auth/refresh",
-                                "/api/reservations/**", // TODO: jwt filter 구현 후 제거
+                                "/api/auth/check/email",
+                                "/api/auth/check/nickname",
                                 "/api/users/**",
+                                "/api/campings/**",
                                 "/success" // 프론트 완성시 제거 예정
                         ).permitAll()
                         .requestMatchers(
