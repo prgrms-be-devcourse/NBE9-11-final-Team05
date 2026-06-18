@@ -30,6 +30,8 @@ export default function CampingImageSlider({
     ...imageUrls,
   ].filter((image): image is string => !!image);
 
+  const sliderImages = images.length > 0 ? images : ["/images/default-camping.png"];
+
   return (
     <section className="relative">
 
@@ -43,7 +45,7 @@ export default function CampingImageSlider({
         }}
         className="camping-swiper rounded-[32px]"
       >
-        {images.map((image, index) => (
+        {sliderImages.map((image, index) => (
           <SwiperSlide key={index}>
             <img
               src={image}

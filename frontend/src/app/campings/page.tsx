@@ -68,47 +68,47 @@ export default async function CampingListPage({
 
       {/* 리스트 */}
       <div className="grid md:grid-cols-3 gap-6">
-  {campings.map((camping: any) => (
-    <Link
-      key={camping.id}
-      href={`/campings/${camping.id}`}
-      className="block"
-    >
-      <div
-        className="bg-white rounded-2xl shadow-sm border border-gray-100
-          overflow-hidden
-          hover:shadow-lg
-          transition
-          cursor-pointer
-        "
-      >
-        <div className="h-44 overflow-hidden">
-          <img
-            src={
-              camping.firstImageUrl || "/images/default-camping.png"
-            }
-            className="w-full h-full object-cover hover:scale-105 transition duration-300"
-          />
-        </div>
+        {campings.map((camping) => (
+            <Link
+            key={camping.id}
+            href={`/campings/${camping.id}`}
+            className="block"
+            >
+            <div
+                className="bg-white rounded-2xl shadow-sm border border-gray-100
+                overflow-hidden
+                hover:shadow-lg
+                transition
+                cursor-pointer
+                "
+            >
+                <div className="h-44 overflow-hidden">
+                <img
+                    src={
+                    camping.firstImageUrl || "/images/default-camping.png"
+                    }
+                    className="w-full h-full object-cover hover:scale-105 transition duration-300"
+                />
+                </div>
 
-        <div className="p-4">
-          <h3 className="font-semibold text-lg text-gray-800">
-            {camping.name}
-          </h3>
+                <div className="p-4">
+                <h3 className="font-semibold text-lg text-gray-800">
+                    {camping.name}
+                </h3>
 
-          <p className="text-sm text-gray-500 mt-1">
-            {camping.address}
-          </p>
+                <p className="text-sm text-gray-500 mt-1">
+                    {camping.address}
+                </p>
+                </div>
+            </div>
+            </Link>
+        ))}
         </div>
-      </div>
-    </Link>
-  ))}
-</div>
 
         {/* 페이지네이션 */}
         <div className="flex justify-center items-center gap-2 mt-10">
             {/* 이전 */}
-            <a
+            <Link
                 href={
                     page > 0
                     ? `/campings?keyword=${keyword}&page=${page - 1}`
@@ -119,24 +119,24 @@ export default async function CampingListPage({
                 }`}
                 >
                 이전
-            </a>
+            </Link>
 
             {/* 첫 페이지 */}
             {start > 0 && (
                 <>
-                <a
+                <Link
                     href={`/campings?keyword=${keyword}&page=0`}
                     className="px-3 py-2 border rounded"
                 >
                     1
-                </a>
+                </Link>
                 <span className="px-2">...</span>
                 </>
             )}
 
             {/* 페이지 번호 */}
             {pages.map((p) => (
-                <a
+                <Link
                 key={p}
                 href={`/campings?keyword=${keyword}&page=${p}`}
                 className={`px-3 py-2 border rounded ${
@@ -144,24 +144,24 @@ export default async function CampingListPage({
                 }`}
                 >
                 {p + 1}
-                </a>
+                </Link>
             ))}
 
             {/* 마지막 페이지 */}
             {end < totalPages - 1 && (
                 <>
                 <span className="px-2">...</span>
-                <a
+                <Link
                     href={`/campings?keyword=${keyword}&page=${totalPages - 1}`}
                     className="px-3 py-2 border rounded"
                 >
                     {totalPages}
-                </a>
+                </Link>
                 </>
             )}
 
             {/* 다음 */}
-            <a
+            <Link
                 href={
                     page + 1 < totalPages
                     ? `/campings?keyword=${keyword}&page=${page + 1}`
@@ -172,7 +172,7 @@ export default async function CampingListPage({
                 }`}
                 >
                 다음
-            </a>
+            </Link>
         </div>
     </div>
   );

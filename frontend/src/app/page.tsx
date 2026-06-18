@@ -64,7 +64,7 @@ export default async function Home() {
         </h2>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {campings.map((camping: any) => (
+          {campings.map((camping) => (
             <Link
               key={camping.id}
               href={`/campings/${camping.id}`}

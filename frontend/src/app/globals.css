@@ -25,7 +25,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
--- 캠핑 상세 조회 이미지 목록 버튼
+/* 캠핑 상세 조회 이미지 목록 버튼 */
 .camping-swiper .swiper-button-prev,
 .camping-swiper .swiper-button-next {
 
