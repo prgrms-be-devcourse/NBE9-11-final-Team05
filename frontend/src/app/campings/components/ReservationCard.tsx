@@ -1,0 +1,101 @@
+"use client";
+
+import { useState } from "react";
+import { CampingDetail } from "@/app/types/camping";
+
+interface Props {
+  camping: CampingDetail;
+}
+
+export default function ReservationCard({ camping }: Props) {
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+
+  return (
+    <aside>
+      <div
+        className={`
+          sticky
+          top-24
+          bg-white
+          rounded-3xl
+          shadow-xl
+          p-8
+        `}
+      >
+        {/* 가격 */}
+        <div className="text-3xl font-bold text-gray-900">
+          ₩
+          {Math.min(...camping.sites.map((site) => site.price)).toLocaleString()}
+          <span className="text-lg font-normal text-gray-500">~</span>
+        </div>
+
+        {/* 날짜 선택 */}
+        <div className="mt-6 space-y-3">
+          
+          <div>
+            <label className="text-sm text-gray-500">체크인</label>
+            <input
+              type="date"
+              value={checkIn}
+              onChange={(e) => setCheckIn(e.target.value)}
+              className={`
+                mt-1
+                w-full
+                border
+                border-gray-200
+                rounded-xl
+                px-3
+                py-2
+                text-gray-700
+                focus:outline-none
+                focus:ring-2
+                focus:ring-[#4B6945]
+              `}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-500">체크아웃</label>
+            <input
+              type="date"
+              value={checkOut}
+              onChange={(e) => setCheckOut(e.target.value)}
+              className={`
+                mt-1
+                w-full
+                border
+                border-gray-200
+                rounded-xl
+                px-3
+                py-2
+                text-gray-700
+                focus:outline-none
+                focus:ring-2
+                focus:ring-[#4B6945]
+              `}
+            />
+          </div>
+
+        </div>
+
+        {/* 버튼 */}
+        <button
+          className={`
+            mt-8
+            w-full
+            bg-[#CC7C35]
+            hover:bg-[#a9632a]
+            transition
+            text-white
+            py-4
+            rounded-2xl
+            font-bold
+          `}
+        >
+          예약하기
+        </button>
+      </div>
+    </aside>
+  );
+}

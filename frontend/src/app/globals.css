@@ -24,3 +24,74 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+-- 캠핑 상세 조회 이미지 목록 버튼
+.camping-swiper .swiper-button-prev,
+.camping-swiper .swiper-button-next {
+
+  width: 44px;
+  height: 44px;
+
+  background: rgba(255,255,255,0.9);
+
+  border-radius: 9999px;
+
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.15);
+
+  transition: .2s;
+
+  color: #4B6945;
+}
+
+.camping-swiper .swiper-button-prev:hover,
+.camping-swiper .swiper-button-next:hover {
+
+  background: white;
+
+  transform: scale(1.08);
+}
+
+.camping-swiper .swiper-button-prev::after,
+.camping-swiper .swiper-button-next::after {
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+
+/* 위치 */
+.camping-swiper .swiper-button-prev {
+  left: 20px;
+}
+
+.camping-swiper .swiper-button-next {
+  right: 20px;
+}
+
+
+/* 아래 페이지 표시 */
+.camping-swiper .swiper-pagination {
+  bottom: 20px !important;
+}
+
+.camping-swiper .swiper-pagination-bullet {
+
+  width: 8px;
+  height: 8px;
+
+  background: white;
+
+  opacity: .5;
+
+  transition: .3s;
+}
+
+.camping-swiper .swiper-pagination-bullet-active {
+
+  width: 28px;
+
+  border-radius: 999px;
+
+  opacity: 1;
+}

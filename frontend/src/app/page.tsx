@@ -37,7 +37,7 @@ export default async function Home() {
               />
 
               <button
-                className="
+                className={`
                   bg-[#4B6945]
                   text-white
                   px-8
@@ -46,7 +46,7 @@ export default async function Home() {
                   font-semibold
                   hover:opacity-90
                   transition
-                "
+                `}
               >
                 검색
               </button>
@@ -59,7 +59,7 @@ export default async function Home() {
               (region) => (
                 <button
                   key={region}
-                  className="
+                  className={`
                     bg-[#4B6945]
                     text-white
                     px-4
@@ -67,7 +67,7 @@ export default async function Home() {
                     rounded-full
                     text-sm
                     hover:opacity-90
-                  "
+                  `}
                 >
                   {region}
                 </button>
@@ -89,7 +89,7 @@ export default async function Home() {
               href={`/campings/${camping.id}`}
               >
                 <div
-                  className="
+                  className={`
                     bg-white
                     rounded-3xl
                     shadow-lg
@@ -97,7 +97,7 @@ export default async function Home() {
                     hover:shadow-xl
                     transition
                     cursor-pointer
-                  "
+                  `}
                 >
                   <div className="h-60 rounded-2xl mb-4 overflow-hidden">
                     <img

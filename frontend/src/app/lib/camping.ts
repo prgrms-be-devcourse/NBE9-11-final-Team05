@@ -1,17 +1,20 @@
-import { Camping } from "../types/camping";
+import { fetchApi } from "./api";
+import { Camping, CampingDetail } from "../types/camping";
 
 export async function getLatestCampings(): Promise<Camping[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/campings?page=0&size=3&sort=createdAt,desc`
+  const response = await fetchApi<{
+    content: Camping[];
+  }>(
+    "/api/campings?page=0&size=3&sort=createdAt,asc"
   );
 
-  if (!res.ok) {
-    throw new Error("캠핑장 목록 조회 실패");
-  }
+  return response.content;
+}
 
-  const data = await res.json();
-  
-  console.log(data);
-
-  return data.data?.content ?? [];
+export async function getCampingDetail(
+  campingId: number
+): Promise<CampingDetail> {
+  return fetchApi<CampingDetail>(
+    `/api/campings/${campingId}`
+  );
 }
