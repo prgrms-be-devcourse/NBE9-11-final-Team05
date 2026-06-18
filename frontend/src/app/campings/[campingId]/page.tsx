@@ -20,10 +20,13 @@ export default async function CampingDetailPage(
 ) {
 
   const { campingId } = await params;
+  const id = Number(campingId);
 
-  const camping = await getCampingDetail(
-    Number(campingId)
-  );
+  if (isNaN(id)) {
+    throw new Error("올바르지 않은 캠핑장 ID입니다.");
+  }
+
+  const camping = await getCampingDetail(id);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
