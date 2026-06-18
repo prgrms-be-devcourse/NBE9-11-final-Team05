@@ -110,7 +110,11 @@ public class SecurityConfig {
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));   // 현재 로컬 개발 환경만 허용
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",      // 로컬 개발 환경
+                "https://campgo.site",        // 운영 프론트(루트 도메인)
+                "https://www.campgo.site"     // 운영 프론트(www)
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")); // 허용할 HTTP 메서드 목록
         configuration.setAllowedHeaders(List.of("*")); // 모든 요청 헤더 허용
         configuration.setAllowCredentials(true);  // 쿠키/인증 정보 포함 요청 허용

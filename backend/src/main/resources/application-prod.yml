@@ -30,3 +30,7 @@ toss:
 go-camping:
   value:
     serviceKey: "${custom.prod.go-camping.service-key}"
+
+app:
+  cookie:
+    secure: true
