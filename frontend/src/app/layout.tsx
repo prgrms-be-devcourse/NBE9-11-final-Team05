@@ -33,7 +33,7 @@ export default function RootLayout({
             <div className="flex items-center justify-between py-4 border-b">
               <Link href="/" className="flex items-center gap-3">
                 <Image
-                  src="/campinglogo.png"
+                  src="/images/camping-logo.png"
                   alt="캠핑가자 로고"
                   width={95}
                   height={95}

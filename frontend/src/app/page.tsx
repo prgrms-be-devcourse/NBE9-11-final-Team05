@@ -1,7 +1,8 @@
-import { getPopularCampings } from "./lib/camping";
+import Link from "next/link";
+import { getLatestCampings } from "./lib/camping";
 
 export default async function Home() {
-  const campings = await getPopularCampings();
+  const campings = await getLatestCampings();
   
   return (
     <>
@@ -78,31 +79,43 @@ export default async function Home() {
 
       <section className="mt-20">
         <h2 className="text-3xl font-bold mb-8">
-          인기 캠핑장
+          최근 등록된 캠핑장
         </h2>
 
         <div className="grid md:grid-cols-3 gap-8">
           {campings.map((camping) => (
-            <div
+             <Link
               key={camping.id}
-              className="bg-white rounded-3xl shadow-lg p-4"
-            >
-              <div className="h-60 rounded-2xl mb-4 overflow-hidden">
-                <img
-                  src={camping.firstImageUrl}
-                  alt={camping.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <h3 className="font-bold text-xl">
-                {camping.name}
-              </h3>
-
-              <p className="text-gray-500 mt-2">
-                {camping.address}
-              </p>
-            </div>
+              href={`/campings/${camping.id}`}
+              >
+                <div
+                  className="
+                    bg-white
+                    rounded-3xl
+                    shadow-lg
+                    p-4
+                    hover:shadow-xl
+                    transition
+                    cursor-pointer
+                  "
+                >
+                  <div className="h-60 rounded-2xl mb-4 overflow-hidden">
+                    <img
+                      src={camping.firstImageUrl || "/images/default-camping.png"}
+                      alt={camping.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+        
+                  <h3 className="font-bold text-xl">
+                    {camping.name}
+                  </h3>
+        
+                  <p className="text-gray-500 mt-2">
+                    {camping.address}
+                  </p>
+                </div>
+              </Link>
           ))}
         </div>
       </section>
