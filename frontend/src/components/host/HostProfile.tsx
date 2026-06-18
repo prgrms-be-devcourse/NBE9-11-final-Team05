@@ -25,19 +25,36 @@ export default function HostProfile() {
   }
 
   return (
-    <section>
-      <h2>호스트 정보</h2>
-
-      {profile.imageUrl && (
-        <img
-          src={profile.imageUrl}
-          alt={profile.nickname}
-          width={100}
-        />
-      )}
-
-      <p>닉네임: {profile.nickname}</p>
-      <p>전화번호: {profile.phone}</p>
+    <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <h2 className="mb-4 text-lg font-semibold text-gray-900">
+        호스트 정보
+      </h2>
+  
+      <div className="flex items-center gap-4">
+        {profile.imageUrl ? (
+          <img
+            src={profile.imageUrl}
+            alt={profile.nickname}
+            width={80}
+            height={80}
+            className="h-20 w-20 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 text-sm text-gray-400">
+            이미지
+          </div>
+        )}
+  
+        <div className="space-y-1">
+          <p className="font-medium text-gray-900">
+            {profile.nickname}
+          </p>
+  
+          <p className="text-sm text-gray-600">
+            {profile.phone}
+          </p>
+        </div>
+      </div>
     </section>
   );
 }

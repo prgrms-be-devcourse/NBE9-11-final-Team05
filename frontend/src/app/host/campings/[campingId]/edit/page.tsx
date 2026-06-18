@@ -21,6 +21,8 @@ export default function HostCampingEditPage() {
         firstImageUrl: camping.firstImageUrl ?? "",
         name: camping.name,
         homepage: camping.homepage ?? "",
+        // region: camping.region,
+        // city: camping.city,
         address: camping.address,
         description: camping.description ?? "",
         phone: camping.phone ?? "",
@@ -34,16 +36,23 @@ export default function HostCampingEditPage() {
   }, [campingId]);
 
   if (!initialValues) {
-    return <p>수정 정보를 불러오는 중입니다...</p>;
+    return <p className="text-sm text-gray-500">수정 정보를 불러오는 중입니다...</p>;
   }
 
   return (
-    <main>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">캠핑장 수정</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          캠핑장 기본 정보를 수정할 수 있습니다.
+        </p>
+      </div>
+
       <HostCampingForm
         mode="edit"
         campingId={campingId}
         initialValues={initialValues}
       />
-    </main>
+    </div>
   );
 }

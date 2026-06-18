@@ -2,8 +2,8 @@ import HostCampingList from "@/components/host/HostCampingList";
 
 export default function HostCampingsPage() {
   return (
-    <main>
+    <div className="space-y-6">
       <HostCampingList />
-    </main>
+    </div>
   );
 }

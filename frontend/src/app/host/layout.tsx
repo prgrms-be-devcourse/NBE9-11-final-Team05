@@ -6,14 +6,24 @@ export default function HostLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <nav>
-        <Link href="/host/dashboard">대시보드</Link>
-        <Link href="/host/campings">내 캠핑장</Link>
-        <Link href="/host/campings/new">캠핑장 등록</Link>
-      </nav>
+    <div className="flex min-h-screen bg-gray-50">
+      <aside className="w-64 border-r border-gray-200 bg-white p-6">
+        <h1 className="mb-8 text-xl font-bold text-gray-900">Host</h1>
 
-      {children}
+        <nav className="flex flex-col gap-3">
+          <Link href="/host/dashboard" className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            대시보드
+          </Link>
+          <Link href="/host/campings" className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            내 캠핑장
+          </Link>
+          <Link href="/host/campings/new" className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            캠핑장 등록
+          </Link>
+        </nav>
+      </aside>
+
+      <main className="flex-1 p-8">{children}</main>
     </div>
   );
 }

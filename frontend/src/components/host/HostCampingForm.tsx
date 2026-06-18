@@ -164,153 +164,69 @@ export default function HostCampingForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>{isEditMode ? "캠핑장 수정" : "캠핑장 등록"}</h2>
-
-      <input
-        placeholder="캠핑장명"
-        value={formValues.name}
-        onChange={(e) => handleChange("name", e.target.value)}
-        required
-      />
-
-      <input
-        placeholder="시/도"
-        value={formValues.region}
-        onChange={(e) => handleChange("region", e.target.value)}
-        required
-      />
-
-      <input
-        placeholder="시/군/구"
-        value={formValues.city}
-        onChange={(e) => handleChange("city", e.target.value)}
-        required
-      />
-
-      <input
-        placeholder="전체 주소"
-        value={formValues.address}
-        onChange={(e) => handleChange("address", e.target.value)}
-        required
-      />
-
-      <input
-        placeholder="전화번호"
-        value={formValues.phone}
-        onChange={(e) => handleChange("phone", e.target.value)}
-      />
-
-      <input
-        placeholder="홈페이지"
-        value={formValues.homepage}
-        onChange={(e) => handleChange("homepage", e.target.value)}
-      />
-
-      <textarea
-        placeholder="캠핑장 설명"
-        value={formValues.description}
-        onChange={(e) => handleChange("description", e.target.value)}
-      />
-
-      <textarea
-        placeholder="공지사항"
-        value={formValues.notice}
-        onChange={(e) => handleChange("notice", e.target.value)}
-      />
-
-      <input
-        type="time"
-        value={formValues.checkInTime}
-        onChange={(e) => handleChange("checkInTime", e.target.value)}
-      />
-
-      <input
-        type="time"
-        value={formValues.checkOutTime}
-        onChange={(e) => handleChange("checkOutTime", e.target.value)}
-      />
-
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
+    >
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">
+          기본 정보
+        </h2>
+  
+        <div className="grid gap-4 md:grid-cols-2">
+          <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="캠핑장명" value={formValues.name} onChange={(e) => handleChange("name", e.target.value)} required />
+          <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="시/도" value={formValues.region} onChange={(e) => handleChange("region", e.target.value)} required />
+          <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="시/군/구" value={formValues.city} onChange={(e) => handleChange("city", e.target.value)} required />
+          <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="전체 주소" value={formValues.address} onChange={(e) => handleChange("address", e.target.value)} required />
+          <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="전화번호" value={formValues.phone} onChange={(e) => handleChange("phone", e.target.value)} />
+          <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="홈페이지" value={formValues.homepage} onChange={(e) => handleChange("homepage", e.target.value)} />
+        </div>
+  
+        <textarea className="min-h-28 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="캠핑장 설명" value={formValues.description} onChange={(e) => handleChange("description", e.target.value)} />
+  
+        <textarea className="min-h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="공지사항" value={formValues.notice} onChange={(e) => handleChange("notice", e.target.value)} />
+  
+        <div className="grid gap-4 md:grid-cols-2">
+          <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" type="time" value={formValues.checkInTime} onChange={(e) => handleChange("checkInTime", e.target.value)} />
+          <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" type="time" value={formValues.checkOutTime} onChange={(e) => handleChange("checkOutTime", e.target.value)} />
+        </div>
+      </section>
+  
       {!isEditMode && (
-        <section>
-          <h3>구역 정보</h3>
-
+        <section className="space-y-4 border-t border-gray-200 pt-6">
+          <h3 className="text-lg font-semibold text-gray-900">구역 정보</h3>
+  
           {formValues.sites.map((site, index) => (
-            <div key={index}>
-              <input
-                placeholder="구역명"
-                value={site.name}
-                onChange={(e) =>
-                  handleSiteChange(index, "name", e.target.value)
-                }
-                required
-              />
-
-              <input
-                placeholder="기준 인원"
-                value={site.baseCapacity}
-                onChange={(e) =>
-                  handleSiteChange(index, "baseCapacity", e.target.value)
-                }
-                required
-              />
-
-              <input
-                placeholder="최대 인원"
-                value={site.maxCapacity}
-                onChange={(e) =>
-                  handleSiteChange(index, "maxCapacity", e.target.value)
-                }
-                required
-              />
-
-              <input
-                placeholder="구역 수"
-                value={site.totalAmount}
-                onChange={(e) =>
-                  handleSiteChange(index, "totalAmount", e.target.value)
-                }
-                required
-              />
-
-              <input
-                placeholder="가격"
-                value={site.price}
-                onChange={(e) =>
-                  handleSiteChange(index, "price", e.target.value)
-                }
-                required
-              />
-
-              <textarea
-                placeholder="구역 설명"
-                value={site.description}
-                onChange={(e) =>
-                  handleSiteChange(index, "description", e.target.value)
-                }
-              />
-
+            <div key={index} className="space-y-4 rounded-lg border border-gray-200 p-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="구역명" value={site.name} onChange={(e) => handleSiteChange(index, "name", e.target.value)} required />
+                <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="기준 인원" value={site.baseCapacity} onChange={(e) => handleSiteChange(index, "baseCapacity", e.target.value)} required />
+                <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="최대 인원" value={site.maxCapacity} onChange={(e) => handleSiteChange(index, "maxCapacity", e.target.value)} required />
+                <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="구역 수" value={site.totalAmount} onChange={(e) => handleSiteChange(index, "totalAmount", e.target.value)} required />
+                <input className="rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="가격" value={site.price} onChange={(e) => handleSiteChange(index, "price", e.target.value)} required />
+              </div>
+  
+              <textarea className="min-h-20 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" placeholder="구역 설명" value={site.description} onChange={(e) => handleSiteChange(index, "description", e.target.value)} />
+  
               {formValues.sites.length > 1 && (
-                <button type="button" onClick={() => removeSite(index)}>
+                <button type="button" onClick={() => removeSite(index)} className="text-sm text-red-500 hover:text-red-700">
                   구역 삭제
                 </button>
               )}
             </div>
           ))}
-
-          <button type="button" onClick={addSite}>
+  
+          <button type="button" onClick={addSite} className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
             구역 추가
           </button>
         </section>
       )}
-
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting
-          ? "처리 중..."
-          : isEditMode
-            ? "수정하기"
-            : "등록하기"}
-      </button>
+  
+      <div className="flex justify-end border-t border-gray-200 pt-6">
+        <button type="submit" disabled={isSubmitting} className="rounded-md bg-gray-900 px-5 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50">
+          {isSubmitting ? "처리 중..." : isEditMode ? "수정하기" : "등록하기"}
+        </button>
+      </div>
     </form>
   );
 }

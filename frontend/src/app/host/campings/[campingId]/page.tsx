@@ -47,34 +47,56 @@ export default function HostCampingDetailPage() {
   if (!camping) return <p>캠핑장 정보가 없습니다.</p>;
 
   return (
-    <main>
-      <h1>{camping.name}</h1>
-
-      {camping.firstImageUrl && (
-        <img src={camping.firstImageUrl} alt={camping.name} />
-      )}
-
-      <p>{camping.address}</p>
-      <p>{camping.description}</p>
-      <p>전화번호: {camping.phone ?? "-"}</p>
-      <p>홈페이지: {camping.homepage ?? "-"}</p>
-      <p>
-        체크인 {camping.checkInTime ?? "-"} / 체크아웃{" "}
-        {camping.checkOutTime ?? "-"}
-      </p>
-      <p>공지사항: {camping.notice ?? "-"}</p>
-      <p>평점: {camping.rating ?? "평점 없음"}</p>
-
-      <div>
-        <Link href={`/host/campings/${campingId}/edit`}>수정하기</Link>
-        <button type="button" onClick={handleDelete}>
-          삭제하기
-        </button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{camping.name}</h1>
+          <p className="mt-1 text-sm text-gray-500">{camping.address}</p>
+        </div>
+  
+        <div className="flex gap-2">
+          <Link
+            href={`/host/campings/${campingId}/edit`}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            수정하기
+          </Link>
+  
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="rounded-md bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600"
+          >
+            삭제하기
+          </button>
+        </div>
       </div>
-
+  
+      <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        {camping.firstImageUrl && (
+          <img
+            src={camping.firstImageUrl}
+            alt={camping.name}
+            className="mb-6 h-64 w-full rounded-lg object-cover"
+          />
+        )}
+  
+        <div className="space-y-3 text-sm text-gray-700">
+          <p>{camping.description ?? "설명이 없습니다."}</p>
+          <p>전화번호: {camping.phone ?? "-"}</p>
+          <p>홈페이지: {camping.homepage ?? "-"}</p>
+          <p>
+            체크인 {camping.checkInTime ?? "-"} / 체크아웃{" "}
+            {camping.checkOutTime ?? "-"}
+          </p>
+          <p>공지사항: {camping.notice ?? "-"}</p>
+          <p>평점: {camping.rating ?? "평점 없음"}</p>
+        </div>
+      </section>
+  
       <HostImageManager campingId={campingId} imageUrls={camping.imageUrls} />
-
+  
       <HostSiteManager campingId={campingId} sites={camping.sites} />
-    </main>
+    </div>
   );
 }
