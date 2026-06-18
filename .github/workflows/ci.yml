@@ -25,5 +25,7 @@ jobs:
         run: |
           cd backend
           ./gradlew test --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
         # 이 결과가 PR 화면에 체크 표시(통과/실패)로 나타남
         # 팀원이 머지하기 전에 테스트 통과 여부를 바로 확인할 수 있음
