@@ -25,6 +25,13 @@ FROM eclipse-temurin:25-jre AS run
 WORKDIR /app
 # 이 시점에 /app 디렉토리가 만들어지는데, 아직 USER 선언 전이라 소유자가 root로 찍힘
 
+# 헬스체크용 curl 설치 (베이스 이미지에 기본 포함 안 되어있어서 직접 설치)
+# root 권한이 필요한 작업이라 USER appuser 선언 전에 해야 함
+# rm -rf /var/lib/apt/lists/* → 설치 후 패키지 목록 캐시 삭제 (이미지 용량 절약)
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+
+
 # 보안: root가 아닌 별도 유저로 컨테이너 실행
 # -m: 홈 디렉토리 생성, -u 1001: UID 명시 (베이스 이미지에 기본 유저가 있든 없든 항상 동작)
 # && chown appuser:appuser /app
