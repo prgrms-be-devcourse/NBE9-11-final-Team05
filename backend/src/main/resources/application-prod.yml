@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: "${custom.prod.db.url}"
+    username: "${custom.prod.db.username}"
+    password: "${custom.prod.db.password}"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # 테이블 추가하는 가
+    show-sql: false
+
+jwt:
+  secret: "${custom.prod.jwt.secret}"
+  access-expiration: 1800000
+  refresh-expiration: 604800000
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+toss:
+  secret-key: "${custom.prod.toss.secret-key}"
+
+go-camping:
+  value:
+    serviceKey: "${custom.prod.go-camping.service-key}"

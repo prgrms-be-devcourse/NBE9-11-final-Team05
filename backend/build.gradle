@@ -55,6 +55,9 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    testLogging {
+        exceptionFormat = "full"
+    }
 }
 
 // 필요 없는 plain jar 만드는 작업을 막고 bootJar만 필요
