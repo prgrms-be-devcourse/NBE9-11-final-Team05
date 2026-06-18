@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signupApi } from "@/lib/api/signup";
+import { useSignupStore } from "@/stores/signupStore";
 
 export default function SignupStep3() {
   const router = useRouter();
@@ -15,24 +16,40 @@ export default function SignupStep3() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const {
+    email,
+    password,
+    name,
+    nickname,
+    phone,
+    reset,
+  } = useSignupStore();
+
   const handleAddressSearch = () => {
     // TODO: 카카오 우편번호 API 연동
     alert("주소 검색 API 연동 예정");
   };
 
+  useEffect(() => {
+    if (!email) {
+      router.replace("/auth/signup/step1");
+    }
+  }, [email, router]);
+
   const handleSubmit = async () => {
     setError("");
     setLoading(true);
+  
     try {
-      const savedData = sessionStorage.getItem("signupData");
-      if (!savedData) {
-        router.push("/auth/signup/step2");
+      if (!email) {
+        router.push("/auth/signup/step1");
         return;
       }
-
-      const { email, password, name, nickname, phone } = JSON.parse(savedData);
-      const address = detailAddress ? `${location} ${detailAddress}` : location;
-
+  
+      const address = detailAddress
+        ? `${location} ${detailAddress}`
+        : location;
+  
       await signupApi.signupHost({
         email,
         password,
@@ -43,12 +60,19 @@ export default function SignupStep3() {
         campingName,
         address,
       });
-
-      sessionStorage.removeItem("signupData");
+  
+      // Zustand 데이터 초기화
+      reset();
+  
       sessionStorage.removeItem("signupRole");
+  
       router.push("/auth/login");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "호스트 등록에 실패했습니다.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "호스트 등록에 실패했습니다."
+      );
     } finally {
       setLoading(false);
     }

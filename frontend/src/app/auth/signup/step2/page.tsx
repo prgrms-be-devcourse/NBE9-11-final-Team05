@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signupApi } from "@/lib/api/signup";
+import { useSignupStore } from "@/stores/signupStore";
 
 export default function SignupStep2() {
   const router = useRouter();
@@ -26,6 +27,8 @@ export default function SignupStep2() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const { setSignupData } = useSignupStore();
 
   useEffect(() => {
     const savedRole = sessionStorage.getItem("signupRole") as "user" | "host" | null;
@@ -72,8 +75,14 @@ export default function SignupStep2() {
   };
 
   const handleNext = () => {
-    // step3에서 사용할 공통 정보를 sessionStorage에 저장
-    sessionStorage.setItem("signupData", JSON.stringify({ email, password, name, nickname, phone }));
+    setSignupData({
+      email,
+      password,
+      name,
+      nickname,
+      phone,
+    });
+  
     router.push("/auth/signup/step3");
   };
 
