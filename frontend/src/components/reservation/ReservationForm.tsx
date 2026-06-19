@@ -18,6 +18,8 @@ interface ReservationFormProps {
   campingId: string;
   siteOptions: SiteOption[];
   campingName?: string;
+  defaultCheckIn?: string;  
+  defaultCheckOut?: string;  
 }
 
 const initialState: ReservationFormState = {};
@@ -26,13 +28,15 @@ export default function ReservationForm({
   campingId,
   siteOptions,
   campingName,
+  defaultCheckIn,
+  defaultCheckOut,
 }: ReservationFormProps) {
   const boundAction = submitReservation.bind(null, campingId);
   const [state, formAction, isPending] = useActionState(boundAction, initialState);
 
   const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+  const [checkIn, setCheckIn] = useState(defaultCheckIn ?? "");
+  const [checkOut, setCheckOut] = useState(defaultCheckOut ?? "");
 
   // 선택된 구역 가격
   const selectedSite = siteOptions.find((s) => s.id === selectedSiteId);
@@ -76,6 +80,7 @@ export default function ReservationForm({
               required
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
+              disabled={!!defaultCheckIn}
               className="flex-1 rounded-full border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none transition-colors focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
             />
             <span className="text-stone-400">~</span>
@@ -85,6 +90,7 @@ export default function ReservationForm({
               required
               value={checkOut}
               onChange={(e) => setCheckOut(e.target.value)}
+              disabled={!!defaultCheckOut}
               className="flex-1 rounded-full border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none transition-colors focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
             />
           </div>

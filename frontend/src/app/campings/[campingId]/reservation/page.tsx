@@ -3,13 +3,14 @@ import { getCampingDetail } from "@/lib/api/reservation";
 
 interface PageProps {
   params: Promise<{ campingId: string }>;
+  searchParams: Promise<{ checkIn?: string; checkOut?: string }>;
 }
 
-export default async function ReservationPage({ params }: PageProps) {
+export default async function ReservationPage({ params,searchParams }: PageProps) {
   const { campingId } = await params;
+  const { checkIn, checkOut } = await searchParams;  // 추가
 
   const camping = await getCampingDetail(Number(campingId));
-
   const siteOptions = camping.sites.map((site) => ({
     id: site.id,
     name: `${site.name} (최대 ${site.maxCapacity}명 / ${site.price.toLocaleString()}원)`,
@@ -22,6 +23,8 @@ export default async function ReservationPage({ params }: PageProps) {
         campingId={campingId}
         siteOptions={siteOptions}
         campingName={camping.name}
+        defaultCheckIn={checkIn}  
+        defaultCheckOut={checkOut} 
       />
     </div>
   );
