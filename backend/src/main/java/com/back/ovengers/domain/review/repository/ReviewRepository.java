@@ -36,5 +36,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // 아이디 목록에 포함되는 리뷰들 리스트로 가져옴
     List<Review> findByReservationIdIn(List<Long> reservationIds);
 
-    List<Review> findAllByUserId(Long userId);
+    @Query("SELECT r FROM Review r JOIN FETCH r.reservation res JOIN FETCH res.site s JOIN FETCH s.camping c WHERE r.user.id = :userId")
+    List<Review> findAllByUserId(@Param("userId") Long userId);
 }
