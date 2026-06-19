@@ -21,8 +21,9 @@ public interface CampingRepository extends JpaRepository<Camping, Long> {
     boolean existsByIdAndDeletedAtIsNull(Long id);
 
     @Query("""
-        select c from Camping c 
+        select c from Camping c
             where c.deletedAt is null
+                and c.status = CampingStatus.APPROVED
                 and (:keywordLike is null 
                 or c.name like :keywordLike 
                 or c.region like :keywordLike)
