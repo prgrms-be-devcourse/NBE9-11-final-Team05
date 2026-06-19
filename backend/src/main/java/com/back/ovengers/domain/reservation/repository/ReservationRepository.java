@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
@@ -97,4 +98,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             Long siteId,
             ReservationStatus status
     );
+
+    List<Reservation> findAllByUserId(Long userId);
 }

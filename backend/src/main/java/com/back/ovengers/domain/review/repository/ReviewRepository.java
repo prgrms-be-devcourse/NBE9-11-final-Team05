@@ -35,4 +35,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     // 아이디 목록에 포함되는 리뷰들 리스트로 가져옴
     List<Review> findByReservationIdIn(List<Long> reservationIds);
+
+    List<Review> findAllByUserId(Long userId);
 }
