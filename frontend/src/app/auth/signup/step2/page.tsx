@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signupApi } from "@/lib/api/signup";
-import { useSignupStore } from "@/stores/signupStore";
 
 export default function SignupStep2() {
   const router = useRouter();
@@ -27,8 +26,6 @@ export default function SignupStep2() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const { setSignupData } = useSignupStore();
 
   useEffect(() => {
     const savedRole = sessionStorage.getItem("signupRole") as "user" | "host" | null;
@@ -65,28 +62,26 @@ export default function SignupStep2() {
     setError("");
     setLoading(true);
     try {
-      await signupApi.signupUser({ email, password, name, nickname, phone });
+      await signupApi.signup({
+        email,
+        password,
+        name,
+        nickname,
+        phone,
+        role: role === "host" ? "HOST" : "USER",
+      });
+      sessionStorage.removeItem("signupRole");
       router.push("/auth/login");
     } catch (err) {
+      console.error("회원가입 에러:", err);
       setError(err instanceof Error ? err.message : "회원가입에 실패했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleNext = () => {
-    setSignupData({
-      email,
-      password,
-      name,
-      nickname,
-      phone,
-    });
-  
-    router.push("/auth/signup/step3");
-  };
-
-  const isFormValid = emailChecked && passwordMatch && name !== "" && nicknameChecked && phone !== "";
+  const isFormValid =
+    emailChecked && passwordMatch && name !== "" && nicknameChecked && phone !== "";
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -221,32 +216,25 @@ export default function SignupStep2() {
             />
             <div className="w-[68px]" />
           </div>
+
         </div>
 
         {/* 에러 메시지 */}
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        {/* 버튼 영역 */}
+        {/* 버튼 */}
         <div className="w-full max-w-md">
-          {role === "user" ? (
-            <button
-              onClick={handleComplete}
-              disabled={!isFormValid || loading}
-              className={`w-full py-3 rounded-xl text-white font-bold text-base transition-colors
-                ${isFormValid && !loading ? "bg-orange-400 hover:bg-orange-500 active:bg-orange-600" : "bg-orange-200 cursor-not-allowed"}`}
-            >
-              {loading ? "처리 중..." : "회원가입 완료!"}
-            </button>
-          ) : (
-            <button
-              onClick={handleNext}
-              disabled={!isFormValid}
-              className={`w-full py-3 rounded-xl text-white font-bold text-base transition-colors
-                ${isFormValid ? "bg-orange-400 hover:bg-orange-500 active:bg-orange-600" : "bg-orange-200 cursor-not-allowed"}`}
-            >
-              다음으로 →
-            </button>
-          )}
+          <button
+            onClick={handleComplete}
+            disabled={!isFormValid || loading}
+            className={`w-full py-3 rounded-xl text-white font-bold text-base transition-colors
+              ${isFormValid && !loading
+                ? "bg-orange-400 hover:bg-orange-500 active:bg-orange-600"
+                : "bg-orange-200 cursor-not-allowed"
+              }`}
+          >
+            {loading ? "처리 중..." : "회원가입 완료!"}
+          </button>
         </div>
       </main>
 

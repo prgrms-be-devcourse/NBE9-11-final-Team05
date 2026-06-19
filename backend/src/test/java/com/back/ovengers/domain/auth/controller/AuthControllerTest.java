@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -74,12 +75,12 @@ class AuthControllerTest {
     // ===================== 회원가입 =====================
 
     @Test
-    @DisplayName("회원가입 성공")
+    @DisplayName("회원가입 성공 - USER")
     void t1() throws Exception {
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                createSignUpRequest("new@test.com", "닉네임")
+                                createSignUpRequest("new@test.com", "닉네임", Role.USER)
                         )))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message").value("회원가입이 완료되었습니다."))
@@ -88,12 +89,44 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("회원가입 실패 - 이메일 중복")
+    @DisplayName("회원가입 성공 - HOST")
     void t2() throws Exception {
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                createSignUpRequest("test@test.com", "다른닉네임")
+                                createSignUpRequest("host@test.com", "호스트닉네임", Role.HOST)
+                        )))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message").value("회원가입이 완료되었습니다."))
+                .andExpect(jsonPath("$.data.email").value("host@test.com"))
+                .andExpect(jsonPath("$.data.role").value("HOST"));
+    }
+
+    @Test
+    @DisplayName("회원가입 성공 - role 미입력 시 USER로 기본 설정")
+    void t3() throws Exception {
+        mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "email": "new@test.com",
+                                    "password": "password123!",
+                                    "name": "홍길동",
+                                    "nickname": "새닉네임",
+                                    "phone": "010-1234-5678"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.role").value("USER"));
+    }
+
+    @Test
+    @DisplayName("회원가입 실패 - 이메일 중복")
+    void t4() throws Exception {
+        mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                createSignUpRequest("test@test.com", "다른닉네임", Role.USER)
                         )))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("DUPLICATE_EMAIL"));
@@ -101,11 +134,11 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("회원가입 실패 - 닉네임 중복")
-    void t3() throws Exception {
+    void t5() throws Exception {
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                createSignUpRequest("other@test.com", "길동")
+                                createSignUpRequest("other@test.com", "길동", Role.USER)
                         )))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("DUPLICATE_NICKNAME"));
@@ -113,7 +146,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("회원가입 실패 - 비밀번호 8자 미만")
-    void t4() throws Exception {
+    void t6() throws Exception {
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -128,56 +161,44 @@ class AuthControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // ===================== 호스트 회원가입 =====================
-
     @Test
-    @DisplayName("호스트 회원가입 성공")
-    void t5() throws Exception {
-        mockMvc.perform(post("/api/auth/signup/host")
+    @DisplayName("회원가입 실패 - 이메일 형식 오류")
+    void t7() throws Exception {
+        mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                    "email": "host@test.com",
+                                    "email": "invalidemail",
                                     "password": "password123!",
-                                    "name": "호스트",
-                                    "nickname": "호스트닉네임",
-                                    "phone": "010-1234-5678",
-                                    "businessNum": "123-45-67890",
-                                    "campingName": "별빛 캠핑장",
-                                    "address": "강원도 춘천시 동내면 123"
+                                    "name": "홍길동",
+                                    "nickname": "새닉네임",
+                                    "phone": "010-1234-5678"
                                 }
                                 """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("호스트 회원가입이 완료되었습니다."))
-                .andExpect(jsonPath("$.data.role").value("HOST"));
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("호스트 회원가입 실패 - 이메일 중복")
-    void t6() throws Exception {
-        mockMvc.perform(post("/api/auth/signup/host")
+    @DisplayName("회원가입 실패 - 필수 필드 누락 (이메일 없음)")
+    void t8() throws Exception {
+        mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                    "email": "test@test.com",
                                     "password": "password123!",
-                                    "name": "호스트",
-                                    "nickname": "호스트닉네임",
-                                    "phone": "010-1234-5678",
-                                    "businessNum": "123-45-67890",
-                                    "campingName": "별빛 캠핑장",
-                                    "address": "강원도 춘천시 동내면 123"
+                                    "name": "홍길동",
+                                    "nickname": "새닉네임",
+                                    "phone": "010-1234-5678"
                                 }
                                 """))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("DUPLICATE_EMAIL"));
+                .andExpect(status().isBadRequest());
     }
 
     // ===================== 로그인 =====================
 
     @Test
     @DisplayName("로그인 성공")
-    void t7() throws Exception {
+    void t9() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
@@ -194,7 +215,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("로그인 실패 - 이메일 없음")
-    void t8() throws Exception {
+    void t10() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
@@ -206,7 +227,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("로그인 실패 - 비밀번호 틀림")
-    void t9() throws Exception {
+    void t11() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
@@ -218,8 +239,8 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("로그인 실패 - 정지된 계정")
-    void t10() throws Exception {
-        user = userRepository.save(User.builder()
+    void t12() throws Exception {
+        userRepository.save(User.builder()
                 .email("banned@test.com")
                 .password(passwordEncoder.encode("password123!"))
                 .name("정지유저")
@@ -238,11 +259,37 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("BANNED_USER"));
     }
 
+    @Test
+    @DisplayName("로그인 실패 - 탈퇴한 계정")
+    void t13() throws Exception {
+        User deletedUser = userRepository.save(User.builder()
+                .email("deleted@test.com")
+                .password(passwordEncoder.encode("password123!"))
+                .name("탈퇴유저")
+                .nickname("탈퇴닉네임")
+                .phone("010-9999-9999")
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build());
+
+        deletedUser.delete(); // soft delete 메서드 호출
+        userRepository.save(deletedUser);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new LoginRequest("deleted@test.com", "password123!")
+                        )))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message")
+                        .value("INVALID_LOGIN_CREDENTIALS"));
+    }
+
     // ===================== 토큰 재발급 =====================
 
     @Test
     @DisplayName("토큰 재발급 성공")
-    void t11() throws Exception {
+    void t14() throws Exception {
         mockMvc.perform(post("/api/auth/refresh")
                         .cookie(refreshTokenCookie))
                 .andExpect(status().isOk())
@@ -252,7 +299,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("토큰 재발급 실패 - Refresh Token 없음")
-    void t12() throws Exception {
+    void t15() throws Exception {
         mockMvc.perform(post("/api/auth/refresh"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("REFRESH_TOKEN_MISSING"));
@@ -260,7 +307,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("토큰 재발급 실패 - Refresh Token 불일치")
-    void t13() throws Exception {
+    void t16() throws Exception {
         Cookie wrongRefreshToken = new Cookie("refreshToken", "wrong.token.value");
 
         mockMvc.perform(post("/api/auth/refresh")
@@ -273,7 +320,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("로그아웃 성공")
-    void t14() throws Exception {
+    void t17() throws Exception {
         mockMvc.perform(post("/api/auth/logout")
                         .cookie(accessTokenCookie)
                         .cookie(refreshTokenCookie))
@@ -285,17 +332,18 @@ class AuthControllerTest {
         assertThat(refreshTokenRepository.findByUserId(user.getId())).isEmpty();
     }
 
+
     // ===================== 헬퍼 메서드 =====================
 
-    private SignUpRequest createSignUpRequest(String email, String nickname) {
-        // SignUpRequest가 @Getter + 필드 방식이므로 ObjectMapper로 역직렬화
+    private SignUpRequest createSignUpRequest(String email, String nickname, Role role) {
         return objectMapper.convertValue(
-                java.util.Map.of(
+                Map.of(
                         "email", email,
                         "password", "password123!",
                         "name", "홍길동",
                         "nickname", nickname,
-                        "phone", "010-1234-5678"
+                        "phone", "010-1234-5678",
+                        "role", role.name()
                 ),
                 SignUpRequest.class
         );

@@ -14,6 +14,15 @@ const ERROR_MESSAGES: Record<string, string> = {
   INTERNAL_SERVER_ERROR: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
 };
 
+interface SignupRequest {
+  email: string;
+  password: string;
+  name: string;
+  nickname: string;
+  phone: string;
+  role: "USER" | "HOST"; 
+}
+
 interface UserSignupRequest {
   email: string;
   password: string;
@@ -83,6 +92,15 @@ export const signupApi = {
   // 호스트 회원가입
   signupHost: async (data: HostSignupRequest) => {
     const res = await fetch(`${API_URL}/api/auth/signup/host`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+  },
+
+  signup: async (data: SignupRequest) => {
+    const res = await fetch(`${API_URL}/api/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

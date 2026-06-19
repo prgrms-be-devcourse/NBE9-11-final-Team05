@@ -54,7 +54,7 @@ public class AuthService {
                 .name(request.getName())
                 .nickname(request.getNickname())
                 .phone(request.getPhone())
-                .role(Role.USER)
+                .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .status(Status.ACTIVE)
                 .build();
 
@@ -69,6 +69,7 @@ public class AuthService {
                 .role(savedUser.getRole().name())
                 .build();
     }
+
 
     @Transactional
     public SignUpResponse hostSignUp(HostSignUpRequest request) {
