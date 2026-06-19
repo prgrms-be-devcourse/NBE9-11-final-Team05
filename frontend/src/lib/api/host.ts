@@ -1,5 +1,6 @@
 import {
     ApiResponse,
+    PageResponse,
     HostProfileResponse,
     CampingCreateRequest,
     CampingCreateResponse,
@@ -176,9 +177,9 @@ export async function addCampingImage(
 
   // 예약 목록 조회
   export async function getHostReservations() {
-    const response = await request<ApiResponse<HostReservationListItem[]>>(
+    const response = await request<ApiResponse<PageResponse<HostReservationListItem>>>(
       "/api/host/reservations"
     );
   
-    return response.data;
+    return response.data.content;
   }

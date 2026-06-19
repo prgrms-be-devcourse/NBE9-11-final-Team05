@@ -27,7 +27,7 @@ export default function HostDashboardPage() {
           </Link>
 
           <Link
-            href="/host/campings/new"
+            href="/host/reservations"
             className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
           >
             예약 관리

@@ -5,6 +5,15 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface PageResponse<T> {
+  content: T[];
+  hasNext: boolean;
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
 export interface HostProfileResponse {
   id: number;
   nickname: string;
