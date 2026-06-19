@@ -1,13 +1,11 @@
-// app/campings/[campingId]/page.tsx
-
-import { getCampingDetail } from "@/lib/api/camping";
-import CampingImageSlider from "../components/CampingImageSlider";
-import SiteSection from "../components/SiteSection";
-import FacilitySection from "../components/FacilitySection";
-import ReviewSection from "../components/ReviewSection";
-import ReservationCard from "../components/ReservationCard";
-import CampingSummary from "../components/CampingSummary";
-import CampingDescription from "../components/CampingDescription";
+import CampingDescription from "@/components/camping/CampingDescription";
+import CampingImageSlider from "@/components/camping/CampingImageSlider";
+import CampingSummary from "@/components/camping/CampingSummary";
+import FacilitySection from "@/components/camping/FacilitySection";
+import ReservationCard from "@/components/camping/ReservationCard";
+import ReviewSection from "@/components/camping/ReviewSection";
+import SiteSection from "@/components/camping/SiteSection";
+import { getCampingDetail } from "@/lib/api/reservation";
 
 interface Props {
   params: Promise<{

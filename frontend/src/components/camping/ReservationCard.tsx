@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CampingDetail } from "@/app/types/camping";
 import { useRouter } from "next/navigation";
+import { CampingDetail } from "@/types/camping";
 
 interface Props {
   camping: CampingDetail;

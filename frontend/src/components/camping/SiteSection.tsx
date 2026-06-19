@@ -1,4 +1,4 @@
-import { Site } from "@/app/types/site";
+import { Site } from "@/types/site";
 
 interface Props {
   sites: Site[];
