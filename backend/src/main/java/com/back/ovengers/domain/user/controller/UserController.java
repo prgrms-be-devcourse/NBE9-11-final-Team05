@@ -1,6 +1,5 @@
 package com.back.ovengers.domain.user.controller;
 
-import com.back.ovengers.domain.reservation.dto.ReservationResponse;
 import com.back.ovengers.domain.reservation.service.ReservationService;
 import com.back.ovengers.domain.user.dto.DeleteAccountRequest;
 import com.back.ovengers.domain.user.dto.MyPageResponse;
@@ -9,16 +8,16 @@ import com.back.ovengers.domain.user.dto.UserUpdateResponse;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.service.UserService;
 import com.back.ovengers.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+@Tag(name = "User", description = "유저 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
@@ -27,6 +26,7 @@ public class UserController {
     private final UserService userService;
     private final ReservationService reservationService;
 
+    @Operation(summary = "내 정보 조회")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<MyPageResponse>> getMyPage(Authentication authentication) {
 
@@ -42,6 +42,7 @@ public class UserController {
         );
     }
 
+    @Operation(summary = "내 정보 수정")
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UserUpdateResponse>> updateProfile(
             Authentication authentication,
@@ -61,7 +62,7 @@ public class UserController {
         );
     }
 
-
+    @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<Void>> deleteAccount(
             Authentication authentication,
