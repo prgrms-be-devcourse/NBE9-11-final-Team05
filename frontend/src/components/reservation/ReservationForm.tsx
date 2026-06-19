@@ -93,6 +93,9 @@ export default function ReservationForm({
               disabled={!!defaultCheckOut}
               className="flex-1 rounded-full border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none transition-colors focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
             />
+            {/* hidden input — disabled 상태일 때만 실제 제출값 보장 */}
+  {defaultCheckIn && <input type="hidden" name="checkIn" value={checkIn} />}
+  {defaultCheckOut && <input type="hidden" name="checkOut" value={checkOut} />}
           </div>
           {nights > 0 && (
             <p className="text-xs text-stone-400">{nights}박</p>
