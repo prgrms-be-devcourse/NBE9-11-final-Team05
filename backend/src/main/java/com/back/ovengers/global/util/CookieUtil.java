@@ -34,7 +34,7 @@ public class CookieUtil {
         cookie.setHttpOnly(true);           // JS 접근 차단 (XSS 방어)
         cookie.setSecure(cookieSecure);     // HTTPS에서만 전송 (로컬: false, 운영: true)
         cookie.setPath("/");                // 모든 경로에서 쿠키 전송
-        cookie.setMaxAge(accessExpiration);    // 쿠키 만료 시간 (초 단위)
+        cookie.setMaxAge(accessExpiration / 1000);    // 쿠키 만료 시간 (초 단위)
         cookie.setAttribute("SameSite", "Lax");
 
         response.addCookie(cookie);

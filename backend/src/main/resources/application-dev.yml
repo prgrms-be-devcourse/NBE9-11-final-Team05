@@ -33,3 +33,9 @@ management:
 app:
   cookie:
     secure: false
+
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - https://campgo.site
+      - https://www.campgo.site
