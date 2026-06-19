@@ -21,13 +21,14 @@ public interface CampingRepository extends JpaRepository<Camping, Long> {
     boolean existsByIdAndDeletedAtIsNull(Long id);
 
     @Query("""
-        select c from Camping c 
+        select c from Camping c
             where c.deletedAt is null
-                and (:keywordLike is null 
-                or c.name like :keywordLike 
+                and c.status = :status
+                and (:keywordLike is null
+                or c.name like :keywordLike
                 or c.region like :keywordLike)
     """)
-    Page<Camping> searchCamping(String keywordLike, Pageable pageable);
+    Page<Camping> searchApprovedCamping(CampingStatus status, String keywordLike, Pageable pageable);
 
     // 관리자 대시보드
     long countByStatus(CampingStatus status);
