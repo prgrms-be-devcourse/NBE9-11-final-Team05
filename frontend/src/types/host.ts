@@ -147,6 +147,27 @@ export interface SiteCreateRequest {
     imageUrl: string;
   }
 
+  export type ReservationStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "CANCELLED"
+  | "COMPLETED";
+
+export interface HostReservationListItem {
+  id: number;
+  campingName: string;
+  siteName: string;
+  rsvNum: string;
+  rsvName: string;
+  rsvPhone: string;
+  checkIn: string;
+  checkOut: string;
+  guestCount: number;
+  rsvPrice: number;
+  status: ReservationStatus;
+  createdAt: string;
+}
+
 export type HostCampingFormMode = "create" | "edit";
 
 export interface HostCampingFormValues {

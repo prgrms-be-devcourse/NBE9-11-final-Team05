@@ -20,6 +20,9 @@ export default function HostLayout({
           <Link href="/host/campings/new" className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
             캠핑장 등록
           </Link>
+          <Link href="/host/reservations" className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            예약 관리
+          </Link>
         </nav>
       </aside>
 

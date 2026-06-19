@@ -13,9 +13,10 @@ import {
     SiteUpdateResponse,
     CampingImageCreateRequest,
     CampingImageCreateResponse,
+    HostReservationListItem,
   } from "@/types/host";
   
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
   
   async function request<T>(
     url: string,
@@ -171,4 +172,13 @@ export async function addCampingImage(
         method: "DELETE",
       }
     );
+  }
+
+  // 예약 목록 조회
+  export async function getHostReservations() {
+    const response = await request<ApiResponse<HostReservationListItem[]>>(
+      "/api/host/reservations"
+    );
+  
+    return response.data;
   }
