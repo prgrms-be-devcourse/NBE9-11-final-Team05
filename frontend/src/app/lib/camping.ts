@@ -1,22 +1,41 @@
-import { fetchApi } from "./api";
 import { Camping, CampingDetail } from "../types/camping";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export async function getLatestCampings(): Promise<Camping[]> {
-  const response = await fetchApi<{
-    content: Camping[];
-  }>(
-    "/api/campings?page=0&size=3&sort=createdAt,asc"
+  const response = await fetch(
+    `${API_URL}/api/campings?page=0&size=3&sort=createdAt,asc`,
+    {
+      cache: "no-store",
+    }
   );
 
-  return response.content;
+  if (!response.ok) {
+    throw new Error(`API 호출 실패 : ${response.status}`);
+  }
+
+  const result = await response.json();
+
+  return result.data.content;
 }
 
 export async function getCampingDetail(
   campingId: number
 ): Promise<CampingDetail> {
-  return fetchApi<CampingDetail>(
-    `/api/campings/${campingId}`
+  const response = await fetch(
+    `${API_URL}/api/campings/${campingId}`,
+    {
+      cache: "no-store",
+    }
   );
+
+  if (!response.ok) {
+    throw new Error(`API 호출 실패 : ${response.status}`);
+  }
+
+  const result = await response.json();
+
+  return result.data;
 }
 
 export async function getCampings(
@@ -32,7 +51,7 @@ export async function getCampings(
   totalPages: number;
 }> {
   const params = new URLSearchParams();
-  
+
   params.append("page", String(page));
   params.append("size", String(size));
 
@@ -40,7 +59,18 @@ export async function getCampings(
     params.append("keyword", keyword);
   }
 
-  return fetchApi(
-    `/api/campings?${params.toString()}`
+  const response = await fetch(
+    `${API_URL}/api/campings?${params.toString()}`,
+    {
+      cache: "no-store",
+    }
   );
+
+  if (!response.ok) {
+    throw new Error(`API 호출 실패 : ${response.status}`);
+  }
+
+  const result = await response.json();
+
+  return result.data;
 }
