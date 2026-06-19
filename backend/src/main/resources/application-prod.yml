@@ -35,6 +35,4 @@ app:
   cookie:
     secure: true
   cors:
-    allowed-origins:
-      - https://campgo.site
-      - https://www.campgo.site
+    allowed-origins: https://campgo.site,https://www.campgo.site
