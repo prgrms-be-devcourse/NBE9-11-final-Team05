@@ -2,6 +2,7 @@ package com.back.ovengers.domain.camping.service;
 
 import com.back.ovengers.domain.camping.dto.CampingDetailResponse;
 import com.back.ovengers.domain.camping.dto.CampingListResponse;
+import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.site.dto.SiteResponse;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingImage;
@@ -59,7 +60,7 @@ class CampingServiceTest {
 
         Page<Camping> page = new PageImpl<>(List.of(camping));
 
-        when(campingRepository.searchCamping("%테스트%", pageable))
+        when(campingRepository.searchApprovedCamping(CampingStatus.APPROVED,"%테스트%", pageable))
                 .thenReturn(page);
 
         // when
@@ -81,7 +82,7 @@ class CampingServiceTest {
         // given
         Pageable pageable = PageRequest.of(0, 10);
 
-        when(campingRepository.searchCamping("%존재하지 않는 키워드%", pageable))
+        when(campingRepository.searchApprovedCamping(CampingStatus.APPROVED, "%존재하지 않는 키워드%", pageable))
                 .thenReturn(Page.empty(pageable));
 
         // when
@@ -108,7 +109,7 @@ class CampingServiceTest {
 
         Page<Camping> page = new PageImpl<>(List.of(camping1, camping2));
 
-        when(campingRepository.searchCamping(null, pageable))
+        when(campingRepository.searchApprovedCamping(CampingStatus.APPROVED,null, pageable))
                 .thenReturn(page);
 
         // when
@@ -133,7 +134,7 @@ class CampingServiceTest {
 
         Page<Camping> page = new PageImpl<>(List.of(camping));
 
-        when(campingRepository.searchCamping(null, pageable))
+        when(campingRepository.searchApprovedCamping(CampingStatus.APPROVED, null, pageable))
                 .thenReturn(page);
 
         // when
