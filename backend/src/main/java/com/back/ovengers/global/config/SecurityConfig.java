@@ -122,6 +122,8 @@ public class SecurityConfig {
         // /api/** 경로에 위 CORS 설정 적용
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/swagger-ui/**", configuration);
+        source.registerCorsConfiguration("/v3/api-docs/**", configuration);
         return source;
     }
 }

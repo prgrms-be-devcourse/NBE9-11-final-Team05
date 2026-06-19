@@ -18,3 +18,15 @@ go-camping:
 
 toss:
   secret-key: ${toss.secret-key}
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json

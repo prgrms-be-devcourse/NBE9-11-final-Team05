@@ -8,6 +8,9 @@ import com.back.ovengers.domain.site.dto.SiteUpdateRequest;
 import com.back.ovengers.domain.site.dto.SiteUpdateResponse;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Host Camping", description = "호스트 캠핑장 관리 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/host/campings")
@@ -25,6 +29,7 @@ public class HostCampingController {
 
     private final HostCampingService hostCampingService;
 
+    @Operation(summary = "캠핑장 등록 신청")
     @PostMapping
     public ResponseEntity<ApiResponse<CampingCreateResponse>> register(
             @AuthenticationPrincipal User user,
@@ -42,6 +47,7 @@ public class HostCampingController {
                 ));
     }
 
+    @Operation(summary = "내 캠핑장 목록 조회")
     @GetMapping
     public ResponseEntity<ApiResponse<List<HostCampingListResponse>>> getMyCampings(
             @AuthenticationPrincipal User user
@@ -57,9 +63,11 @@ public class HostCampingController {
         );
     }
 
+    @Operation(summary = "캠핑장 정보 수정")
     @PatchMapping("/{campingId}")
     public ResponseEntity<ApiResponse<CampingUpdateResponse>> updateCamping(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable Long campingId,
             @RequestBody CampingUpdateRequest request
     ) {
@@ -74,9 +82,11 @@ public class HostCampingController {
         );
     }
 
+    @Operation(summary = "캠핑장 삭제")
     @DeleteMapping("/{campingId}")
     public ResponseEntity<ApiResponse<Void>> deleteCamping(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable @Min(1) Long campingId
     ) {
         hostCampingService.deleteCamping(user.getId(), campingId);
@@ -86,9 +96,11 @@ public class HostCampingController {
         );
     }
 
+    @Operation(summary = "구역 등록")
     @PostMapping("/{campingId}/sites")
     public ApiResponse<SiteCreateResponse> addSite(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable @Min(1) Long campingId,
             @Valid @RequestBody SiteCreateRequest request
     ) {
@@ -104,9 +116,11 @@ public class HostCampingController {
         );
     }
 
+    @Operation(summary = "구역 수정")
     @PatchMapping("/{campingId}/sites/{siteId}")
     public ApiResponse<SiteUpdateResponse> updateSite(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "구역 ID", example = "1")
             @PathVariable @Min(1) Long siteId,
             @Valid @RequestBody SiteUpdateRequest request
     ) {
@@ -122,9 +136,11 @@ public class HostCampingController {
         );
     }
 
+    @Operation(summary = "구역 삭제")
     @DeleteMapping("/{campingId}/sites/{siteId}")
     public ApiResponse<Void> deleteSite(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "구역 ID", example = "1")
             @PathVariable @Min(1) Long siteId
     ) {
         hostCampingService.deleteSite(user.getId(), siteId);
@@ -132,9 +148,11 @@ public class HostCampingController {
         return new ApiResponse<>("구역 삭제가 완료되었습니다.");
     }
 
+    @Operation(summary = "캠핑장 이미지 등록")
     @PostMapping("/{campingId}/images")
     public ApiResponse<CampingImageCreateResponse> addCampingImage(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable Long campingId,
             @Valid @RequestBody CampingImageCreateRequest request
     ) {
@@ -144,10 +162,13 @@ public class HostCampingController {
         return new ApiResponse<>("캠핑장 이미지가 등록되었습니다.", response);
     }
 
+    @Operation(summary = "캠핑장 이미지 삭제")
     @DeleteMapping("/{campingId}/images/{imageId}")
     public ApiResponse<Void> deleteCampingImage(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable Long campingId,
+            @Parameter(description = "이미지 ID", example = "1")
             @PathVariable Long imageId
     ) {
         hostCampingService.deleteCampingImage(user.getId(), campingId, imageId);

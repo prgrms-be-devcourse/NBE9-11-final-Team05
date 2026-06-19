@@ -8,6 +8,9 @@ import com.back.ovengers.domain.reservation.service.ReservationService;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
 import com.back.ovengers.global.response.PageResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+@Tag(name = "Reservation", description = "예약 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reservations")
@@ -25,6 +27,7 @@ public class ReservationController {
 
     private final ReservationService reservationService;
 
+    @Operation(summary = "예약 생성")
     @PostMapping
     public ResponseEntity<ApiResponse<ReservationResponse>> create(
             @AuthenticationPrincipal User user,
@@ -41,9 +44,11 @@ public class ReservationController {
                 );
     }
 
+    @Operation(summary = "예약 상세 조회")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ReservationDetailResponse>> getReservation(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "예약 ID", example = "1")
             @PathVariable @Min(1) Long id) {
 
         return ResponseEntity.ok(
@@ -54,9 +59,11 @@ public class ReservationController {
         );
     }
 
+    @Operation(summary = "결제 완료 요약 조회")
     @GetMapping("/{id}/summary")
     public ResponseEntity<ApiResponse<PaymentSummaryResponse>> getSummary(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "예약 ID", example = "1")
             @PathVariable Long id) {
 
         return ResponseEntity.ok(
@@ -67,9 +74,11 @@ public class ReservationController {
         );
     }
 
+    @Operation(summary = "내 예약 목록 조회")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<PageResponse<ReservationResponse>>> getMyReservations(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
             @RequestParam(defaultValue = "0") int page) {
 
 
