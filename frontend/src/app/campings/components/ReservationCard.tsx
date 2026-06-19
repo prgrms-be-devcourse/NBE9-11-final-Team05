@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CampingDetail } from "@/app/types/camping";
+import { useRouter } from "next/navigation";
 
 interface Props {
   camping: CampingDetail;
@@ -10,6 +11,21 @@ interface Props {
 export default function ReservationCard({ camping }: Props) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
+  const router = useRouter();
+
+  const handleReservation = () => {
+    if (!checkIn || !checkOut) {
+      alert("체크인/체크아웃 날짜를 선택해주세요.");
+      return;
+    }
+    if (checkIn >= checkOut) {
+      alert("체크아웃은 체크인보다 이후 날짜여야 합니다.");
+      return;
+    }
+    router.push(
+      `/campings/${camping.id}/reservation?checkIn=${checkIn}&checkOut=${checkOut}`
+    );
+  };
 
   return (
     <aside>
@@ -81,6 +97,7 @@ export default function ReservationCard({ camping }: Props) {
 
         {/* 버튼 */}
         <button
+        onClick={handleReservation}
           className={`
             mt-8
             w-full
