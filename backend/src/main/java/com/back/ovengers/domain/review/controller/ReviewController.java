@@ -48,7 +48,7 @@ public class ReviewController {
     @GetMapping("/campings/{campingId}/reviews")
     public ResponseEntity<ApiResponse<PageResponse<ReviewResponse>>> getCampingReviews(
             @Parameter(description = "캠핑장 ID", example = "1")
-            @PathVariable Long campingId,
+            @PathVariable @Min(1) Long campingId,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Page<ReviewResponse> reviews = reviewService.getCampingReviews(campingId, pageable);
@@ -63,7 +63,7 @@ public class ReviewController {
     public ResponseEntity<ApiResponse<Void>> updateReview(
             @AuthenticationPrincipal User user,
             @Parameter(description = "리뷰 ID", example = "1")
-            @PathVariable Long reviewId,
+            @PathVariable @Min(1) Long reviewId,
             @Valid @RequestBody ReviewRequest request
     ) {
         reviewService.updateReview(user, reviewId, request);

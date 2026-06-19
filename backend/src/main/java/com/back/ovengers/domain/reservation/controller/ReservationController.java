@@ -17,12 +17,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Reservation", description = "예약 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reservations")
+@Validated
 public class ReservationController {
 
     private final ReservationService reservationService;
@@ -64,7 +66,7 @@ public class ReservationController {
     public ResponseEntity<ApiResponse<PaymentSummaryResponse>> getSummary(
             @AuthenticationPrincipal User user,
             @Parameter(description = "예약 ID", example = "1")
-            @PathVariable Long id) {
+            @PathVariable @Min(1) Long id) {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(

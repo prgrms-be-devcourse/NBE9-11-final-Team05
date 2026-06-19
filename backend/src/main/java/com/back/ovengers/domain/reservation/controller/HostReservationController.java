@@ -6,9 +6,9 @@ import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
 import com.back.ovengers.global.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -32,7 +32,7 @@ public class HostReservationController {
     @PreAuthorize("hasRole('HOST')")
     public ResponseEntity<ApiResponse<PageResponse<HostReservationResponse>>> getReservations(
             @AuthenticationPrincipal User user,
-            @Parameter(description = "페이징 정보 (page, size, sort)")
+            @ParameterObject
             @PageableDefault Pageable pageable
     ) {
         Page<HostReservationResponse> response = reservationService.getHostReservations(user.getId(), pageable);

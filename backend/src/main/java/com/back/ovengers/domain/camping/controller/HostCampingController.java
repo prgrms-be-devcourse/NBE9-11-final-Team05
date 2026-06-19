@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/host/campings")
+@Validated
 public class HostCampingController {
 
     private final HostCampingService hostCampingService;
@@ -68,7 +70,7 @@ public class HostCampingController {
     public ResponseEntity<ApiResponse<CampingUpdateResponse>> updateCamping(
             @AuthenticationPrincipal User user,
             @Parameter(description = "캠핑장 ID", example = "1")
-            @PathVariable Long campingId,
+            @PathVariable @Min(1) Long campingId,
             @RequestBody CampingUpdateRequest request
     ) {
         CampingUpdateResponse response =
@@ -153,7 +155,7 @@ public class HostCampingController {
     public ApiResponse<CampingImageCreateResponse> addCampingImage(
             @AuthenticationPrincipal User user,
             @Parameter(description = "캠핑장 ID", example = "1")
-            @PathVariable Long campingId,
+            @PathVariable @Min(1) Long campingId,
             @Valid @RequestBody CampingImageCreateRequest request
     ) {
         CampingImageCreateResponse response =
@@ -167,9 +169,9 @@ public class HostCampingController {
     public ApiResponse<Void> deleteCampingImage(
             @AuthenticationPrincipal User user,
             @Parameter(description = "캠핑장 ID", example = "1")
-            @PathVariable Long campingId,
+            @PathVariable @Min(1) Long campingId,
             @Parameter(description = "이미지 ID", example = "1")
-            @PathVariable Long imageId
+            @PathVariable @Min(1) Long imageId
     ) {
         hostCampingService.deleteCampingImage(user.getId(), campingId, imageId);
 

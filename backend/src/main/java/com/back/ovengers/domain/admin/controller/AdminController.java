@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +59,7 @@ public class AdminController {
     @GetMapping("/campings")
     public ResponseEntity<ApiResponse<AdminPendingCampingResponse>> getPendingCampingList(
             //@RequestParam CampingStatus status,
-            @Parameter(description = "페이징 정보 (page, size)")
+            @ParameterObject
             @PageableDefault(size = 10) Pageable pageable
     ) {
         AdminPendingCampingResponse response = adminService.getPendingCampingList(pageable);
