@@ -1,5 +1,6 @@
 package com.back.ovengers.domain.auth.dto;
 
+import com.back.ovengers.domain.user.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -25,4 +26,6 @@ public class SignUpRequest {
 
     @NotBlank(message = "전화번호는 필수입니다.")
     private String phone;
+
+    private Role role;
 }
