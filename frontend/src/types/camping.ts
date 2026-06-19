@@ -1,4 +1,4 @@
-import { Site } from "./host";
+import { Site } from "./site";
 
 export interface Camping {
     id: number;

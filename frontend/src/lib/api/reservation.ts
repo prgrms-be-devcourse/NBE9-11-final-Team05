@@ -6,7 +6,8 @@ import type {
   ReservationDetailResponse,
   ReservationListResponse,
 } from "@/types/reservation";
-import type { CampingDetail } from "@/app/types/camping";
+import { CampingDetail } from "@/types/camping";
+
 
 /** 예약 생성 */
 export function createReservation(payload: CreateReservationRequest) {

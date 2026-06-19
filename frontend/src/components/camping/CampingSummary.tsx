@@ -1,4 +1,4 @@
-import { CampingDetail } from "@/app/types/camping";
+import { CampingDetail } from "@/types/camping";
 
 interface Props {
   camping: CampingDetail;
