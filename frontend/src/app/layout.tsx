@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "캠핑가자",
+  title: "캠핑가잣",
   description: "캠핑장 예약 플랫폼",
 };
 
@@ -32,16 +32,17 @@ export default function RootLayout({
           <div className="max-w-6xl mx-auto px-6">
             <div className="flex items-center justify-between py-4 border-b">
               <Link href="/" className="flex items-center gap-3">
-                <Image
-                  src="/images/camping-logo.png"
-                  alt="캠핑가자 로고"
-                  width={95}
-                  height={95}
-                />
+              <Image
+                src="/images/camping-logo.png"
+                alt="캠핑가잣 로고"
+                width={120}
+                height={95}
+                className="h-[40px] w-auto"
+              />
               </Link>
 
               <nav className="flex items-center gap-8 text-gray-600 font-medium">
-                <Link href="/host" className="hover:text-[#4B6945]">
+                <Link href="/host/dashboard" className="hover:text-[#4B6945]">
                   호스트 페이지
                 </Link>
 
@@ -67,13 +68,13 @@ export default function RootLayout({
           <div className="max-w-6xl mx-auto px-6">
             <div className="border-t py-8 text-sm text-gray-500">
               <div className="font-semibold text-gray-700 mb-2">
-                캠핑가자
+                캠핑가잣
               </div>
 
               <p>전국 캠핑장 예약 플랫폼</p>
 
               <p className="mt-4">
-                © 2026 캠핑가자. All rights reserved.
+                © 2026 캠핑가잣. All rights reserved.
               </p>
             </div>
           </div>
