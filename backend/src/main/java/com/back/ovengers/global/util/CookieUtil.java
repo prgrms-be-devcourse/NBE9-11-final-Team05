@@ -79,7 +79,7 @@ public class CookieUtil {
         Cookie cookie = new Cookie(REFRESH_TOKEN_NAME, refreshToken);
         cookie.setHttpOnly(true);
         cookie.setSecure(cookieSecure);
-        cookie.setPath("/api/auth");
+        cookie.setPath("/");
         cookie.setMaxAge((int) (refreshExpiration / 1000));
         cookie.setAttribute("SameSite", "Lax");
 
@@ -109,7 +109,7 @@ public class CookieUtil {
         Cookie cookie = new Cookie(REFRESH_TOKEN_NAME, null);
         cookie.setHttpOnly(true);
         cookie.setSecure(cookieSecure);
-        cookie.setPath("/api/auth");
+        cookie.setPath("/");
         cookie.setMaxAge(0);
         cookie.setAttribute("SameSite", "Lax");
 
