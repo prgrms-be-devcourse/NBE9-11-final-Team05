@@ -1,6 +1,6 @@
 // app/campings/[campingId]/page.tsx
 
-import { getCampingDetail } from "@/app/lib/camping";
+import { getCampingDetail } from "@/lib/api/camping";
 import CampingImageSlider from "../components/CampingImageSlider";
 import SiteSection from "../components/SiteSection";
 import FacilitySection from "../components/FacilitySection";

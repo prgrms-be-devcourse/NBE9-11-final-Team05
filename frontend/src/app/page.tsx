@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getLatestCampings } from "./lib/camping";
-import SearchBox from "./components/SearchBox";
+import { getLatestCampings } from "../lib/api/camping";
+import SearchBox from "../components/search/SearchBox";
 
 export default async function Home() {
   const campings = await getLatestCampings();
