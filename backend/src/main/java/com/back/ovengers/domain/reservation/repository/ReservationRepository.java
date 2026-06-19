@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
@@ -97,4 +98,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             Long siteId,
             ReservationStatus status
     );
+
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.site s JOIN FETCH s.camping c WHERE r.user.id = :userId")
+    List<Reservation> findAllByUserId(@Param("userId") Long userId);
 }

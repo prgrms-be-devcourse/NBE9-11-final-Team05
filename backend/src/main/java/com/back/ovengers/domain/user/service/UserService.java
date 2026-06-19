@@ -1,6 +1,10 @@
 package com.back.ovengers.domain.user.service;
 
 import com.back.ovengers.domain.auth.service.RefreshTokenService;
+import com.back.ovengers.domain.reservation.dto.MyReservationResponse;
+import com.back.ovengers.domain.reservation.repository.ReservationRepository;
+import com.back.ovengers.domain.review.dto.MyReviewResponse;
+import com.back.ovengers.domain.review.repository.ReviewRepository;
 import com.back.ovengers.domain.user.dto.DeleteAccountRequest;
 import com.back.ovengers.domain.user.dto.MyPageResponse;
 import com.back.ovengers.domain.user.dto.UserUpdateRequest;
@@ -17,11 +21,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+
 @Transactional
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
+    private final ReservationRepository reservationRepository;
+    private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
     private final CookieUtil cookieUtil;
@@ -31,69 +39,42 @@ public class UserService {
     public MyPageResponse getMyPage(Long userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(
-                        () -> new CustomException(
-                                ErrorCode.USER_NOT_FOUND
-                        )
-                );
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 리뷰와 예약 정보는 추후 추가
-//        List<MyReservationResponse> reservations =
-//                reservationRepository.findAllByUserId(userId)
-//                        .stream()
-//                        .map(reservation -> MyReservationResponse.builder()
-//                                .id(reservation.getId())
-//                                .rsvNum(reservation.getRsvNum())
-//                                .rsvName(reservation.getRsvName())
-//                                .rsvPhone(reservation.getRsvPhone())
-//                                .guestCount(reservation.getGuestCount())
-//                                .request(reservation.getRequest())
-//                                .campingName(
-//                                        reservation.getCampingSite()
-//                                                .getCamping()
-//                                                .getName()
-//                                )
-//                                .siteName(
-//                                        reservation.getCampingSite()
-//                                                .getName()
-//                                )
-//                                .address(
-//                                        reservation.getCampingSite()
-//                                                .getCamping()
-//                                                .getAddress()
-//                                )
-//                                .imageUrl(
-//                                        reservation.getCampingSite()
-//                                                .getCamping()
-//                                                .getImageUrl()
-//                                )
-//                                .checkIn(reservation.getCheckIn())
-//                                .checkOut(reservation.getCheckOut())
-//                                .build())
-//                        .toList();
-//
-//        List<MyReviewResponse> reviews =
-//                reviewRepository.findAllByUserId(userId)
-//                        .stream()
-//                        .map(review -> MyReviewResponse.builder()
-//                                .id(review.getId())
-//                                .campingName(
-//                                        review.getCamping().getName()
-//                                )
-//                                .rating(review.getRating())
-//                                .content(review.getContent())
-//                                .createdAt(review.getCreatedAt())
-//                                .build())
-//                        .toList();
+        List<MyReservationResponse> reservations =
+                reservationRepository.findAllByUserId(userId)
+                        .stream()
+                        .map(reservation -> MyReservationResponse.builder()
+                                .id(reservation.getId())
+                                .rsvNum(reservation.getRsvNum())
+                                .rsvName(reservation.getRsvName())
+                                .rsvPhone(reservation.getRsvPhone())
+                                .guestCount(reservation.getGuestCount())
+                                .request(reservation.getRequest())
+                                .campingName(reservation.getSite().getCamping().getName())
+                                .siteName(reservation.getSite().getName())
+                                .address(reservation.getSite().getCamping().getAddress())
+                                .imageUrl(reservation.getSite().getCamping().getFirstImageUrl())
+                                .checkIn(reservation.getCheckIn())
+                                .checkOut(reservation.getCheckOut())
+                                .build())
+                        .toList();
+
+        List<MyReviewResponse> reviews =
+                reviewRepository.findAllByUserId(userId)
+                        .stream()
+                        .map(review -> MyReviewResponse.from(
+                                review.getReservation(), review
+                        ))
+                        .toList();
 
         return MyPageResponse.builder()
                 .id(user.getId())
                 .nickname(user.getNickname())
                 .phone(user.getPhone())
                 .imageUrl(user.getImageUrl())
-    // 리뷰와 예약 정보는 추후 추가
-//                .reservations(reservations)
-//                .reviews(reviews)
+                .reservations(reservations)
+                .reviews(reviews)
                 .build();
     }
 

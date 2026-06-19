@@ -12,8 +12,8 @@ import java.util.Optional;
 @Component
 public class CookieUtil {
 
-//    @Value("${app.cookie.secure:true}")
-//    private boolean cookieSecure;
+    @Value("${app.cookie.secure:true}")
+    private boolean cookieSecure;
 
     @Value("${jwt.access-expiration}")
     private int accessExpiration;
@@ -32,10 +32,10 @@ public class CookieUtil {
 
         Cookie cookie = new Cookie(ACCESS_TOKEN_NAME, accessToken);
         cookie.setHttpOnly(true);           // JS 접근 차단 (XSS 방어)
-//        cookie.setSecure(cookieSecure);     // HTTPS에서만 전송 (로컬: false, 운영: true)
+        cookie.setSecure(cookieSecure);     // HTTPS에서만 전송 (로컬: false, 운영: true)
         cookie.setPath("/");                // 모든 경로에서 쿠키 전송
-        cookie.setMaxAge(accessExpiration);    // 쿠키 만료 시간 (초 단위)
-//        cookie.setAttribute("SameSite", "Strict");
+        cookie.setMaxAge(accessExpiration / 1000);    // 쿠키 만료 시간 (초 단위)
+        cookie.setAttribute("SameSite", "Lax");
 
         response.addCookie(cookie);
     }
@@ -62,10 +62,10 @@ public class CookieUtil {
 
         Cookie cookie = new Cookie(ACCESS_TOKEN_NAME, null);
         cookie.setHttpOnly(true);
-//        cookie.setSecure(cookieSecure);
+        cookie.setSecure(cookieSecure);
         cookie.setPath("/");
         cookie.setMaxAge(0);    // 즉시 만료
-//        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "Lax");
 
         response.addCookie(cookie);
     }
@@ -78,10 +78,10 @@ public class CookieUtil {
 
         Cookie cookie = new Cookie(REFRESH_TOKEN_NAME, refreshToken);
         cookie.setHttpOnly(true);
-//        cookie.setSecure(cookieSecure);
+        cookie.setSecure(cookieSecure);
         cookie.setPath("/api/auth");
         cookie.setMaxAge((int) (refreshExpiration / 1000));
-//        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "Lax");
 
         response.addCookie(cookie);
     }
@@ -108,10 +108,10 @@ public class CookieUtil {
 
         Cookie cookie = new Cookie(REFRESH_TOKEN_NAME, null);
         cookie.setHttpOnly(true);
-//        cookie.setSecure(cookieSecure);
+        cookie.setSecure(cookieSecure);
         cookie.setPath("/api/auth");
         cookie.setMaxAge(0);
-//        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "Lax");
 
         response.addCookie(cookie);
     }
