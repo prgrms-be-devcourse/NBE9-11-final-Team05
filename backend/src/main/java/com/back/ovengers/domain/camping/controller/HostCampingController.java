@@ -65,6 +65,23 @@ public class HostCampingController {
         );
     }
 
+    @Operation(summary = "내 캠핑장 상세 조회")
+    @GetMapping("/{campingId}")
+    public ResponseEntity<ApiResponse<HostCampingDetailResponse>> getMyCampingDetail(
+            @AuthenticationPrincipal User user,
+            @PathVariable @Min(1) Long campingId
+    ) {
+        HostCampingDetailResponse response =
+                hostCampingService.getMyCampingDetail(user.getId(), campingId);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "내 캠핑장 상세 조회 성공",
+                        response
+                )
+        );
+    }
+
     @Operation(summary = "캠핑장 정보 수정")
     @PatchMapping("/{campingId}")
     public ResponseEntity<ApiResponse<CampingUpdateResponse>> updateCamping(
@@ -93,9 +110,7 @@ public class HostCampingController {
     ) {
         hostCampingService.deleteCamping(user.getId(), campingId);
 
-        return ResponseEntity.ok(
-                new ApiResponse<>("캠핑장이 삭제되었습니다.")
-        );
+        return ResponseEntity.ok(new ApiResponse<>("캠핑장이 삭제되었습니다."));
     }
 
     @Operation(summary = "구역 등록")

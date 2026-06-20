@@ -58,6 +58,7 @@ public class HostCampingService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<HostCampingListResponse> getMyCampings(Long hostId) {
         validateHost(hostId);
 
@@ -65,6 +66,17 @@ public class HostCampingService {
                 .stream()
                 .map(HostCampingListResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public HostCampingDetailResponse getMyCampingDetail(
+            Long hostId,
+            Long campingId
+    ) {
+        validateHost(hostId);
+        Camping camping = getOwnedCamping(hostId, campingId);
+
+        return HostCampingDetailResponse.from(camping);
     }
 
     @Transactional
