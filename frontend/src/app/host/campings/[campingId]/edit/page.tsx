@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import HostCampingForm from "@/components/host/HostCampingForm";
-import { getCampingDetail } from "@/lib/api/host";
-import { CampingDetail, HostCampingFormValues } from "@/types/host";
+import HostCampingEditForm from "@/components/host/HostCampingEditForm";
+import { getHostCampingDetail } from "@/lib/api/host";
+import { HostCampingDetail, HostCampingFormValues } from "@/types/host";
 
 export default function HostCampingEditPage() {
   const params = useParams();
@@ -15,14 +15,14 @@ export default function HostCampingEditPage() {
 
   useEffect(() => {
     async function fetchCamping() {
-      const camping: CampingDetail = await getCampingDetail(campingId);
+      const camping: HostCampingDetail = await getHostCampingDetail(campingId);
 
       setInitialValues({
         firstImageUrl: camping.firstImageUrl ?? "",
         name: camping.name,
         homepage: camping.homepage ?? "",
-        // region: camping.region,
-        // city: camping.city,
+        region: camping.region,
+        city: camping.city,
         address: camping.address,
         description: camping.description ?? "",
         phone: camping.phone ?? "",
@@ -48,8 +48,7 @@ export default function HostCampingEditPage() {
         </p>
       </div>
 
-      <HostCampingForm
-        mode="edit"
+      <HostCampingEditForm
         campingId={campingId}
         initialValues={initialValues}
       />

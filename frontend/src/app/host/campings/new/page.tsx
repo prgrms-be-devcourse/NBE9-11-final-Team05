@@ -1,4 +1,4 @@
-import HostCampingForm from "@/components/host/HostCampingForm";
+import HostCampingCreateForm from "@/components/host/HostCampingCreateForm";
 
 export default function HostCampingNewPage() {
   return (
@@ -10,7 +10,7 @@ export default function HostCampingNewPage() {
         </p>
       </div>
 
-      <HostCampingForm mode="create" />
+      <HostCampingCreateForm />
     </div>
   );
 }
