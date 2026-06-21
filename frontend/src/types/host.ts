@@ -28,6 +28,7 @@ export interface HostCampingListItem {
   city: string;
   firstImageUrl: string | null;
   rating: number | null;
+  status: CampingStatus;
 }
 
 export interface HostCampingDetail {

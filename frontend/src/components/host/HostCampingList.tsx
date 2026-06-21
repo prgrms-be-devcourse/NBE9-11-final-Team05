@@ -6,6 +6,9 @@ import HostCampingCard from "@/components/host/HostCampingCard";
 import { getMyCampings } from "@/lib/api/host";
 import { HostCampingListItem } from "@/types/host";
 
+const primaryButtonClass =
+  "rounded-xl bg-[#D17A2F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#BF6C26]";
+
 export default function HostCampingList() {
   const [campings, setCampings] = useState<HostCampingListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,7 +19,7 @@ export default function HostCampingList() {
       try {
         const data = await getMyCampings();
         setCampings(data);
-      } catch (error) {
+      } catch {
         setErrorMessage("캠핑장 목록을 불러오지 못했습니다.");
       } finally {
         setIsLoading(false);
@@ -27,53 +30,62 @@ export default function HostCampingList() {
   }, []);
 
   if (isLoading) {
-    return <p>캠핑장 목록을 불러오는 중입니다...</p>;
+    return (
+      <p className="text-sm text-gray-500">
+        캠핑장 목록을 불러오는 중입니다...
+      </p>
+    );
   }
 
   if (errorMessage) {
-    return <p>{errorMessage}</p>;
+    return <p className="text-sm text-red-500">{errorMessage}</p>;
   }
 
   if (campings.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center">
-  <p className="mb-4 text-gray-600">
-    등록된 캠핑장이 없습니다.
-  </p>
+      <div className="rounded-3xl border border-dashed border-gray-200 bg-white p-12 text-center shadow-sm">
+        <p className="mb-4 text-gray-600">
+          등록된 캠핑장이 없습니다.
+        </p>
 
-  <Link
-    href="/host/campings/new"
-    className="inline-flex rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
-  >
-    캠핑장 등록하기
-  </Link>
-</div>
+        <Link
+          href="/host/campings/new"
+          className={`inline-flex ${primaryButtonClass}`}
+        >
+          캠핑장 등록하기
+        </Link>
+      </div>
     );
   }
 
   return (
     <section className="space-y-6">
-  <div className="flex items-center justify-between">
-    <h2 className="text-2xl font-bold text-gray-900">
-      내 캠핑장 목록
-    </h2>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">
+            내 캠핑장 목록
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            등록한 캠핑장을 확인하고 관리할 수 있습니다.
+          </p>
+        </div>
 
-    <Link
-      href="/host/campings/new"
-      className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
-    >
-      캠핑장 등록
-    </Link>
-  </div>
+        <Link
+          href="/host/campings/new"
+          className={primaryButtonClass}
+        >
+          캠핑장 등록
+        </Link>
+      </div>
 
-  <div className="flex flex-col gap-4">
-    {campings.map((camping) => (
-      <HostCampingCard
-        key={camping.id}
-        camping={camping}
-      />
-    ))}
-  </div>
-</section>
+      <div className="flex flex-col gap-4">
+        {campings.map((camping) => (
+          <HostCampingCard
+            key={camping.id}
+            camping={camping}
+          />
+        ))}
+      </div>
+    </section>
   );
 }
