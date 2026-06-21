@@ -22,6 +22,8 @@ public interface SiteRepository extends JpaRepository<Site, Long> {
 
     List<Site> findByCampingId(Long campingId);
 
+    List<Site> findByCampingIdAndDeletedAtIsNullOrderByIdAsc(Long campingId);
+
     boolean existsByCampingIdAndNameAndDeletedAtIsNull(
             Long campingId,
             String name

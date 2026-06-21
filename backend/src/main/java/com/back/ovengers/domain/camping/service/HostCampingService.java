@@ -7,10 +7,7 @@ import com.back.ovengers.domain.camping.repository.CampingImageRepository;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
-import com.back.ovengers.domain.site.dto.SiteCreateRequest;
-import com.back.ovengers.domain.site.dto.SiteCreateResponse;
-import com.back.ovengers.domain.site.dto.SiteUpdateRequest;
-import com.back.ovengers.domain.site.dto.SiteUpdateResponse;
+import com.back.ovengers.domain.site.dto.*;
 import com.back.ovengers.domain.site.entity.Site;
 import com.back.ovengers.domain.site.repository.SiteRepository;
 import com.back.ovengers.domain.user.entity.Role;
@@ -106,83 +103,6 @@ public class HostCampingService {
         }
 
         camping.delete();
-    }
-
-    @Transactional
-    public SiteCreateResponse addSite(
-            Long hostId,
-            Long campingId,
-            SiteCreateRequest request
-    ) {
-        validateHost(hostId);
-        Camping camping = getOwnedCamping(hostId, campingId);
-
-        if (siteRepository.existsByCampingIdAndNameAndDeletedAtIsNull(
-                campingId,
-                request.name()
-        )) {
-            throw new CustomException(ErrorCode.DUPLICATE_SITE_NAME);
-        }
-
-        validateSiteCapacity(request);
-
-        Site site = Site.create(camping, request);
-        Site savedSite = siteRepository.save(site);
-
-        return SiteCreateResponse.from(savedSite);
-    }
-
-    @Transactional
-    public SiteUpdateResponse updateSite(
-            Long hostId,
-            Long siteId,
-            SiteUpdateRequest request
-    ) {
-        validateHost(hostId);
-
-        Site site = siteRepository.findByIdAndDeletedAtIsNull(siteId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SITE_NOT_FOUND));
-
-        Camping camping = site.getCamping();
-
-        if (!camping.getHost().getId().equals(hostId)) {
-            throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
-        }
-
-        validateSiteCapacity(site, request);
-
-        if (request.name() != null && siteRepository.existsByCampingIdAndNameAndIdNotAndDeletedAtIsNull(
-                camping.getId(),
-                request.name(),
-                siteId
-        )) {
-            throw new CustomException(ErrorCode.DUPLICATE_SITE_NAME);
-        }
-
-        site.update(request);
-
-        return SiteUpdateResponse.from(site);
-    }
-
-    @Transactional
-    public void deleteSite(Long hostId, Long siteId) {
-        validateHost(hostId);
-
-        Site site = siteRepository.findByIdAndDeletedAtIsNull(siteId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SITE_NOT_FOUND));
-
-        if (!site.getCamping().getHost().getId().equals(hostId)) {
-            throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
-        }
-
-        if (reservationRepository.existsBySiteIdAndStatus(
-                siteId,
-                ReservationStatus.CONFIRMED
-        )) {
-            throw new CustomException(ErrorCode.CONFIRMED_RESERVATION_EXISTS);
-        }
-
-        site.delete();
     }
 
     @Transactional
