@@ -8,6 +8,7 @@ import {
     CampingUpdateResponse,
     HostCampingListItem,
     HostCampingDetail,
+    Site,
     SiteCreateRequest,
     SiteCreateResponse,
     SiteUpdateRequest,
@@ -101,6 +102,15 @@ import {
     await request<ApiResponse<null>>(`/api/host/campings/${campingId}`, {
       method: "DELETE",
     });
+  }
+
+  // 구역 목록 조회
+  export async function getHostSites(campingId: number) {
+    const response = await request<ApiResponse<Site[]>>(
+      `/api/host/campings/${campingId}/sites`
+    );
+  
+    return response.data;
   }
   
   // 구역 등록

@@ -3,9 +3,17 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { deleteCamping, getHostCampingDetail } from "@/lib/api/host";
-import { HostCampingDetail as HostCampingDetailType } from "@/types/host";
+import {
+  deleteCamping,
+  getHostCampingDetail,
+  getHostSites,
+} from "@/lib/api/host";
+import {
+  HostCampingDetail as HostCampingDetailType,
+  Site,
+} from "@/types/host";
 import HostCampingDetail from "@/components/host/HostCampingDetail";
+import HostSiteManager from "@/components/host/HostSiteManager";
 
 export default function HostCampingDetailPage() {
   const params = useParams();
@@ -13,13 +21,19 @@ export default function HostCampingDetailPage() {
   const campingId = Number(params.campingId);
 
   const [camping, setCamping] = useState<HostCampingDetailType | null>(null);
+  const [sites, setSites] = useState<Site[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchCamping() {
       try {
-        const data = await getHostCampingDetail(campingId);
-        setCamping(data);
+        const [campingData, siteData] = await Promise.all([
+          getHostCampingDetail(campingId),
+          getHostSites(campingId),
+        ]);
+
+        setCamping(campingData);
+        setSites(siteData);
       } catch {
         alert("캠핑장 정보를 불러오지 못했습니다.");
       } finally {
@@ -72,6 +86,8 @@ export default function HostCampingDetailPage() {
       </div>
 
       <HostCampingDetail camping={camping} />
+
+      <HostSiteManager campingId={campingId} sites={sites} />
     </div>
   );
 }
