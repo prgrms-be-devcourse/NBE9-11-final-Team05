@@ -43,7 +43,7 @@ export default function HostProfile() {
         </div>
 
         <span className="rounded-full bg-[#FFF4EA] px-3 py-1 text-xs font-semibold text-[#D17A2F]">
-          HOST
+          {profile.role}
         </span>
       </div>
 
@@ -58,7 +58,7 @@ export default function HostProfile() {
           />
         ) : (
           <div className="flex h-22 w-22 items-center justify-center rounded-full bg-[#F4F5F1] text-sm font-medium text-gray-500">
-            HOST
+            {profile.role}
           </div>
         )}
 

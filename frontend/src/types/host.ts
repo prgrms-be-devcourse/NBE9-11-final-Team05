@@ -19,6 +19,7 @@ export interface HostProfileResponse {
   nickname: string;
   phone: string;
   imageUrl: string | null;
+  role: "USER" | "HOST" | "ADMIN";
 }
 
 export interface HostCampingListItem {
