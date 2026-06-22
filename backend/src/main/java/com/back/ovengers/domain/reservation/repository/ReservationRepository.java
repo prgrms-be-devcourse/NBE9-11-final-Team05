@@ -101,4 +101,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r JOIN FETCH r.site s JOIN FETCH s.camping c WHERE r.user.id = :userId")
     List<Reservation> findAllByUserId(@Param("userId") Long userId);
+
+
+
+    // 특정 Site에 대해 지정한 날짜와 겹치는 예약 건수를 조회
+    @Query("""
+    SELECT COUNT(r) FROM Reservation r
+    WHERE r.site.id = :siteId
+      AND r.status IN ('PENDING', 'CONFIRMED')
+      AND r.checkIn < :checkOut AND r.checkOut > :checkIn
+    """)
+    long countActiveReservationsByOverlappingDates(@Param("siteId") Long siteId,
+                                                   @Param("checkIn") LocalDate checkIn,
+                                                   @Param("checkOut") LocalDate checkOut);
 }
