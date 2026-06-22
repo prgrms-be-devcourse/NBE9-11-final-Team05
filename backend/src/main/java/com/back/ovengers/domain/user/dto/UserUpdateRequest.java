@@ -1,12 +1,10 @@
 package com.back.ovengers.domain.user.dto;
 
-import lombok.Getter;
+public record UserUpdateRequest(
 
-@Getter
-public class UserUpdateRequest {
-    private String nickname;
+        String nickname,
+        String phone,
+        String imageUrl
 
-    private String phone;
-
-    private String imageUrl;
+) {
 }
