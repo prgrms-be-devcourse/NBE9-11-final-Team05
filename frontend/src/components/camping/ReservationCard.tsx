@@ -14,7 +14,7 @@ export default function ReservationCard({ camping }: Props) {
   const router = useRouter();
 
   // 오늘 날짜 (체크인 최소값)
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("sv-SE");
 
   // 체크인 다음날 계산 (체크아웃 최소값)
   const getMinCheckOut = (checkIn: string) => {
