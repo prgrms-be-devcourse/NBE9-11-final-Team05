@@ -24,7 +24,6 @@ import java.util.List;
 public class HostSiteService {
 
     private final CampingRepository campingRepository;
-    private final UserRepository userRepository;
     private final ReservationRepository reservationRepository;
     private final SiteRepository siteRepository;
 
@@ -32,8 +31,6 @@ public class HostSiteService {
             Long hostId,
             Long campingId
     ) {
-        validateHost(hostId);
-
         getOwnedCamping(hostId, campingId);
 
         return siteRepository
@@ -49,7 +46,6 @@ public class HostSiteService {
             Long campingId,
             SiteCreateRequest request
     ) {
-        validateHost(hostId);
         Camping camping = getOwnedCamping(hostId, campingId);
 
         if (siteRepository.existsByCampingIdAndNameAndDeletedAtIsNull(
@@ -74,8 +70,6 @@ public class HostSiteService {
             Long siteId,
             SiteUpdateRequest request
     ) {
-        validateHost(hostId);
-
         Site site = getOwnedSite(hostId, campingId, siteId);
         Camping camping = site.getCamping();
 
@@ -100,8 +94,6 @@ public class HostSiteService {
             Long campingId,
             Long siteId
     ) {
-        validateHost(hostId);
-
         Site site = getOwnedSite(hostId, campingId, siteId);
 
         if (reservationRepository.existsBySiteIdAndStatus(
@@ -112,21 +104,6 @@ public class HostSiteService {
         }
 
         site.delete();
-    }
-
-    private User validateHost(Long hostId) {
-        User host = userRepository.findById(hostId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        if (host.getRole() != Role.HOST) {
-            throw new CustomException(ErrorCode.HOST_REQUIRED);
-        }
-
-        if (host.getDeletedAt() != null) {
-            throw new CustomException(ErrorCode.ALREADY_DELETED);
-        }
-
-        return host;
     }
 
     private Camping getOwnedCamping(Long hostId, Long campingId) {

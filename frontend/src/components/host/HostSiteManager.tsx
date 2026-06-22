@@ -97,7 +97,12 @@ export default function HostSiteManager({
     }
   }
 
-  async function handleUpdate(siteId: number) {
+  async function handleUpdate(
+    event: FormEvent<HTMLFormElement>,
+    siteId: number
+  ) {
+    event.preventDefault();
+
     try {
       const updatedSite = await updateSite(campingId, siteId, {
         name: editValues.name,
@@ -152,7 +157,10 @@ export default function HostSiteManager({
               className="rounded-2xl border border-gray-100 bg-[#FAFAF7] p-6 transition hover:shadow-sm"
             >
               {editingSiteId === site.id ? (
-                <div className="space-y-4">
+                <form
+                  onSubmit={(e) => handleUpdate(e, site.id)}
+                  className="space-y-4"
+                >
                   <div className="grid gap-4 md:grid-cols-2">
                     <input
                       className={inputClass}
@@ -223,14 +231,13 @@ export default function HostSiteManager({
                       취소
                     </button>
                     <button
-                      type="button"
-                      onClick={() => handleUpdate(site.id)}
+                      type="submit"
                       className={primaryButtonClass}
                     >
                       저장
                     </button>
                   </div>
-                </div>
+                </form>
               ) : (
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-2">

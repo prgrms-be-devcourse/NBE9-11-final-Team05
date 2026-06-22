@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -48,7 +49,7 @@ public class HostSiteController {
 
     @Operation(summary = "구역 등록")
     @PostMapping("/{campingId}/sites")
-    public ApiResponse<SiteCreateResponse> addSite(
+    public ResponseEntity<ApiResponse<SiteCreateResponse>> addSite(
             @AuthenticationPrincipal User user,
             @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable @Min(1) Long campingId,
@@ -60,15 +61,14 @@ public class HostSiteController {
                 request
         );
 
-        return new ApiResponse<>(
-                "구역 등록이 완료되었습니다.",
-                response
-        );
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ApiResponse<>("구역 등록이 완료되었습니다.", response));
     }
 
     @Operation(summary = "구역 수정")
     @PatchMapping("/{campingId}/sites/{siteId}")
-    public ApiResponse<SiteUpdateResponse> updateSite(
+    public ResponseEntity<ApiResponse<SiteUpdateResponse>> updateSite(
             @AuthenticationPrincipal User user,
             @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable @Min(1) Long campingId,
@@ -83,15 +83,14 @@ public class HostSiteController {
                 request
         );
 
-        return new ApiResponse<>(
-                "구역 수정이 완료되었습니다.",
-                response
-        );
+        return ResponseEntity
+                .ok(new ApiResponse<>("구역 수정이 완료되었습니다.", response));
+
     }
 
     @Operation(summary = "구역 삭제")
     @DeleteMapping("/{campingId}/sites/{siteId}")
-    public ApiResponse<Void> deleteSite(
+    public ResponseEntity<ApiResponse<Void>> deleteSite(
             @AuthenticationPrincipal User user,
             @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable @Min(1) Long campingId,
@@ -100,6 +99,7 @@ public class HostSiteController {
     ) {
         hostSiteService.deleteSite(user.getId(), campingId, siteId);
 
-        return new ApiResponse<>("구역 삭제가 완료되었습니다.");
+        return ResponseEntity
+                .ok(new ApiResponse<>("구역 삭제가 완료되었습니다.", null));
     }
 }

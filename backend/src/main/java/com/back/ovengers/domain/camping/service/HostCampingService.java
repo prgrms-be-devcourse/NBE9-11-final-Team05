@@ -35,7 +35,7 @@ public class HostCampingService {
     @Transactional
     public CampingCreateResponse register(Long hostId, CampingCreateRequest request) {
 
-        User host = validateHost(hostId);
+        User host = userRepository.getReferenceById(hostId);
 
         validateDuplicateSiteNameInRequest(request.sites());
 
@@ -57,7 +57,6 @@ public class HostCampingService {
 
     @Transactional(readOnly = true)
     public List<HostCampingListResponse> getMyCampings(Long hostId) {
-        validateHost(hostId);
 
         return campingRepository.findByHostIdAndDeletedAtIsNull(hostId)
                 .stream()
@@ -70,7 +69,6 @@ public class HostCampingService {
             Long hostId,
             Long campingId
     ) {
-        validateHost(hostId);
         Camping camping = getOwnedCamping(hostId, campingId);
 
         return HostCampingDetailResponse.from(camping);
@@ -82,7 +80,6 @@ public class HostCampingService {
             Long campingId,
             CampingUpdateRequest request
     ) {
-        validateHost(hostId);
         Camping camping = getOwnedCamping(hostId, campingId);
 
         camping.update(request);
@@ -92,7 +89,7 @@ public class HostCampingService {
 
     @Transactional
     public void deleteCamping(Long hostId, Long campingId) {
-        validateHost(hostId);
+
         Camping camping = getOwnedCamping(hostId, campingId);
 
         if (reservationRepository.existsBySiteCampingIdAndStatus(
@@ -111,8 +108,6 @@ public class HostCampingService {
             Long campingId,
             CampingImageCreateRequest request
     ) {
-        validateHost(hostId);
-
         Camping camping = campingRepository.findByIdAndDeletedAtIsNull(campingId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
 
@@ -133,8 +128,6 @@ public class HostCampingService {
             Long campingId,
             Long imageId
     ) {
-        validateHost(hostId);
-
         Camping camping = campingRepository.findByIdAndDeletedAtIsNull(campingId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
 
@@ -146,21 +139,6 @@ public class HostCampingService {
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_IMAGE_NOT_FOUND));
 
         campingImageRepository.delete(image);
-    }
-
-    private User validateHost(Long hostId) {
-        User host = userRepository.findById(hostId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        if (host.getRole() != Role.HOST) {
-            throw new CustomException(ErrorCode.HOST_REQUIRED);
-        }
-
-        if (host.getDeletedAt() != null) {
-            throw new CustomException(ErrorCode.ALREADY_DELETED);
-        }
-
-        return host;
     }
 
     private Camping getOwnedCamping(Long hostId, Long campingId) {
