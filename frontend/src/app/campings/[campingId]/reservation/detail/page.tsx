@@ -1,5 +1,4 @@
 import { getReservation } from "@/lib/api/reservation";
-import { createPayment } from "@/lib/api/payment";
 import TossPaymentButton from "@/components/payment/TossPaymentButton";
 import Card from "@/components/ui/Card";
 import DataRow from "@/components/ui/DataRow";
@@ -9,6 +8,11 @@ interface PageProps {
   searchParams: Promise<{ reservationId?: string }>;
 }
 
+/**
+ * 결제 DB row는 여기서 만들지 않는다.
+ * 사용자가 우측 "토스로 결제하기" 버튼을 실제로 눌렀을 때만
+ * (TossPaymentButton 내부에서) 결제가 생성된다.
+ */
 export default async function ReservationDetailPage({ searchParams }: PageProps) {
   const { reservationId } = await searchParams;
 
@@ -17,8 +21,6 @@ export default async function ReservationDetailPage({ searchParams }: PageProps)
   }
 
   const reservation = await getReservation(Number(reservationId));
-  const payment = await createPayment({ reservationId: reservation.id });
-
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
 
   return (
@@ -36,7 +38,7 @@ export default async function ReservationDetailPage({ searchParams }: PageProps)
         <div className="mt-5 flex items-baseline justify-between border-t border-stone-100 pt-4">
           <span className="text-sm text-stone-500">총 결제 금액</span>
           <span className="text-xl font-bold text-stone-900">
-            {payment.amount.toLocaleString()}원
+            {reservation.rsvPrice.toLocaleString()}원
           </span>
         </div>
       </Card>
@@ -49,7 +51,8 @@ export default async function ReservationDetailPage({ searchParams }: PageProps)
         </p>
         <div className="mt-auto">
           <TossPaymentButton
-            payment={payment}
+            reservationId={reservation.id}
+            displayAmount={reservation.rsvPrice}
             successUrl={`${baseUrl}/payment/complete`}
             failUrl={`${baseUrl}/payment/fail`}
           />
