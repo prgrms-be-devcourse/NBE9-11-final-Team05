@@ -255,6 +255,16 @@ public enum ErrorCode {
             "거절 사유는 필수입니다."
     ),
 
+    // 알람 관련 에러코드
+    NOTIFICATION_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "존재하지 않는 알림입니다."
+    ),
+    NOTIFICATION_ACCESS_DENIED(
+            HttpStatus.FORBIDDEN,
+            "알림에 대한 권한이 없습니다."
+    ),
+
 
     // 외부 API 통신 관련 예외
     GO_CAMPING_API_ERROR(
