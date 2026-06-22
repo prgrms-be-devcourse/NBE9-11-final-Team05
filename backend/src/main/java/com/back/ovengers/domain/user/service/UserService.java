@@ -162,10 +162,7 @@ public class UserService {
         }
 
         // 기존 비밀번호와 동일한지 확인
-        if (passwordEncoder.matches(
-                request.getNewPassword(),
-                user.getPassword()
-        )) {
+        if (request.getNewPassword().equals(request.getCurrentPassword())) {
             throw new CustomException(ErrorCode.SAME_PASSWORD);
         }
 
