@@ -72,6 +72,7 @@ public class UserService {
                 .imageUrl(user.getImageUrl())
                 .reservations(reservations)
                 .reviews(reviews)
+                .role(user.getRole())
                 .build();
     }
 

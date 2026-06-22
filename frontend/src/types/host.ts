@@ -19,6 +19,7 @@ export interface HostProfileResponse {
   nickname: string;
   phone: string;
   imageUrl: string | null;
+  role: "USER" | "HOST" | "ADMIN";
 }
 
 export interface HostCampingListItem {
@@ -28,23 +29,26 @@ export interface HostCampingListItem {
   city: string;
   firstImageUrl: string | null;
   rating: number | null;
+  status: CampingStatus;
 }
 
-export interface CampingDetail {
+export interface HostCampingDetail {
   id: number;
   firstImageUrl: string | null;
+  tourNum: string | null;
+  businessNum: string | null;
+  status: CampingStatus;
   name: string;
-  homepage: string | null;
+  region: string;
+  city: string;
   address: string;
-  rating: number | null;
   description: string | null;
+  notice: string | null;
   phone: string | null;
+  homepage: string | null;
   checkInTime: string | null;
   checkOutTime: string | null;
-  notice: string | null;
-
-  imageUrls: string[];
-  sites: Site[];
+  rating: number | null;
 }
 
 export interface CampingCreateRequest {

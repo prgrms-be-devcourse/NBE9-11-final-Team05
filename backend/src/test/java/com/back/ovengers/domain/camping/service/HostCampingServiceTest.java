@@ -80,57 +80,6 @@ class HostCampingServiceTest {
     }
 
     @Test
-    void 존재하지_않는_유저면_예외가_발생한다() {
-        CampingCreateRequest request = createCampingCreateRequest();
-
-        CustomException exception = assertThrows(
-                CustomException.class,
-                () -> hostCampingService.register(999L, request)
-        );
-
-        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.USER_NOT_FOUND);
-    }
-
-    @Test
-    void 일반_회원은_캠핑장을_등록할_수_없다() {
-        User user = userRepository.save(
-                User.builder()
-                        .email("user@test.com")
-                        .password("password")
-                        .name("일반회원")
-                        .nickname("user")
-                        .phone("01011112222")
-                        .role(Role.USER)
-                        .status(Status.ACTIVE)
-                        .build()
-        );
-
-        CampingCreateRequest request = createCampingCreateRequest();
-
-        CustomException exception = assertThrows(
-                CustomException.class,
-                () -> hostCampingService.register(user.getId(), request)
-        );
-
-        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.HOST_REQUIRED);
-    }
-
-    @Test
-    void 탈퇴한_회원은_캠핑장을_등록할_수_없다() {
-        User host = createHost("deleted-host@test.com", "deleted_host");
-        host.delete();
-
-        CampingCreateRequest request = createCampingCreateRequest();
-
-        CustomException exception = assertThrows(
-                CustomException.class,
-                () -> hostCampingService.register(host.getId(), request)
-        );
-
-        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ALREADY_DELETED);
-    }
-
-    @Test
     void 기준_인원이_최대_인원보다_크면_예외가_발생한다() {
         User host = createHost("invalid-capacity-host@test.com", "invalid_capacity_host");
 

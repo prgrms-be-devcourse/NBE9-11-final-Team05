@@ -101,6 +101,7 @@ public class SecurityConfig {
                                 "/api/campings/*/reviews"  // 리뷰 목록 조회 비인증 허용
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/host/**").hasRole("HOST")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

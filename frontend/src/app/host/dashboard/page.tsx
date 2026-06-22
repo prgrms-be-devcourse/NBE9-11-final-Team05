@@ -1,39 +1,46 @@
-import Link from "next/link";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import HostProfile from "@/components/host/HostProfile";
+import { getHostProfile } from "@/lib/api/host";
+import { HostProfileResponse } from "@/types/host";
 
 export default function HostDashboardPage() {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    async function checkRole() {
+      try {
+        const profile: HostProfileResponse = await getHostProfile();
+
+        if (profile.role !== "HOST") {
+          router.replace("/");
+          return;
+        }
+
+        setIsAuthorized(true);
+      } catch (error) {
+        console.error(error);
+        router.replace("/auth/login");
+      }
+    }
+
+    checkRole();
+  }, [router]);
+
+  if (!isAuthorized) {
+    return null;
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">호스트 대시보드</h1>
+      <h1 className="text-2xl font-bold text-gray-900">
+        호스트 대시보드
+      </h1>
 
       <HostProfile />
-
-      <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">빠른 메뉴</h2>
-
-        <div className="flex gap-3">
-          <Link
-            href="/host/campings"
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            내 캠핑장 관리
-          </Link>
-
-          <Link
-            href="/host/campings/new"
-            className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
-          >
-            캠핑장 등록
-          </Link>
-
-          <Link
-            href="/host/reservations"
-            className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
-          >
-            예약 관리
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }

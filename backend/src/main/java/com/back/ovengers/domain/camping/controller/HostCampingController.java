@@ -2,10 +2,7 @@ package com.back.ovengers.domain.camping.controller;
 
 import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.service.HostCampingService;
-import com.back.ovengers.domain.site.dto.SiteCreateRequest;
-import com.back.ovengers.domain.site.dto.SiteCreateResponse;
-import com.back.ovengers.domain.site.dto.SiteUpdateRequest;
-import com.back.ovengers.domain.site.dto.SiteUpdateResponse;
+import com.back.ovengers.domain.site.dto.*;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,6 +62,23 @@ public class HostCampingController {
         );
     }
 
+    @Operation(summary = "내 캠핑장 상세 조회")
+    @GetMapping("/{campingId}")
+    public ResponseEntity<ApiResponse<HostCampingDetailResponse>> getMyCampingDetail(
+            @AuthenticationPrincipal User user,
+            @PathVariable @Min(1) Long campingId
+    ) {
+        HostCampingDetailResponse response =
+                hostCampingService.getMyCampingDetail(user.getId(), campingId);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "내 캠핑장 상세 조회 성공",
+                        response
+                )
+        );
+    }
+
     @Operation(summary = "캠핑장 정보 수정")
     @PatchMapping("/{campingId}")
     public ResponseEntity<ApiResponse<CampingUpdateResponse>> updateCamping(
@@ -93,61 +107,7 @@ public class HostCampingController {
     ) {
         hostCampingService.deleteCamping(user.getId(), campingId);
 
-        return ResponseEntity.ok(
-                new ApiResponse<>("캠핑장이 삭제되었습니다.")
-        );
-    }
-
-    @Operation(summary = "구역 등록")
-    @PostMapping("/{campingId}/sites")
-    public ApiResponse<SiteCreateResponse> addSite(
-            @AuthenticationPrincipal User user,
-            @Parameter(description = "캠핑장 ID", example = "1")
-            @PathVariable @Min(1) Long campingId,
-            @Valid @RequestBody SiteCreateRequest request
-    ) {
-        SiteCreateResponse response = hostCampingService.addSite(
-                user.getId(),
-                campingId,
-                request
-        );
-
-        return new ApiResponse<>(
-                "구역 등록이 완료되었습니다.",
-                response
-        );
-    }
-
-    @Operation(summary = "구역 수정")
-    @PatchMapping("/{campingId}/sites/{siteId}")
-    public ApiResponse<SiteUpdateResponse> updateSite(
-            @AuthenticationPrincipal User user,
-            @Parameter(description = "구역 ID", example = "1")
-            @PathVariable @Min(1) Long siteId,
-            @Valid @RequestBody SiteUpdateRequest request
-    ) {
-        SiteUpdateResponse response = hostCampingService.updateSite(
-                user.getId(),
-                siteId,
-                request
-        );
-
-        return new ApiResponse<>(
-                "구역 수정이 완료되었습니다.",
-                response
-        );
-    }
-
-    @Operation(summary = "구역 삭제")
-    @DeleteMapping("/{campingId}/sites/{siteId}")
-    public ApiResponse<Void> deleteSite(
-            @AuthenticationPrincipal User user,
-            @Parameter(description = "구역 ID", example = "1")
-            @PathVariable @Min(1) Long siteId
-    ) {
-        hostCampingService.deleteSite(user.getId(), siteId);
-
-        return new ApiResponse<>("구역 삭제가 완료되었습니다.");
+        return ResponseEntity.ok(new ApiResponse<>("캠핑장이 삭제되었습니다."));
     }
 
     @Operation(summary = "캠핑장 이미지 등록")

@@ -6,8 +6,9 @@ import {
     CampingCreateResponse,
     CampingUpdateRequest,
     CampingUpdateResponse,
-    CampingDetail,
     HostCampingListItem,
+    HostCampingDetail,
+    Site,
     SiteCreateRequest,
     SiteCreateResponse,
     SiteUpdateRequest,
@@ -58,10 +59,10 @@ import {
     return response.data;
   }
   
-  // 캠핑장 상세 조회
-  export async function getCampingDetail(campingId: number) {
-    const response = await request<ApiResponse<CampingDetail>>(
-      `/api/campings/${campingId}`
+  // 내 캠핑장 상세 조회
+  export async function getHostCampingDetail(campingId: number) {
+    const response = await request<ApiResponse<HostCampingDetail>>(
+      `/api/host/campings/${campingId}`
     );
   
     return response.data;
@@ -101,6 +102,15 @@ import {
     await request<ApiResponse<null>>(`/api/host/campings/${campingId}`, {
       method: "DELETE",
     });
+  }
+
+  // 구역 목록 조회
+  export async function getHostSites(campingId: number) {
+    const response = await request<ApiResponse<Site[]>>(
+      `/api/host/campings/${campingId}/sites`
+    );
+  
+    return response.data;
   }
   
   // 구역 등록

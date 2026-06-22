@@ -7,10 +7,7 @@ import com.back.ovengers.domain.camping.repository.CampingImageRepository;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
-import com.back.ovengers.domain.site.dto.SiteCreateRequest;
-import com.back.ovengers.domain.site.dto.SiteCreateResponse;
-import com.back.ovengers.domain.site.dto.SiteUpdateRequest;
-import com.back.ovengers.domain.site.dto.SiteUpdateResponse;
+import com.back.ovengers.domain.site.dto.*;
 import com.back.ovengers.domain.site.entity.Site;
 import com.back.ovengers.domain.site.repository.SiteRepository;
 import com.back.ovengers.domain.user.entity.Role;
@@ -38,7 +35,7 @@ public class HostCampingService {
     @Transactional
     public CampingCreateResponse register(Long hostId, CampingCreateRequest request) {
 
-        User host = validateHost(hostId);
+        User host = userRepository.getReferenceById(hostId);
 
         validateDuplicateSiteNameInRequest(request.sites());
 
@@ -58,13 +55,23 @@ public class HostCampingService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<HostCampingListResponse> getMyCampings(Long hostId) {
-        validateHost(hostId);
 
         return campingRepository.findByHostIdAndDeletedAtIsNull(hostId)
                 .stream()
                 .map(HostCampingListResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public HostCampingDetailResponse getMyCampingDetail(
+            Long hostId,
+            Long campingId
+    ) {
+        Camping camping = getOwnedCamping(hostId, campingId);
+
+        return HostCampingDetailResponse.from(camping);
     }
 
     @Transactional
@@ -73,7 +80,6 @@ public class HostCampingService {
             Long campingId,
             CampingUpdateRequest request
     ) {
-        validateHost(hostId);
         Camping camping = getOwnedCamping(hostId, campingId);
 
         camping.update(request);
@@ -83,7 +89,7 @@ public class HostCampingService {
 
     @Transactional
     public void deleteCamping(Long hostId, Long campingId) {
-        validateHost(hostId);
+
         Camping camping = getOwnedCamping(hostId, campingId);
 
         if (reservationRepository.existsBySiteCampingIdAndStatus(
@@ -97,90 +103,11 @@ public class HostCampingService {
     }
 
     @Transactional
-    public SiteCreateResponse addSite(
-            Long hostId,
-            Long campingId,
-            SiteCreateRequest request
-    ) {
-        validateHost(hostId);
-        Camping camping = getOwnedCamping(hostId, campingId);
-
-        if (siteRepository.existsByCampingIdAndNameAndDeletedAtIsNull(
-                campingId,
-                request.name()
-        )) {
-            throw new CustomException(ErrorCode.DUPLICATE_SITE_NAME);
-        }
-
-        validateSiteCapacity(request);
-
-        Site site = Site.create(camping, request);
-        Site savedSite = siteRepository.save(site);
-
-        return SiteCreateResponse.from(savedSite);
-    }
-
-    @Transactional
-    public SiteUpdateResponse updateSite(
-            Long hostId,
-            Long siteId,
-            SiteUpdateRequest request
-    ) {
-        validateHost(hostId);
-
-        Site site = siteRepository.findByIdAndDeletedAtIsNull(siteId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SITE_NOT_FOUND));
-
-        Camping camping = site.getCamping();
-
-        if (!camping.getHost().getId().equals(hostId)) {
-            throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
-        }
-
-        validateSiteCapacity(site, request);
-
-        if (request.name() != null && siteRepository.existsByCampingIdAndNameAndIdNotAndDeletedAtIsNull(
-                camping.getId(),
-                request.name(),
-                siteId
-        )) {
-            throw new CustomException(ErrorCode.DUPLICATE_SITE_NAME);
-        }
-
-        site.update(request);
-
-        return SiteUpdateResponse.from(site);
-    }
-
-    @Transactional
-    public void deleteSite(Long hostId, Long siteId) {
-        validateHost(hostId);
-
-        Site site = siteRepository.findByIdAndDeletedAtIsNull(siteId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SITE_NOT_FOUND));
-
-        if (!site.getCamping().getHost().getId().equals(hostId)) {
-            throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
-        }
-
-        if (reservationRepository.existsBySiteIdAndStatus(
-                siteId,
-                ReservationStatus.CONFIRMED
-        )) {
-            throw new CustomException(ErrorCode.CONFIRMED_RESERVATION_EXISTS);
-        }
-
-        site.delete();
-    }
-
-    @Transactional
     public CampingImageCreateResponse addCampingImage(
             Long hostId,
             Long campingId,
             CampingImageCreateRequest request
     ) {
-        validateHost(hostId);
-
         Camping camping = campingRepository.findByIdAndDeletedAtIsNull(campingId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
 
@@ -201,8 +128,6 @@ public class HostCampingService {
             Long campingId,
             Long imageId
     ) {
-        validateHost(hostId);
-
         Camping camping = campingRepository.findByIdAndDeletedAtIsNull(campingId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
 
@@ -214,21 +139,6 @@ public class HostCampingService {
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_IMAGE_NOT_FOUND));
 
         campingImageRepository.delete(image);
-    }
-
-    private User validateHost(Long hostId) {
-        User host = userRepository.findById(hostId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        if (host.getRole() != Role.HOST) {
-            throw new CustomException(ErrorCode.HOST_REQUIRED);
-        }
-
-        if (host.getDeletedAt() != null) {
-            throw new CustomException(ErrorCode.ALREADY_DELETED);
-        }
-
-        return host;
     }
 
     private Camping getOwnedCamping(Long hostId, Long campingId) {

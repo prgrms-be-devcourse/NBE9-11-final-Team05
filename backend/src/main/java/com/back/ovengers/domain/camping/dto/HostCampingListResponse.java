@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.camping.dto;
 
 import com.back.ovengers.domain.camping.entity.Camping;
+import com.back.ovengers.domain.camping.entity.CampingStatus;
 
 public record HostCampingListResponse(
         Long id,
@@ -9,7 +10,8 @@ public record HostCampingListResponse(
         String city,
         String address,
         String firstImageUrl,
-        Float rating
+        Float rating,
+        CampingStatus status
 ) {
     public static HostCampingListResponse from(Camping camping) {
         return new HostCampingListResponse(
@@ -19,7 +21,8 @@ public record HostCampingListResponse(
                 camping.getCity(),
                 camping.getAddress(),
                 camping.getFirstImageUrl(),
-                camping.getRating()
+                camping.getRating(),
+                camping.getStatus()
         );
     }
 }
