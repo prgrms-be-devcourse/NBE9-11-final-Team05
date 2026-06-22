@@ -3,29 +3,28 @@
 import { useState } from "react";
 import { loadTossPayments } from "@tosspayments/payment-sdk";
 import { TOSS_CLIENT_KEY } from "@/lib/toss";
+import { createPaymentClient } from "@/lib/api/payment.client";
+import { ApiError } from "@/lib/api/core";
 import Button from "@/components/ui/Button";
-import type { PaymentResponse } from "@/types/payment";
 
 interface TossPaymentButtonProps {
-  payment: PaymentResponse;
-  /** 결제 성공 후 토스가 리다이렉트할 경로. 쿼리에 orderId/paymentKey/amount가 자동으로 붙는다. */
+  reservationId: number;
+  /** 버튼에 보여줄 금액 (참고용 표시 — 실제 결제 금액은 결제 생성 응답값을 사용) */
+  displayAmount: number;
   successUrl: string;
-  /** 결제 실패/취소 시 리다이렉트할 경로. */
   failUrl: string;
 }
 
 /**
- * 예약 상세 페이지 등에서 이 컴포넌트만 클라이언트 컴포넌트로 끼워 넣으면 된다.
- * 부모 페이지는 서버 컴포넌트로 유지 가능.
+ * 클릭 시점에:
+ * 1) 결제 생성(POST /api/payments) — 이 시점에 비로소 결제 DB에 PENDING row 생성
+ * 2) 응답으로 받은 orderId/amount/orderName/customerName으로 토스 SDK 호출
  *
- * <TossPaymentButton
- *   payment={payment}
- *   successUrl={`${origin}/payment/complete`}
- *   failUrl={`${origin}/payment/fail`}
- * />
+ * 따라서 사용자가 이 버튼을 누르기 전까지는 결제 레코드가 전혀 생기지 않는다.
  */
 export default function TossPaymentButton({
-  payment,
+  reservationId,
+  displayAmount,
   successUrl,
   failUrl,
 }: TossPaymentButtonProps) {
@@ -36,10 +35,11 @@ export default function TossPaymentButton({
     setError(null);
     setIsLoading(true);
     try {
-      const tossPayments = await loadTossPayments(TOSS_CLIENT_KEY);
+      // 1) 결제 생성 — 이 순간 결제 DB row 생성
+      const payment = await createPaymentClient({ reservationId });
 
-      // requestPayment 호출 시점에 브라우저가 토스 결제창으로 이동하므로,
-      // 이 이후 코드는 실행되지 않는다 (성공/실패는 successUrl/failUrl에서 처리).
+      // 2) 토스 SDK 호출 — 브라우저가 결제창으로 이동하므로 이후 코드는 실행되지 않는다.
+      const tossPayments = await loadTossPayments(TOSS_CLIENT_KEY);
       await tossPayments.requestPayment("카드", {
         amount: payment.amount,
         orderId: payment.orderId,
@@ -49,9 +49,12 @@ export default function TossPaymentButton({
         failUrl,
       });
     } catch (err) {
-      // 사용자가 결제창을 직접 닫는 경우도 여기로 들어온다 (code: "USER_CANCEL")
       const message =
-        err instanceof Error ? err.message : "결제 요청 중 문제가 발생했습니다.";
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "결제 요청 중 문제가 발생했습니다.";
       setError(message);
       setIsLoading(false);
     }
@@ -62,7 +65,7 @@ export default function TossPaymentButton({
       <Button onClick={handleClick} disabled={isLoading} fullWidth>
         {isLoading
           ? "결제창 여는 중..."
-          : `${payment.amount.toLocaleString()}원 결제하기`}
+          : `${displayAmount.toLocaleString()}원 결제하기`}
       </Button>
       {error && (
         <p className="mt-2 rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">

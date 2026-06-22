@@ -6,6 +6,7 @@ import ReservationCard from "@/components/camping/ReservationCard";
 import ReviewSection from "@/components/camping/ReviewSection";
 import SiteSection from "@/components/camping/SiteSection";
 import { getCampingDetail } from "@/lib/api/reservation";
+import { canReserve } from "@/lib/utils/auth";
 
 interface Props {
   params: Promise<{
@@ -13,10 +14,7 @@ interface Props {
   }>;
 }
 
-export default async function CampingDetailPage(
-  { params }: Props
-) {
-
+export default async function CampingDetailPage({ params }: Props) {
   const { campingId } = await params;
   const id = Number(campingId);
 
@@ -24,11 +22,13 @@ export default async function CampingDetailPage(
     throw new Error("올바르지 않은 캠핑장 ID입니다.");
   }
 
-  const camping = await getCampingDetail(id);
+  const [camping, reservable] = await Promise.all([
+    getCampingDetail(id),
+    canReserve(),
+  ]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
-
       <CampingImageSlider
         firstImageUrl={camping.firstImageUrl}
         imageUrls={camping.imageUrls}
@@ -36,25 +36,21 @@ export default async function CampingDetailPage(
       />
 
       <div className="grid lg:grid-cols-[2fr_1fr] gap-12 mt-12">
-
         <div className="space-y-12">
-
           <CampingSummary camping={camping} />
-
           <FacilitySection />
-
           <CampingDescription camping={camping} />
-
           <SiteSection sites={camping.sites} />
-
           <ReviewSection />
-
         </div>
 
-        <ReservationCard camping={camping} />
-
+        {/* USER만 예약 카드 표시, 호스트/관리자/비로그인은 숨김 */}
+        {reservable ? (
+          <ReservationCard camping={camping} />
+        ) : (
+          <aside />
+        )}
       </div>
-
     </div>
   );
 }
