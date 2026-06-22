@@ -21,9 +21,10 @@ export default async function MyReservationsPage({ searchParams }: PageProps) {
   const reservations = await getMyReservations(Number(page ?? 0));
 
   // 응답이 배열인지 페이지네이션 객체인지 확인 후 처리
-  const content = Array.isArray(reservations)
-    ? reservations
-    : reservations.content ?? [];
+  const content = (Array.isArray(reservations) ? reservations : reservations.content ?? [])
+  .filter((r) => r.status !== "PENDING");
+
+  
 
   return (
     <div className="mx-auto max-w-2xl p-6">
