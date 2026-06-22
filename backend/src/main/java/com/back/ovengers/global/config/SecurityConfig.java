@@ -93,13 +93,17 @@ public class SecurityConfig {
                                 "/api/auth/check/email",
                                 "/api/auth/check/nickname",
                                 "/api/users/**",
-                                "/api/campings/**",
-                                "/success" // 프론트 완성시 제거 예정
+                                "/api/campings/**"
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/campings/*/reviews"  // 리뷰 목록 조회 비인증 허용
                         ).permitAll()
+
+                        //예약 시
+                        .requestMatchers("/api/reservations/**").hasRole("USER")
+                        .requestMatchers("/api/payments/**").hasRole("USER")
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/host/**").hasRole("HOST")
                         .anyRequest().authenticated()
