@@ -1,5 +1,5 @@
 import SearchBox from "@/components/search/SearchBox";
-import { getCampings } from "../../lib/api/camping";
+import { getCampings } from "@/lib/api/camping";
 import Link from "next/link";
 
 export default async function CampingListPage({
