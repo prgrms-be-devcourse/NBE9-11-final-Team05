@@ -5,10 +5,7 @@ import com.back.ovengers.domain.reservation.dto.MyReservationResponse;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
 import com.back.ovengers.domain.review.dto.MyReviewResponse;
 import com.back.ovengers.domain.review.repository.ReviewRepository;
-import com.back.ovengers.domain.user.dto.DeleteAccountRequest;
-import com.back.ovengers.domain.user.dto.MyPageResponse;
-import com.back.ovengers.domain.user.dto.UserUpdateRequest;
-import com.back.ovengers.domain.user.dto.UserUpdateResponse;
+import com.back.ovengers.domain.user.dto.*;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
@@ -148,5 +145,30 @@ public class UserService {
         // 쿠키 삭제
         cookieUtil.deleteAccessTokenCookie(response);
         cookieUtil.deleteRefreshTokenCookie(response);
+    }
+
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // 현재 비밀번호 확인
+        if (!passwordEncoder.matches(
+                request.getCurrentPassword(),
+                user.getPassword()
+        )) {
+            throw new CustomException(ErrorCode.INVALID_LOGIN_CREDENTIALS);
+        }
+
+        // 기존 비밀번호와 동일한지 확인
+        if (request.getNewPassword().equals(request.getCurrentPassword())) {
+            throw new CustomException(ErrorCode.SAME_PASSWORD);
+        }
+
+        // 새 비밀번호 암호화 후 저장
+        user.changePassword(
+                passwordEncoder.encode(request.getNewPassword())
+        );
     }
 }

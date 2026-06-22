@@ -1,10 +1,7 @@
 package com.back.ovengers.domain.user.controller;
 
 import com.back.ovengers.domain.reservation.service.ReservationService;
-import com.back.ovengers.domain.user.dto.DeleteAccountRequest;
-import com.back.ovengers.domain.user.dto.MyPageResponse;
-import com.back.ovengers.domain.user.dto.UserUpdateRequest;
-import com.back.ovengers.domain.user.dto.UserUpdateResponse;
+import com.back.ovengers.domain.user.dto.*;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.service.UserService;
 import com.back.ovengers.global.response.ApiResponse;
@@ -73,5 +70,21 @@ public class UserController {
         userService.deleteAccount(user.getId(), request, response);
 
         return ResponseEntity.ok(new ApiResponse<>("회원탈퇴가 완료되었습니다."));
+    }
+
+    @Operation(summary = "비밀번호 변경")
+    @PatchMapping("/me/password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            Authentication authentication,
+            @RequestBody @Valid ChangePasswordRequest request
+    ) {
+
+        User user = (User) authentication.getPrincipal();
+
+        userService.changePassword(user.getId(), request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>("비밀번호가 변경되었습니다.")
+        );
     }
 }

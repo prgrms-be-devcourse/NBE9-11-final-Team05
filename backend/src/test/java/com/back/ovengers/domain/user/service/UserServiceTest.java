@@ -2,10 +2,7 @@ package com.back.ovengers.domain.user.service;
 
 import com.back.ovengers.domain.auth.entity.RefreshToken;
 import com.back.ovengers.domain.auth.repository.RefreshTokenRepository;
-import com.back.ovengers.domain.user.dto.DeleteAccountRequest;
-import com.back.ovengers.domain.user.dto.MyPageResponse;
-import com.back.ovengers.domain.user.dto.UserUpdateRequest;
-import com.back.ovengers.domain.user.dto.UserUpdateResponse;
+import com.back.ovengers.domain.user.dto.*;
 import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.Status;
 import com.back.ovengers.domain.user.entity.User;
@@ -20,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -199,7 +197,92 @@ class UserServiceTest {
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.USER_NOT_FOUND);
     }
 
+    @Test
+    @DisplayName("비밀번호 변경 성공")
+    void t12() {
+        ChangePasswordRequest request =
+                createChangePasswordRequest("password123!", "newPassword123!");
+
+        userService.changePassword(user.getId(), request);
+
+        User updatedUser = userRepository.findById(user.getId()).orElseThrow();
+
+        assertThat(
+                passwordEncoder.matches(
+                        "newPassword123!",
+                        updatedUser.getPassword()
+                )
+        ).isTrue();
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패 - 현재 비밀번호 불일치")
+    void t13() {
+        ChangePasswordRequest request =
+                createChangePasswordRequest("wrongPassword!", "newPassword123!");
+
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> userService.changePassword(user.getId(), request)
+        );
+
+        assertThat(exception.getErrorCode())
+                .isEqualTo(ErrorCode.INVALID_LOGIN_CREDENTIALS);
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패 - 기존 비밀번호와 동일")
+    void t14() {
+        ChangePasswordRequest request =
+                createChangePasswordRequest("password123!", "password123!");
+
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> userService.changePassword(user.getId(), request)
+        );
+
+        assertThat(exception.getErrorCode())
+                .isEqualTo(ErrorCode.SAME_PASSWORD);
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패 - 존재하지 않는 유저")
+    void t15() {
+        ChangePasswordRequest request =
+                createChangePasswordRequest("password123!", "newPassword123!");
+
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> userService.changePassword(999L, request)
+        );
+
+        assertThat(exception.getErrorCode())
+                .isEqualTo(ErrorCode.USER_NOT_FOUND);
+    }
+
+
     // ===================== 헬퍼 메서드 =====================
+
+    private ChangePasswordRequest createChangePasswordRequest(
+            String currentPassword,
+            String newPassword
+    ) {
+        ChangePasswordRequest request = new ChangePasswordRequest();
+
+        ReflectionTestUtils.setField(
+                request,
+                "currentPassword",
+                currentPassword
+        );
+
+        ReflectionTestUtils.setField(
+                request,
+                "newPassword",
+                newPassword
+        );
+
+        return request;
+    }
 
     private UserUpdateRequest createUpdateRequest(
             String nickname,

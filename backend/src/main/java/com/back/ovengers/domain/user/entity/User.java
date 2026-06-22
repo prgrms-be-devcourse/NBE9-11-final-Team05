@@ -75,6 +75,10 @@ public class User extends BaseEntity {
         this.imageUrl = imageUrl;
     }
 
+    public void changePassword(String password) {
+        this.password = password;
+    }
+
 
     public void delete() {
         this.deletedAt = LocalDateTime.now();

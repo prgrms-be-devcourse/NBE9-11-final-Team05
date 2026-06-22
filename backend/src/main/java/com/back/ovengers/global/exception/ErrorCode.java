@@ -58,6 +58,11 @@ public enum ErrorCode {
             "이메일 또는 비밀번호가 올바르지 않습니다."
     ),
 
+    SAME_PASSWORD(
+            HttpStatus.BAD_REQUEST,
+            "현재 비밀번호와 동일한 비밀번호로 변경할 수 없습니다."
+    ),
+
     ALREADY_DELETED(
             HttpStatus.BAD_REQUEST,
             "탈퇴한 회원입니다."

@@ -194,4 +194,80 @@ class UserControllerTest {
                                 """))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    @DisplayName("비밀번호 변경 성공")
+    void t10() throws Exception {
+        mockMvc.perform(patch("/api/users/me/password")
+                        .cookie(accessTokenCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "currentPassword": "password123!",
+                                "newPassword": "newPassword123!"
+                            }
+                            """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("비밀번호가 변경되었습니다."));
+
+        userRepository.flush();
+
+        User updated = userRepository.findById(user.getId()).orElseThrow();
+
+        assertThat(
+                passwordEncoder.matches(
+                        "newPassword123!",
+                        updated.getPassword()
+                )
+        ).isTrue();
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패 - 현재 비밀번호 불일치")
+    void t11() throws Exception {
+        mockMvc.perform(patch("/api/users/me/password")
+                        .cookie(accessTokenCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "currentPassword": "wrongPassword!",
+                                "newPassword": "newPassword123!"
+                            }
+                            """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message")
+                        .value("INVALID_LOGIN_CREDENTIALS"));
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패 - 기존 비밀번호와 동일")
+    void t12() throws Exception {
+        mockMvc.perform(patch("/api/users/me/password")
+                        .cookie(accessTokenCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "currentPassword": "password123!",
+                                "newPassword": "password123!"
+                            }
+                            """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("SAME_PASSWORD"));
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패 - 미로그인")
+    void t13() throws Exception {
+        mockMvc.perform(patch("/api/users/me/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "currentPassword": "password123!",
+                                "newPassword": "newPassword123!"
+                            }
+                            """))
+                .andExpect(status().isUnauthorized());
+    }
+
 }
