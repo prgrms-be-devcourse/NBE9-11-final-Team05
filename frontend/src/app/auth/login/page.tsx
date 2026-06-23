@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api/auth";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,6 +20,9 @@ export default function LoginPage() {
     try {
       const data = await authApi.login(email, password);
       const role = data.data.role;
+
+      // 로그인 상태 저장
+      useAuthStore.getState().setAuth(role);
 
       if (role === "HOST") {
         router.push("/host/dashboard");
