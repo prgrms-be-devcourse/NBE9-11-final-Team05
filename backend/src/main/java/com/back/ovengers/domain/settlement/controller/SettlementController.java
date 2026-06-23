@@ -1,5 +1,6 @@
 package com.back.ovengers.domain.settlement.controller;
 
+import com.back.ovengers.domain.settlement.dto.SettlementDetailWithListResponse;
 import com.back.ovengers.domain.settlement.dto.SettlementListResponse;
 import com.back.ovengers.domain.settlement.service.SettlementService;
 import com.back.ovengers.domain.user.entity.User;
@@ -8,10 +9,7 @@ import com.back.ovengers.global.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,6 +27,19 @@ public class SettlementController {
                 new ApiResponse<>(
                         "정산 목록 조회가 완료되었습니다.",
                         settlementService.getMySettlements(user.getId(), page)
+                )
+        );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<SettlementDetailWithListResponse>> getSettlementDetail(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "정산 상세 조회가 완료되었습니다.",
+                        settlementService.getSettlementDetail(id, user.getId())
                 )
         );
     }
