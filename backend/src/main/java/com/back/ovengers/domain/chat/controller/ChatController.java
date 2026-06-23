@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,5 +56,13 @@ public class ChatController {
         return ResponseEntity.ok(
                 new ApiResponse<>("메시지 조회 성공", response)
         );
+    }
+
+    @PostMapping("/chat/open/{roomId}/join")
+    public void joinOpenChat(
+            @PathVariable Long roomId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        chatService.joinOpenChat(roomId, userId);
     }
 }
