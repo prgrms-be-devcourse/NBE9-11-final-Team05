@@ -40,8 +40,20 @@ public class ChatController {
 
     @GetMapping("/{roomId}/messages")
     public ResponseEntity<ApiResponse<CursorResponse<ChatMessageResponse>>> getChatMessages(
-            @PathVariable @Min(1) Long roomId
+            @AuthenticationPrincipal User user,
+            @PathVariable @Min(1) Long roomId,
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return null;
+        CursorResponse<ChatMessageResponse> response = chatService.getChatMessages(
+                user.getId(),
+                roomId,
+                cursor,
+                size
+        );
+
+        return ResponseEntity.ok(
+                new ApiResponse<>("메시지 조회 성공", response)
+        );
     }
 }
