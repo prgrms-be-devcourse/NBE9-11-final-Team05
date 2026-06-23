@@ -5,7 +5,7 @@ spring:
     active: dev
     include: secret
 
-  servlet: #SSE 응답깨짐현상 해결
+  servlet: #SSE 응답 깨짐 현상 해결
     encoding:
       charset: UTF-8
       force-response: true
