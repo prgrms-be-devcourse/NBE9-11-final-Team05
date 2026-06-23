@@ -32,7 +32,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,7 +83,6 @@ class PaymentConfirmTest {
     @BeforeEach
     void setUp() {
 
-
         User user = userRepository.save(User.builder()
                 .email("test@test.com")
                 .password("password123!")
@@ -95,7 +93,6 @@ class PaymentConfirmTest {
                 .status(Status.ACTIVE)
                 .build());
 
-        // setUp()에서 user 저장 직후 추가
         accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole().name());
 
         Camping camping = campingRepository.save(Camping.builder()
@@ -140,18 +137,20 @@ class PaymentConfirmTest {
                 .status(PaymentStatus.READY)
                 .build());
 
-        PaymentConfirmRequest request = new PaymentConfirmRequest();
-        ReflectionTestUtils.setField(request, "paymentKey", "test_payment_key");
-        ReflectionTestUtils.setField(request, "orderId", payment.getOrderId());
-        ReflectionTestUtils.setField(request, "amount", 100000);
+        PaymentConfirmRequest request = new PaymentConfirmRequest(
+                "test_payment_key",
+                payment.getOrderId(),
+                100000
+        );
 
-        TossConfirmResponse tossResponse = new TossConfirmResponse();
-        ReflectionTestUtils.setField(tossResponse, "paymentKey", "test_payment_key");
-        ReflectionTestUtils.setField(tossResponse, "orderId", payment.getOrderId());
-        ReflectionTestUtils.setField(tossResponse, "method", "카드");
-        ReflectionTestUtils.setField(tossResponse, "totalAmount", 100000);
-        ReflectionTestUtils.setField(tossResponse, "approvedAt", "2026-06-15T15:00:00+09:00");
-        ReflectionTestUtils.setField(tossResponse, "status", "DONE");
+        TossConfirmResponse tossResponse = new TossConfirmResponse(
+                "test_payment_key",
+                payment.getOrderId(),
+                "카드",
+                100000,
+                "2026-06-15T15:00:00+09:00",
+                "DONE"
+        );
 
         given(tossPaymentClient.confirm(any(), any(), any())).willReturn(tossResponse);
 
@@ -169,10 +168,11 @@ class PaymentConfirmTest {
     @DisplayName("결제 승인 실패 - 결제 정보 없음")
     void confirmPayment_fail_paymentNotFound() throws Exception {
 
-        PaymentConfirmRequest request = new PaymentConfirmRequest();
-        ReflectionTestUtils.setField(request, "paymentKey", "test_payment_key");
-        ReflectionTestUtils.setField(request, "orderId", "NOT-EXIST-ORDER-ID");
-        ReflectionTestUtils.setField(request, "amount", 100000);
+        PaymentConfirmRequest request = new PaymentConfirmRequest(
+                "test_payment_key",
+                "NOT-EXIST-ORDER-ID",
+                100000
+        );
 
         mockMvc.perform(post("/api/payments/confirm")
                         .cookie(new MockCookie("accessToken", accessToken))
@@ -193,10 +193,11 @@ class PaymentConfirmTest {
                 .status(PaymentStatus.DONE)
                 .build());
 
-        PaymentConfirmRequest request = new PaymentConfirmRequest();
-        ReflectionTestUtils.setField(request, "paymentKey", "test_payment_key");
-        ReflectionTestUtils.setField(request, "orderId", payment.getOrderId());
-        ReflectionTestUtils.setField(request, "amount", 100000);
+        PaymentConfirmRequest request = new PaymentConfirmRequest(
+                "test_payment_key",
+                payment.getOrderId(),
+                100000
+        );
 
         mockMvc.perform(post("/api/payments/confirm")
                         .cookie(new MockCookie("accessToken", accessToken))
@@ -217,10 +218,11 @@ class PaymentConfirmTest {
                 .status(PaymentStatus.READY)
                 .build());
 
-        PaymentConfirmRequest request = new PaymentConfirmRequest();
-        ReflectionTestUtils.setField(request, "paymentKey", "test_payment_key");
-        ReflectionTestUtils.setField(request, "orderId", payment.getOrderId());
-        ReflectionTestUtils.setField(request, "amount", 999999);
+        PaymentConfirmRequest request = new PaymentConfirmRequest(
+                "test_payment_key",
+                payment.getOrderId(),
+                999999
+        );
 
         mockMvc.perform(post("/api/payments/confirm")
                         .cookie(new MockCookie("accessToken", accessToken))
@@ -241,10 +243,11 @@ class PaymentConfirmTest {
                 .status(PaymentStatus.READY)
                 .build());
 
-        PaymentConfirmRequest request = new PaymentConfirmRequest();
-        ReflectionTestUtils.setField(request, "paymentKey", "invalid_key");
-        ReflectionTestUtils.setField(request, "orderId", payment.getOrderId());
-        ReflectionTestUtils.setField(request, "amount", 100000);
+        PaymentConfirmRequest request = new PaymentConfirmRequest(
+                "invalid_key",
+                payment.getOrderId(),
+                100000
+        );
 
         given(tossPaymentClient.confirm(any(), any(), any()))
                 .willThrow(new CustomException(ErrorCode.TOSS_CONFIRM_FAIL));

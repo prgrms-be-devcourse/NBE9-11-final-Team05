@@ -27,7 +27,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockCookie;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
@@ -119,8 +118,7 @@ class PaymentServiceTest {
     @Test
     @DisplayName("결제 생성 성공")
     void createPayment_success() throws Exception {
-        PaymentRequest request = new PaymentRequest();
-        ReflectionTestUtils.setField(request, "reservationId", reservation.getId());
+        PaymentRequest request = new PaymentRequest(reservation.getId());
 
         mockMvc.perform(post("/api/payments")
                         .cookie(new MockCookie("accessToken", accessToken))
@@ -134,15 +132,14 @@ class PaymentServiceTest {
     @Test
     @DisplayName("결제 생성 실패 - 예약 없음")
     void createPayment_fail_reservationNotFound() throws Exception {
-        PaymentRequest request = new PaymentRequest();
-        ReflectionTestUtils.setField(request, "reservationId", 999L);
+        PaymentRequest request = new PaymentRequest(999L);
 
         mockMvc.perform(post("/api/payments")
                         .cookie(new MockCookie("accessToken", accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.data").value("예약을 찾을 수 없습니다."));  // data 필드로 변경
+                .andExpect(jsonPath("$.data").value("예약을 찾을 수 없습니다."));
     }
 
     @Test
@@ -160,15 +157,14 @@ class PaymentServiceTest {
 
         String otherToken = jwtProvider.createRefreshToken(otherUser.getId(), otherUser.getRole().name());
 
-        PaymentRequest request = new PaymentRequest();
-        ReflectionTestUtils.setField(request, "reservationId", reservation.getId());
+        PaymentRequest request = new PaymentRequest(reservation.getId());
 
         mockMvc.perform(post("/api/payments")
                         .cookie(new MockCookie("accessToken", otherToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.data").value("본인 예약만 결제 가능합니다."));  // data 필드로 변경
+                .andExpect(jsonPath("$.data").value("본인 예약만 결제 가능합니다."));
     }
 
     @Test
@@ -181,15 +177,14 @@ class PaymentServiceTest {
                 .status(PaymentStatus.DONE)
                 .build());
 
-        PaymentRequest request = new PaymentRequest();
-        ReflectionTestUtils.setField(request, "reservationId", reservation.getId());
+        PaymentRequest request = new PaymentRequest(reservation.getId());
 
         mockMvc.perform(post("/api/payments")
                         .cookie(new MockCookie("accessToken", accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.data").value("이미 결제된 예약입니다."));  // data 필드로 변경
+                .andExpect(jsonPath("$.data").value("이미 결제된 예약입니다."));
     }
 
     @Test
@@ -198,21 +193,19 @@ class PaymentServiceTest {
         reservation.updateStatus(ReservationStatus.CONFIRMED);
         reservationRepository.save(reservation);
 
-        PaymentRequest request = new PaymentRequest();
-        ReflectionTestUtils.setField(request, "reservationId", reservation.getId());
+        PaymentRequest request = new PaymentRequest(reservation.getId());
 
         mockMvc.perform(post("/api/payments")
                         .cookie(new MockCookie("accessToken", accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.data").value("결제 가능한 예약 상태가 아닙니다."));  // data 필드로 변경
+                .andExpect(jsonPath("$.data").value("결제 가능한 예약 상태가 아닙니다."));
     }
 
     @Test
     @DisplayName("결제 생성 성공 - 이전 취소 이력이 있어도 새 결제 가능")
     void createPayment_success_withCanceledHistory() throws Exception {
-        // 이전에 취소된 결제 이력
         paymentRepository.save(Payment.builder()
                 .reservation(reservation)
                 .orderId("ORD-" + UUID.randomUUID())
@@ -220,8 +213,7 @@ class PaymentServiceTest {
                 .status(PaymentStatus.CANCELLED)
                 .build());
 
-        PaymentRequest request = new PaymentRequest();
-        ReflectionTestUtils.setField(request, "reservationId", reservation.getId());
+        PaymentRequest request = new PaymentRequest(reservation.getId());
 
         mockMvc.perform(post("/api/payments")
                         .cookie(new MockCookie("accessToken", accessToken))
@@ -230,8 +222,7 @@ class PaymentServiceTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.amount").value(100000));
 
-        // 취소 이력이 삭제되지 않고 그대로 남아있는지 확인
         long count = paymentRepository.findAllByReservation_Id(reservation.getId()).size();
-        org.junit.jupiter.api.Assertions.assertEquals(2, count); // 취소 1건 + 새 결제 1건
+        org.junit.jupiter.api.Assertions.assertEquals(2, count);
     }
 }
