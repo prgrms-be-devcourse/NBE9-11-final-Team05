@@ -16,6 +16,7 @@ import {
     CampingImageCreateRequest,
     CampingImageCreateResponse,
     HostReservationListItem,
+    CampingClaimRequest,
   } from "@/types/host";
   
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -193,3 +194,11 @@ export async function addCampingImage(
   
     return response.data.content;
   }
+
+  // 캠핑장 소유권 인증
+export async function claimCamping(data: CampingClaimRequest) {
+  await request<ApiResponse<null>>("/api/host/campings/claim", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}

@@ -44,16 +44,29 @@ export default function HostCampingList() {
   if (campings.length === 0) {
     return (
       <div className="rounded-3xl border border-dashed border-gray-200 bg-white p-12 text-center shadow-sm">
-        <p className="mb-4 text-gray-600">
+        <p className="mb-2 text-lg font-semibold text-gray-800">
           등록된 캠핑장이 없습니다.
         </p>
 
-        <Link
-          href="/host/campings/new"
-          className={`inline-flex ${primaryButtonClass}`}
-        >
-          캠핑장 등록하기
-        </Link>
+        <p className="mb-6 text-sm text-gray-500">
+          새 캠핑장을 등록하거나 기존 캠핑장을 인증하여 관리할 수 있습니다.
+        </p>
+
+        <div className="flex justify-center gap-3">
+          <Link
+            href="/host/campings/new"
+            className={`inline-flex ${primaryButtonClass}`}
+          >
+            캠핑장 등록하기
+          </Link>
+
+          <Link
+            href="/host/campings/claim"
+            className="inline-flex rounded-xl border border-[#D17A2F] px-5 py-3 text-sm font-semibold text-[#D17A2F] transition hover:bg-orange-50"
+          >
+            내 캠핑장 찾기
+          </Link>
+        </div>
       </div>
     );
   }
@@ -70,12 +83,21 @@ export default function HostCampingList() {
           </p>
         </div>
 
-        <Link
-          href="/host/campings/new"
-          className={primaryButtonClass}
-        >
-          캠핑장 등록
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/host/campings/claim"
+            className="rounded-xl border border-[#D17A2F] px-5 py-3 text-sm font-semibold text-[#D17A2F] hover:bg-orange-50"
+          >
+            내 캠핑장 찾기
+          </Link>
+
+          <Link
+            href="/host/campings/new"
+            className={primaryButtonClass}
+          >
+            캠핑장 등록
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-col gap-4">
