@@ -263,7 +263,14 @@ public enum ErrorCode {
     INITIAL_DATA_ALREADY_EXISTS(
             HttpStatus.CONFLICT,
             "초기 데이터가 이미 존재합니다.")
-            ;
+            ,
+
+
+    // 정산
+    SETTLEMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "정산 정보를 찾을 수 없습니다."),
+    SETTLEMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 정산입니다."),
+    SETTLEMENT_ALREADY_COMPLETED(HttpStatus.CONFLICT, "이미 완료된 정산입니다."),
+    INVALID_SETTLEMENT_DATE(HttpStatus.BAD_REQUEST, "잘못된 정산 기준일입니다.");
 
     private final HttpStatus status;
     private final String message;
