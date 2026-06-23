@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal; // 1. Import 추가됨
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "User", description = "유저 API")
@@ -25,10 +25,9 @@ public class UserController {
 
     @Operation(summary = "내 정보 조회")
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<MyPageResponse>> getMyPage(Authentication authentication) {
-
-        User user = (User) authentication.getPrincipal();
-
+    public ResponseEntity<ApiResponse<MyPageResponse>> getMyPage(
+            @AuthenticationPrincipal User user
+    ) {
         MyPageResponse response = userService.getMyPage(user.getId());
 
         return ResponseEntity.ok(
@@ -42,14 +41,10 @@ public class UserController {
     @Operation(summary = "내 정보 수정")
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UserUpdateResponse>> updateProfile(
-            Authentication authentication,
+            @AuthenticationPrincipal User user,
             @RequestBody UserUpdateRequest request
     ) {
-
-        User user = (User) authentication.getPrincipal();
-
         UserUpdateResponse response = userService.updateProfile(user.getId(), request);
-
 
         return ResponseEntity.ok(
                 new ApiResponse<>(
@@ -62,11 +57,10 @@ public class UserController {
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<Void>> deleteAccount(
-            Authentication authentication,
+            @AuthenticationPrincipal User user,
             @RequestBody @Valid DeleteAccountRequest request,
             HttpServletResponse response
     ) {
-        User user = (User) authentication.getPrincipal();
         userService.deleteAccount(user.getId(), request, response);
 
         return ResponseEntity.ok(new ApiResponse<>("회원탈퇴가 완료되었습니다."));
@@ -75,12 +69,9 @@ public class UserController {
     @Operation(summary = "비밀번호 변경")
     @PatchMapping("/me/password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
-            Authentication authentication,
+            @AuthenticationPrincipal User user,
             @RequestBody @Valid ChangePasswordRequest request
     ) {
-
-        User user = (User) authentication.getPrincipal();
-
         userService.changePassword(user.getId(), request);
 
         return ResponseEntity.ok(

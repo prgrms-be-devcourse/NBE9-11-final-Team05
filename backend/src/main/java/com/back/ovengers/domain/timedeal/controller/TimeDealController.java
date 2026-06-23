@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal; // 1. Import 추가됨
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,10 +25,9 @@ public class TimeDealController {
 
     @PostMapping("/host")
     public ResponseEntity<ApiResponse<TimeDealResponse>> create(
-            Authentication authentication,
+            @AuthenticationPrincipal User user, // 2. @AuthenticationPrincipal 적용
             @Valid @RequestBody TimeDealCreateRequest request
     ) {
-        User user = (User) authentication.getPrincipal();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>("타임딜이 등록되었습니다.",
                         timeDealService.createTimeDeal(user.getId(), request)));
@@ -36,11 +35,10 @@ public class TimeDealController {
 
     @PatchMapping("/host/{timeDealId}")
     public ResponseEntity<ApiResponse<TimeDealResponse>> update(
-            Authentication authentication,
+            @AuthenticationPrincipal User user,
             @PathVariable Long timeDealId,
             @Valid @RequestBody TimeDealUpdateRequest request
     ) {
-        User user = (User) authentication.getPrincipal();
         return ResponseEntity.ok(
                 new ApiResponse<>("타임딜이 수정되었습니다.",
                         timeDealService.updateTimeDeal(user.getId(), timeDealId, request)));
@@ -48,30 +46,27 @@ public class TimeDealController {
 
     @PatchMapping("/host/{timeDealId}/cancel")
     public ResponseEntity<Void> cancel(
-            Authentication authentication,
+            @AuthenticationPrincipal User user,
             @PathVariable Long timeDealId
     ) {
-        Long userId = ((User) authentication.getPrincipal()).getId();
-        timeDealService.cancelTimeDeal(userId, timeDealId);
+        timeDealService.cancelTimeDeal(user.getId(), timeDealId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/host/{timeDealId}")
     public ResponseEntity<ApiResponse<Void>> delete(
-            Authentication authentication,
+            @AuthenticationPrincipal User user,
             @PathVariable Long timeDealId
     ) {
-        User user = (User) authentication.getPrincipal();
         timeDealService.deleteTimeDeal(user.getId(), timeDealId);
         return ResponseEntity.ok(new ApiResponse<>("타임딜이 삭제되었습니다."));
     }
 
     @GetMapping("/host/my")
     public ResponseEntity<ApiResponse<Page<TimeDealResponse>>> getMyTimeDeals(
-            Authentication authentication,
+            @AuthenticationPrincipal User user,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        User user = (User) authentication.getPrincipal();
         return ResponseEntity.ok(
                 new ApiResponse<>("호스트 타임딜 목록 조회 성공",
                         timeDealService.getMyTimeDeals(user.getId(), pageable)));
