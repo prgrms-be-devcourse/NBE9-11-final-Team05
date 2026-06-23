@@ -52,6 +52,23 @@ public class TimeDeal extends BaseEntity{
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    /**
+     * [낙관적 락] - 취소/수정/삭제 동시 충돌 방지
+     *
+     * JPA가 UPDATE 시 WHERE 조건에 version을 추가한다.
+     *   UPDATE time_deal SET ..., version = version + 1
+     *   WHERE id = ? AND version = ?  ← 버전 불일치 시 0 rows → 예외 발생
+     *
+     * 동일 타임딜에 대한 동시 수정(취소/삭제/업데이트) 시
+     * 먼저 커밋한 트랜잭션만 성공하고, 나머지는 ObjectOptimisticLockingFailureException 발생.
+     *
+     * 구매(soldCount 증가)는 @Version 방식이 아닌 원자적 SQL UPDATE로 처리한다.
+     * 구매 흐름은 이 필드를 건드리지 않는다.
+     */
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
     @Builder
     private TimeDeal(Site site, LocalDate checkIn, LocalDate checkOut, int quantity,
                      int originalPrice, int dealPrice,
@@ -113,7 +130,10 @@ public class TimeDeal extends BaseEntity{
         this.deletedAt = LocalDateTime.now();
     }
 
-    // 실제 구매(예약 연동) 시 호출할 훅 - 동시성 처리는 서비스단에서 별도 고려 필요
+    /**
+     * ⚠️ 직접 호출 금지 - 단위 테스트 전용
+     * 실제 구매 흐름은 TimeDealRepository.purchaseAtomically() 사용
+     */
     public void increaseSoldCount(int count) {
         if (this.soldCount + count > this.quantity) {
             throw new IllegalStateException("재고가 부족합니다.");

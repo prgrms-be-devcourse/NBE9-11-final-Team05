@@ -1,9 +1,11 @@
 package com.back.ovengers.global.exception;
 
 import com.back.ovengers.global.response.ApiResponse;
+import jakarta.persistence.LockTimeoutException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -92,6 +94,34 @@ public class GlobalExceptionHandler {
                         new ApiResponse<>(
                                 ErrorCode.FORBIDDEN.name(),
                                 ErrorCode.FORBIDDEN.getMessage()
+                        )
+                );
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse> handleOptimisticLockException(
+            ObjectOptimisticLockingFailureException e
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(
+                        new ApiResponse<>(
+                                ErrorCode.OPTIMISTIC_LOCK_CONFLICT.name(),
+                                ErrorCode.OPTIMISTIC_LOCK_CONFLICT.getMessage()
+                        )
+                );
+    }
+
+    @ExceptionHandler(LockTimeoutException.class)
+    public ResponseEntity<ApiResponse> handleLockTimeoutException(
+            LockTimeoutException e
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(
+                        new ApiResponse<>(
+                                ErrorCode.LOCK_TIMEOUT.name(),
+                                ErrorCode.LOCK_TIMEOUT.getMessage()
                         )
                 );
     }

@@ -1,11 +1,12 @@
 package com.back.ovengers.domain.timedeal.repository;
 
 import com.back.ovengers.domain.timedeal.entity.TimeDeal;
+import com.back.ovengers.domain.timedeal.entity.TimeDealStatus;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
@@ -15,13 +16,7 @@ import java.util.Optional;
 public interface TimeDealRepository extends JpaRepository<TimeDeal, Long> {
 
     /**
-     * 삭제되지 않은 타임딜 단건 조회
-     *
-     * TimeDeal → Site → Camping 정보를 Fetch Join으로 함께 조회하여
-     * 연관 엔티티 접근 시 발생하는 N+1 문제를 방지한다.
-     *
-     * @param id 타임딜 ID
-     * @return 타임딜 정보
+     * 삭제되지 않은 타임딜 단건 조회 (읽기 전용)
      */
     @Query("""
         SELECT td FROM TimeDeal td
@@ -32,33 +27,44 @@ public interface TimeDealRepository extends JpaRepository<TimeDeal, Long> {
     Optional<TimeDeal> findActiveById(@Param("id") Long id);
 
     /**
-     * 특정 호스트가 등록한 타임딜 목록 조회
+     * [비관적 락] 타임딜 단건 조회 - 취소/삭제 동시 요청 직렬화용
      *
-     * Soft Delete 되지 않은 타임딜만 조회하며,
-     * 최신 등록 순(createdAt DESC)으로 정렬한다.
+     * SELECT ... FOR UPDATE 를 발행하여 행 레벨 잠금을 획득한다.
+     * 같은 행을 동시에 수정하려는 다른 트랜잭션은 이 트랜잭션이 커밋/롤백될 때까지 대기한다.
      *
-     * @param hostId 호스트 ID
-     * @param pageable 페이징 정보
-     * @return 호스트의 타임딜 목록
+     * 사용처: cancelTimeDeal, deleteTimeDeal
+     * - 호스트가 동시에 취소 버튼을 두 번 클릭하거나, 구매 직전 취소 요청이 겹치는 경우를 방어
+     *
+     * timeout = 3000ms: 락 대기 중 3초 초과 시 LockTimeoutException 발생 (무한 대기 방지)
      */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000"))
     @Query("""
+        SELECT td FROM TimeDeal td
+        JOIN FETCH td.site s
+        JOIN FETCH s.camping c
+        WHERE td.id = :id AND td.deletedAt IS NULL
+        """)
+    Optional<TimeDeal> findActiveByIdWithLock(@Param("id") Long id);
+
+    /**
+     * 특정 호스트가 등록한 타임딜 목록 조회
+     */
+    @Query(value = """
         SELECT td FROM TimeDeal td
         WHERE td.site.camping.host.id = :hostId
           AND td.deletedAt IS NULL
         ORDER BY td.createdAt DESC
+        """,
+            countQuery = """
+        SELECT COUNT(td) FROM TimeDeal td
+        WHERE td.site.camping.host.id = :hostId
+          AND td.deletedAt IS NULL
         """)
     Page<TimeDeal> findAllByHostId(@Param("hostId") Long hostId, Pageable pageable);
 
-
     /**
      * 현재 판매 중인 타임딜 목록 조회
-     *
-     * ACTIVE 상태이면서 판매 시작 시간이 현재 이전이고,
-     * 판매 종료 시간이 현재 이후인 타임딜만 조회한다.
-     *
-     * @param now 현재 시간
-     * @param pageable 페이징 정보
-     * @return 판매 중인 타임딜 목록
      */
     @Query("""
         SELECT td FROM TimeDeal td
@@ -69,29 +75,9 @@ public interface TimeDealRepository extends JpaRepository<TimeDeal, Long> {
         """)
     Page<TimeDeal> findAllActive(@Param("now") LocalDateTime now, Pageable pageable);
 
-
     /**
-     * 동일 Site의 동일 기간에 이미 할당된 타임딜 수량 합계 조회
-     *
-     * 타임딜 등록/수정 시 재고 초과 여부를 검증하기 위해 사용한다.
-     *
-     * 예)
-     * Site 총 재고 : 10
-     * 타임딜 A : 3개
-     * 타임딜 B : 2개
-     *
-     * 결과 : 5 반환
-     *
-     * 수정 시에는 현재 수정 중인 타임딜을 제외하기 위해
-     * excludeId를 사용한다.
-     *
-     * @param siteId Site ID
-     * @param checkIn 체크인 날짜
-     * @param checkOut 체크아웃 날짜
-     * @param excludeId 수정 중인 타임딜 ID (신규 등록 시 null)
-     * @return 이미 할당된 타임딜 수량 합계
+     * 동일 Site의 겹치는 기간에 할당된 타임딜 수량 합계 조회
      */
-    // 같은 site, 겹치는 날짜에 이미 다른 타임딜로 잡혀있는 수량 합
     @Query("""
         SELECT COALESCE(SUM(td.quantity), 0) FROM TimeDeal td
         WHERE td.site.id = :siteId
@@ -105,19 +91,10 @@ public interface TimeDealRepository extends JpaRepository<TimeDeal, Long> {
                                               @Param("checkOut") LocalDate checkOut,
                                               @Param("excludeId") Long excludeId);
 
+    // ──────────────────────────────────────────────
+    // 스케줄러용 벌크 UPDATE
+    // ──────────────────────────────────────────────
 
-    /**
-     * 판매 시작 시간이 된 타임딜을 ACTIVE 상태로 변경
-     *
-     * SCHEDULED 상태이며,
-     * saleStartAt <= 현재시간 < saleEndAt 조건을 만족하는
-     * 타임딜들을 일괄 활성화한다.
-     *
-     * 스케줄러에서 주기적으로 호출한다.
-     *
-     * @param now 현재 시간
-     * @return 상태가 변경된 타임딜 개수
-     */
     @Modifying
     @Query("""
         UPDATE TimeDeal td SET td.status = 'ACTIVE'
@@ -125,23 +102,79 @@ public interface TimeDealRepository extends JpaRepository<TimeDeal, Long> {
         """)
     int activateScheduledDeals(@Param("now") LocalDateTime now);
 
-
-    /**
-     * 판매 종료 시간이 지난 타임딜을 ENDED 상태로 변경
-     *
-     * ACTIVE 또는 SCHEDULED 상태의 타임딜 중
-     * saleEndAt <= 현재시간 조건을 만족하는 데이터를
-     * 일괄 종료 처리한다.
-     *
-     * 스케줄러에서 주기적으로 호출한다.
-     *
-     * @param now 현재 시간
-     * @return 상태가 변경된 타임딜 개수
-     */
     @Modifying
     @Query("""
         UPDATE TimeDeal td SET td.status = 'ENDED'
         WHERE td.status IN ('SCHEDULED', 'ACTIVE') AND td.saleEndAt <= :now
         """)
     int endExpiredDeals(@Param("now") LocalDateTime now);
+
+    // ──────────────────────────────────────────────
+    // 구매 전용 원자적 UPDATE
+    // ──────────────────────────────────────────────
+
+    /**
+     * [원자적 soldCount 증가] - 구매 핵심 로직
+     *
+     * 기존 문제:
+     *   T1: soldCount 읽기(3)  →  soldCount 쓰기(4)
+     *   T2: soldCount 읽기(3)  →  soldCount 쓰기(4)  ← 동시 실행 시 둘 다 4로 저장 → 재고 초과
+     *
+     * 해결 방식 - DB에 원자적 연산을 위임:
+     *   UPDATE time_deal
+     *   SET sold_count = sold_count + :count
+     *   WHERE id = :id
+     *     AND status = 'ACTIVE'
+     *     AND sold_count + :count <= quantity   ← 재고 초과 방지 조건
+     *
+     * DB는 이 UPDATE를 행 레벨 잠금과 함께 원자적으로 실행한다.
+     * 동시에 두 트랜잭션이 들어와도 하나는 대기 → 순차 실행 → 재고 초과 불가.
+     *
+     * 반환값:
+     *   1 → 구매 성공
+     *   0 → 재고 부족 or 판매 중이 아님 (서비스에서 재조회 후 원인 판별)
+     *
+     * 왜 낙관적 락(@Version) 대신 원자적 UPDATE?
+     *   - 타임딜은 플래시 세일 특성상 동시 구매 충돌이 매우 잦음
+     *   - @Version + 재시도: 충돌 시 재시도가 폭주 → DB 부하 급증
+     *   - 원자적 UPDATE: 락 없이도 DB가 직렬화를 보장 → 높은 처리량 유지
+     *
+     * 왜 비관적 락(SELECT FOR UPDATE) 대신?
+     *   - SELECT FOR UPDATE는 행을 읽는 순간부터 커밋까지 잠금
+     *   - 구매 트랜잭션이 짧아도 동시 요청이 모두 직렬 대기 → 처리량 병목
+     *   - 원자적 UPDATE는 DB 내부에서만 직렬화 → 어플리케이션 레벨 대기 없음
+     */
+    @Modifying
+    @Query("""
+        UPDATE TimeDeal td
+        SET td.soldCount = td.soldCount + :count
+        WHERE td.id = :id
+          AND td.status = :activeStatus
+          AND (td.soldCount + :count) <= td.quantity
+        """)
+    int purchaseAtomically(
+            @Param("id") Long id,
+            @Param("count") int count,
+            @Param("activeStatus") TimeDealStatus activeStatus
+    );
+
+    /**
+     * soldCount가 quantity에 도달한 경우 SOLD_OUT으로 상태 변경
+     *
+     * purchaseAtomically() 성공 후 호출.
+     * 이미 SOLD_OUT이거나 마지막 재고가 아닌 경우엔 0 rows 반환 (정상).
+     */
+    @Modifying
+    @Query("""
+        UPDATE TimeDeal td
+        SET td.status = :soldOutStatus
+        WHERE td.id = :id
+          AND td.soldCount >= td.quantity
+          AND td.status = :activeStatus
+        """)
+    int markSoldOutIfExhausted(
+            @Param("id") Long id,
+            @Param("soldOutStatus") TimeDealStatus soldOutStatus,
+            @Param("activeStatus") TimeDealStatus activeStatus
+    );
 }
