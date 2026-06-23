@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { notificationApi, NotificationItem } from "@/lib/api/notification";
 import { Bell } from "lucide-react";
+import { API_BASE_URL, ApiError } from "@/lib/api/core";;
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function NotificationBell() {
-    const { isLoggedIn } = useAuthStore();
+    const { isLoggedIn, clearAuth } = useAuthStore();
     const [unreadCount, setUnreadCount] = useState(0);
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +20,9 @@ export default function NotificationBell() {
             setUnreadCount(res.data.unreadCount);
         } catch (e) {
             console.error(e);
+            if (e instanceof ApiError && e.status === 401) {
+                clearAuth();
+            }
         }
     };
 
@@ -30,6 +33,9 @@ export default function NotificationBell() {
             setNotifications(res.data.content);
         } catch (e) {
             console.error(e);
+            if (e instanceof ApiError && e.status === 401) {
+                clearAuth();
+            }
         }
     };
 
@@ -45,6 +51,9 @@ export default function NotificationBell() {
             setUnreadCount((prev) => Math.max(0, prev - 1));
         } catch (e) {
             console.error(e);
+            if (e instanceof ApiError && e.status === 401) {
+                clearAuth();
+            }
         }
     };
 
@@ -56,18 +65,23 @@ export default function NotificationBell() {
         fetchUnreadCount();
 
         const eventSource = new EventSource(
-            `${API_URL}/api/notifications/subscribe`,
+            `${API_BASE_URL}/api/notifications/subscribe`,
             { withCredentials: true }
         );
 
         eventSource.addEventListener("notification", (e) => {
-            const notification = JSON.parse(e.data);
-            setNotifications((prev) => [notification, ...prev]);
-            setUnreadCount((prev) => prev + 1);
+            try {
+                const notification = JSON.parse(e.data);
+                setNotifications((prev) => [notification, ...prev]);
+                setUnreadCount((prev) => prev + 1);
+            } catch (err) {
+                console.error("Failed to parse notification data:", err);
+            }
         });
 
-        eventSource.onerror = () => {
-            eventSource.close();
+        eventSource.onerror = (err) => {
+            console.error("SSE connection error:", err);
+            // clearAuth() 제거 - 일시적 오류에도 로그아웃되면 안 됨
         };
 
         return () => {

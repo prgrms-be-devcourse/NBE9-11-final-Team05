@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuthStore } from "@/stores/authStore";
 import NotificationBell from "@/components/notification/NotificationBell";
+import { apiFetch } from "@/lib/api/core";
 
 export default function Header() {
     const { isLoggedIn, role, clearAuth } = useAuthStore();
@@ -17,10 +18,7 @@ export default function Header() {
 
     const handleLogout = async () => {
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
-                method: "POST",
-                credentials: "include",
-            });
+            await apiFetch("/api/auth/logout", { method: "POST" });
         } catch (e) {
             console.error(e);
         } finally {
