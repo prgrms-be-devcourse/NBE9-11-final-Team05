@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -22,5 +23,23 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByStatusAndCreatedAtBefore(
             PaymentStatus status,
             LocalDateTime dateTime
+    );
+
+    @Query("""
+        SELECT p FROM Payment p
+        JOIN p.reservation r
+        JOIN r.site s
+        JOIN s.camping c
+        WHERE c.host.id = :hostId
+        AND p.status = 'DONE'
+        AND CAST(p.createdAt AS date) BETWEEN :startDate AND :endDate
+        AND p.id NOT IN (
+            SELECT sd.payment.id FROM SettlementDetail sd
+        )
+        """)
+    List<Payment> findSettlementTargets(
+            @Param("hostId") Long hostId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
     );
 }
