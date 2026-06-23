@@ -16,7 +16,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 
@@ -56,20 +55,20 @@ class NotificationTransactionTest {
     }
 
     @Test
-    @DisplayName("[분리 전] SSE 푸시 실패 시 알림 저장도 롤백된다")
-    void before_sseFailure_rollbackNotification() {
+    @DisplayName("[분리 후] SSE 푸시 실패해도 알림 저장은 유지된다")
+    void after_sseFailure_notificationSaved() {
         // given
         // SSE 푸시 시 예외 발생하도록 Mock 설정
         doThrow(new RuntimeException("SSE 전송 실패"))
                 .when(sseEmitterService).send(any(), any());
 
-        // when & then
-        assertThatThrownBy(() ->
-                notificationService.send(user, NotificationType.CAMPING_APPROVED, "캠핑장이 승인되었습니다.")
-        ).isInstanceOf(RuntimeException.class);
+        // when
+        // 예외가 전파되지 않아야 함 (AFTER_COMMIT이라 메인 트랜잭션과 분리됨)
+        notificationService.send(user, NotificationType.CAMPING_APPROVED, "캠핑장이 승인되었습니다.");
 
-        // 알림이 롤백되어 저장 안 됐는지 확인
-        assertThat(notificationRepository.findAll()).isEmpty();
+        // then
+        // 알림은 DB에 저장되어 있어야 함
+        assertThat(notificationRepository.findAll()).hasSize(1);
         System.out.println("알림 저장 개수: " + notificationRepository.findAll().size());
     }
 }

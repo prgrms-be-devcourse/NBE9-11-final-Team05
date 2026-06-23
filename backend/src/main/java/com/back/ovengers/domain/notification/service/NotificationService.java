@@ -1,5 +1,6 @@
 package com.back.ovengers.domain.notification.service;
 
+import com.back.ovengers.domain.notification.dto.NotificationEvent;
 import com.back.ovengers.domain.notification.dto.NotificationResponse;
 import com.back.ovengers.domain.notification.dto.UnreadCountResponse;
 import com.back.ovengers.domain.notification.entity.Notification;
@@ -9,6 +10,7 @@ import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class NotificationService {
     private final NotificationRepository notificationRepository;
-    private final SseEmitterService sseEmitterService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 알람 생성 및 SSE 푸시
     public void send(User receiver, NotificationType type, String content){
@@ -33,8 +35,10 @@ public class NotificationService {
 
         notificationRepository.save(notification);
 
-        // SSE 푸시
-        sseEmitterService.send(receiver.getId(), NotificationResponse.from(notification));
+        // 이벤트 발행(실제 SSE 푸시는 트랜잭션 커밋 후 실행)
+        eventPublisher.publishEvent(
+                new NotificationEvent(receiver.getId(), NotificationResponse.from(notification))
+        );
     }
 
     // 알림 목록 조회
