@@ -332,18 +332,14 @@ class AuthServiceTest {
     // ===================== 헬퍼 메서드 =====================
 
     private SignUpRequest createSignUpRequest(String email, String nickname) {
-        SignUpRequest request = new SignUpRequest();
-        // Reflection으로 필드 세팅 (SignUpRequest가 @Getter + 필드 방식)
-        try {
-            setField(request, "email", email);
-            setField(request, "password", "password123!");
-            setField(request, "name", "홍길동");
-            setField(request, "nickname", nickname);
-            setField(request, "phone", "010-1234-5678");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return request;
+        return new SignUpRequest(
+                email,
+                "password123!",
+                "홍길동",
+                nickname,
+                "010-1234-5678",
+                null
+        );
     }
 
     private void setField(Object obj, String fieldName, String value) throws Exception {

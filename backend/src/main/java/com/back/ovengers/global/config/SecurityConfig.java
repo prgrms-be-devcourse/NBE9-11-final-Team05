@@ -108,6 +108,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/reservations/**").hasRole("USER")
                         .requestMatchers("/api/payments/**").hasRole("USER")
 
+
+                        .requestMatchers("/api/timedeals/host/**").hasRole("HOST")
+                        .requestMatchers(HttpMethod.GET, "/api/timedeals/**").permitAll()
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/host/**").hasRole("HOST")
                         .anyRequest().authenticated()

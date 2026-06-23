@@ -285,13 +285,33 @@ public enum ErrorCode {
             "초기 데이터가 이미 존재합니다.")
             ,
 
+    //타임딜
+    TIME_DEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 타임딜입니다."),
+    TIME_DEAL_INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "체크아웃 날짜는 체크인 날짜 이후여야 합니다."),
+    TIME_DEAL_PAST_DATE(HttpStatus.BAD_REQUEST, "지난 날짜로는 타임딜을 등록할 수 없습니다."),
+    TIME_DEAL_INVALID_SALE_WINDOW(HttpStatus.BAD_REQUEST, "판매 기간이 올바르지 않습니다."),
+    TIME_DEAL_INVALID_PRICE(HttpStatus.BAD_REQUEST, "할인가는 정가보다 낮아야 합니다."),
+    TIME_DEAL_STOCK_EXCEEDED(HttpStatus.BAD_REQUEST, "등록 가능한 재고를 초과했습니다."),
+    TIME_DEAL_ALREADY_SOLD(HttpStatus.BAD_REQUEST, "이미 판매된 타임딜은 삭제할 수 없습니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    TIME_DEAL_SOLD_OUT(HttpStatus.CONFLICT, "해당 타임딜은 매진되었습니다."),
+    TIME_DEAL_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "현재 판매 중인 타임딜이 아닙니다."),
+    TIME_DEAL_CONCURRENT_MODIFICATION(HttpStatus.CONFLICT, "다른 요청과 충돌이 발생했습니다. 다시 시도해주세요."),
+    OPTIMISTIC_LOCK_CONFLICT(
+            HttpStatus.CONFLICT,
+        "다른 요청과 충돌이 발생했습니다. 다시 시도해주세요."
+    ),
 
     // 정산
     SETTLEMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "정산 정보를 찾을 수 없습니다."),
     SETTLEMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 정산입니다."),
     SETTLEMENT_ALREADY_COMPLETED(HttpStatus.CONFLICT, "이미 완료된 정산입니다."),
-    INVALID_SETTLEMENT_DATE(HttpStatus.BAD_REQUEST, "잘못된 정산 기준일입니다.");
+    INVALID_SETTLEMENT_DATE(HttpStatus.BAD_REQUEST, "잘못된 정산 기준일입니다."),
 
+    LOCK_TIMEOUT(
+            HttpStatus.SERVICE_UNAVAILABLE,
+        "현재 처리 중인 요청이 많습니다. 잠시 후 다시 시도해주세요."
+    );
     private final HttpStatus status;
     private final String message;
 }

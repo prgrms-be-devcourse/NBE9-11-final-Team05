@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -61,8 +60,8 @@ class UserServiceTest {
     void t1() {
         MyPageResponse response = userService.getMyPage(user.getId());
 
-        assertThat(response.getNickname()).isEqualTo("길동");
-        assertThat(response.getPhone()).isEqualTo("010-1234-5678");
+        assertThat(response.nickname()).isEqualTo("길동");
+        assertThat(response.phone()).isEqualTo("010-1234-5678");
     }
 
     @Test
@@ -267,21 +266,10 @@ class UserServiceTest {
             String currentPassword,
             String newPassword
     ) {
-        ChangePasswordRequest request = new ChangePasswordRequest();
-
-        ReflectionTestUtils.setField(
-                request,
-                "currentPassword",
-                currentPassword
-        );
-
-        ReflectionTestUtils.setField(
-                request,
-                "newPassword",
+        return new ChangePasswordRequest(
+                currentPassword,
                 newPassword
         );
-
-        return request;
     }
 
     private UserUpdateRequest createUpdateRequest(
@@ -289,25 +277,15 @@ class UserServiceTest {
             String phone,
             String imageUrl
     ) {
-        try {
-            UserUpdateRequest request = new UserUpdateRequest();
-            if (nickname != null) setField(request, "nickname", nickname);
-            if (phone != null) setField(request, "phone", phone);
-            if (imageUrl != null) setField(request, "imageUrl", imageUrl);
-            return request;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return new UserUpdateRequest(
+                nickname,
+                phone,
+                imageUrl
+        );
     }
 
     private DeleteAccountRequest createDeleteRequest(String password) {
-        try {
-            DeleteAccountRequest request = new DeleteAccountRequest();
-            setField(request, "password", password);
-            return request;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return new DeleteAccountRequest(password);
     }
 
     private void setField(Object obj, String fieldName, String value) throws Exception {

@@ -36,12 +36,12 @@ public class AuthService {
 
         // 이메일 중복 체크 (탈퇴(삭제)되지 않은 유저 중에서만 검사)
         //    -> deletedAt이 null인 경우만 체크하므로, 탈퇴한 회원의 이메일은 재가입 가능
-        if (userRepository.existsByEmailAndDeletedAtIsNull(request.getEmail())) {
+        if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         // 닉네임 중복 체크 (동일하게 삭제되지 않은 유저 기준)
-        if (userRepository.existsByNicknameAndDeletedAtIsNull(request.getNickname())) {
+        if (userRepository.existsByNicknameAndDeletedAtIsNull(request.nickname())) {
             throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
@@ -49,12 +49,12 @@ public class AuthService {
         //    - 비밀번호는 평문 저장 금지 -> passwordEncoder로 암호화 후 저장
         //    - role은 기본값 USER, status는 기본값 ACTIVE로 설정
         User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .name(request.getName())
-                .nickname(request.getNickname())
-                .phone(request.getPhone())
-                .role(request.getRole() != null ? request.getRole() : Role.USER)
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .name(request.name())
+                .nickname(request.nickname())
+                .phone(request.phone())
+                .role(request.role() != null ? request.role() : Role.USER)
                 .status(Status.ACTIVE)
                 .build();
 
@@ -74,35 +74,35 @@ public class AuthService {
     @Transactional
     public SignUpResponse hostSignUp(HostSignUpRequest request) {
 
-        if (userRepository.existsByEmailAndDeletedAtIsNull(request.getEmail())) {
+        if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
 
-        if (userRepository.existsByNicknameAndDeletedAtIsNull(request.getNickname())) {
+        if (userRepository.existsByNicknameAndDeletedAtIsNull(request.nickname())) {
             throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
         // User 저장 (Role.HOST)
         User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .name(request.getName())
-                .nickname(request.getNickname())
-                .phone(request.getPhone())
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .name(request.name())
+                .nickname(request.nickname())
+                .phone(request.phone())
                 .role(Role.HOST)
                 .status(Status.ACTIVE)
                 .build();
 
         User savedUser = userRepository.save(user);
 
-        String[] addressParts = request.getAddress().trim().split("\\s+");
+        String[] addressParts = request.address().trim().split("\\s+");
 
         // Camping 저장 — status는 PENDING (관리자 승인 후 APPROVED)
         Camping camping = Camping.builder()
                 .host(savedUser)
-                .businessNum(request.getBusinessNum())
-                .name(request.getCampingName())
-                .address(request.getAddress())
+                .businessNum(request.businessNum())
+                .name(request.campingName())
+                .address(request.address())
                 .region(addressParts.length > 0 ? addressParts[0] : "")  // 시/도
                 .city(addressParts.length > 1 ? addressParts[1] : "")    // 시/군/구
                 .status(CampingStatus.PENDING)  // 관리자 승인 대기
