@@ -58,7 +58,7 @@ public class ChatController {
         );
     }
 
-    @PostMapping("/chat/open/{roomId}/join")
+    @PostMapping("/{roomId}/join")
     public void joinOpenChat(
             @PathVariable Long roomId,
             @AuthenticationPrincipal Long userId
