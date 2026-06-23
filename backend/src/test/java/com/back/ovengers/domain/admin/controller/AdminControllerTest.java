@@ -48,6 +48,7 @@ class AdminControllerTest {
 
     User adminUser;
     User normalUser;
+    User hostUser;
     Cookie adminCookie;
     Cookie userCookie;
 
@@ -70,6 +71,16 @@ class AdminControllerTest {
                 .nickname("user")
                 .phone("010-1111-1111")
                 .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build());
+
+        hostUser = userRepository.save(User.builder()  // 추가
+                .email("host@test.com")
+                .password("1234")
+                .name("호스트")
+                .nickname("host")
+                .phone("010-2222-2222")
+                .role(Role.HOST)
                 .status(Status.ACTIVE)
                 .build());
 
@@ -108,6 +119,7 @@ class AdminControllerTest {
     @DisplayName("캠핑장 승인 성공")
     void t4() throws Exception {
         Camping camping = campingRepository.save(Camping.builder()
+                .host(hostUser)
                 .name("승인 대기 캠핑장")
                 .region("강원도")
                 .city("강릉시")
@@ -128,6 +140,7 @@ class AdminControllerTest {
     @DisplayName("캠핑장 거절 성공")
     void t5() throws Exception {
         Camping camping = campingRepository.save(Camping.builder()
+                .host(hostUser)
                 .name("승인 대기 캠핑장")
                 .region("강원도")
                 .city("강릉시")
@@ -152,6 +165,7 @@ class AdminControllerTest {
     @DisplayName("캠핑장 일괄 승인 성공")
     void t6() throws Exception {
         Camping camping1 = campingRepository.save(Camping.builder()
+                .host(hostUser)
                 .name("캠핑장1")
                 .region("강원도")
                 .city("강릉시")
@@ -160,6 +174,7 @@ class AdminControllerTest {
                 .build());
 
         Camping camping2 = campingRepository.save(Camping.builder()
+                .host(hostUser)
                 .name("캠핑장2")
                 .region("강원도")
                 .city("강릉시")

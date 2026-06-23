@@ -21,6 +21,7 @@ import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,21 @@ class AdminServiceTest {
     ReservationRepository reservationRepository;
     @Autowired
     PaymentRepository paymentRepository;
+
+    User host;
+
+    @BeforeEach
+    void setUp() {
+        host = userRepository.save(User.builder()
+                .email("host@test.com")
+                .password("1234")
+                .name("호스트")
+                .nickname("host")
+                .phone("010-1111-2222")
+                .role(Role.HOST)
+                .status(Status.ACTIVE)
+                .build());
+    }
 
     @Test
     @DisplayName("관리자 대시보드를 조회할 수 있다")
@@ -137,7 +153,7 @@ class AdminServiceTest {
 
         // then
         assertThat(response.totalSalesAmount()).isEqualTo(100000L);
-        assertThat(response.activeUserCount()).isEqualTo(2L);
+        assertThat(response.activeUserCount()).isEqualTo(3L);
         assertThat(response.pendingCampingCount()).isEqualTo(1L);
     }
 
@@ -149,7 +165,7 @@ class AdminServiceTest {
 
         // then
         assertThat(response.totalSalesAmount()).isEqualTo(0L);
-        assertThat(response.activeUserCount()).isEqualTo(0L);
+        assertThat(response.activeUserCount()).isEqualTo(1L);
         assertThat(response.pendingCampingCount()).isEqualTo(0L);
     }
 
@@ -218,6 +234,7 @@ class AdminServiceTest {
     void test5() {
         // given
         Camping pendingCamping = campingRepository.save(Camping.builder()
+                .host(host)
                 .name("승인 대기 캠핑장")
                 .region("강원도")
                 .city("강릉시")
@@ -265,6 +282,7 @@ class AdminServiceTest {
     void test8() {
         // given
         Camping pendingCamping = campingRepository.save(Camping.builder()
+                .host(host)
                 .name("승인 대기 캠핑장")
                 .region("강원도")
                 .city("강릉시")
@@ -287,6 +305,7 @@ class AdminServiceTest {
     void test9() {
         // given
         Camping camping1 = campingRepository.save(Camping.builder()
+                .host(host)
                 .name("캠핑장1")
                 .region("강원도")
                 .city("강릉시")
@@ -295,6 +314,7 @@ class AdminServiceTest {
                 .build());
 
         Camping camping2 = campingRepository.save(Camping.builder()
+                .host(host)
                 .name("캠핑장2")
                 .region("강원도")
                 .city("강릉시")
