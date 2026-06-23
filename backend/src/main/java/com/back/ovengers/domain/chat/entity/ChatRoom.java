@@ -14,6 +14,8 @@ public class ChatRoom extends BaseEntity {
 
     private Long campingId;
 
+    private String name;
+
     @Enumerated(EnumType.STRING)
     private ChatRoomType type;
 
