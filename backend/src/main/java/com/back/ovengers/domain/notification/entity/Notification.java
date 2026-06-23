@@ -35,7 +35,7 @@ public class Notification extends BaseEntity {
 
     public void validOwner(Long userId){
         if(!this.user.getId().equals(userId)){
-            throw new CustomException(ErrorCode.REVIEW_ACCESS_DENIED);
+            throw new CustomException(ErrorCode.NOTIFICATION_ACCESS_DENIED);
         }
     }
 }
