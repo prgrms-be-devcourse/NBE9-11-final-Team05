@@ -5,6 +5,8 @@ import com.back.ovengers.domain.admin.dto.*;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.notification.entity.NotificationType;
+import com.back.ovengers.domain.notification.service.NotificationService;
 import com.back.ovengers.domain.payment.entity.PaymentStatus;
 import com.back.ovengers.domain.payment.repository.PaymentRepository;
 import com.back.ovengers.domain.user.entity.Status;
@@ -27,6 +29,7 @@ public class AdminService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final CampingRepository campingRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboard() {
@@ -51,6 +54,13 @@ public class AdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
 
         camping.approve();
+
+        // 호스트에게 알림
+        notificationService.send(
+                camping.getHost(),
+                NotificationType.CAMPING_APPROVED,
+                "캠핑장 '" + camping.getName() + "'이 승인되었습니다."
+        );
     }
 
     // 단건 거절
@@ -58,6 +68,14 @@ public class AdminService {
         Camping camping = campingRepository.findById(campingId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
         //TODO: DB 저장을 어떤식으로 할지, 현재는 따로 저장 x
+
+        // 호스트에게 알림
+        notificationService.send(
+                camping.getHost(),
+                NotificationType.CAMPING_REJECTED,
+                "캠핑장 '" + camping.getName() + "'이 거절되었습니다."
+        );
+
         camping.reject();
     }
 
@@ -71,6 +89,16 @@ public class AdminService {
             throw new CustomException(ErrorCode.CAMPING_NOT_FOUND);
         }
 
-        campingList.forEach(Camping::approve);
+        campingList.forEach(camping -> {
+            // 승인
+            camping.approve();
+            // 각 호스트에게 알림
+            notificationService.send(
+                    camping.getHost(),
+                    NotificationType.CAMPING_APPROVED,
+                    "캠핑장 '" + camping.getName() + "'이 승인되었습니다."
+            );
+        });
+
     }
 }

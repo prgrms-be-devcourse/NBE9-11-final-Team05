@@ -5,6 +5,11 @@ spring:
     active: dev
     include: secret
 
+  servlet: #SSE 응답 깨짐 현상 해결
+    encoding:
+      charset: UTF-8
+      force-response: true
+
 go-camping:
   base-url: https://apis.data.go.kr/B551011/GoCamping
   endpoint:

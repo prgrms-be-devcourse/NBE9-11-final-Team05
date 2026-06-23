@@ -1,5 +1,7 @@
 package com.back.ovengers.domain.payment.service;
 
+import com.back.ovengers.domain.notification.entity.NotificationType;
+import com.back.ovengers.domain.notification.service.NotificationService;
 import com.back.ovengers.domain.payment.client.TossPaymentClient;
 import com.back.ovengers.domain.payment.dto.*;
 import com.back.ovengers.domain.payment.entity.Payment;
@@ -28,6 +30,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final ReservationRepository reservationRepository;
     private final TossPaymentClient tossPaymentClient;
+    private final NotificationService notificationService;
 
     @Transactional
     public PaymentResponse create(Long userId, PaymentRequest request) {
@@ -115,6 +118,14 @@ public class PaymentService {
                     .filter(p -> !p.getId().equals(payment.getId()))
                     .filter(p -> p.getStatus() == PaymentStatus.READY)
                     .forEach(p -> p.updateStatus(PaymentStatus.CANCELLED));
+
+            // 5-2. 유저에게 결제 완료 알림
+            notificationService.send(
+                    payment.getReservation().getUser(),
+                    NotificationType.PAYMENT_DONE,
+                    "결제가 완료되었습니다."
+            );
+
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             tossPaymentClient.cancel(request.getPaymentKey(), "서버 오류로 인한 자동 취소");

@@ -1,6 +1,8 @@
 package com.back.ovengers.domain.review.service;
 
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.notification.entity.NotificationType;
+import com.back.ovengers.domain.notification.service.NotificationService;
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
@@ -29,6 +31,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReservationRepository reservationRepository;
     private final CampingRepository campingRepository;
+    private final NotificationService notificationService;
 
     public void createReview(User user, Long reservationId, ReviewRequest request){
 
@@ -54,6 +57,16 @@ public class ReviewService {
                 .build();
 
         reviewRepository.save(review);
+
+        // 캠핑장 호스트에게 새 리뷰 알림
+        // host가 null인 경우 (외부 API로 등록된 캠핑장) 알림 스킵
+        if (reservation.getSite().getCamping().getHost() != null) {
+            notificationService.send(
+                    reservation.getSite().getCamping().getHost(),
+                    NotificationType.REVIEW_CREATED,
+                    "새 리뷰가 작성되었습니다."
+            );
+        }
     }
 
     @Transactional(readOnly = true)

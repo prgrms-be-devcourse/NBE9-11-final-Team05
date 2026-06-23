@@ -73,7 +73,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html"
                         ).permitAll()
                         .requestMatchers("/actuator/health", "/actuator/prometheus")
                         .permitAll()
@@ -83,6 +84,9 @@ public class SecurityConfig {
                         ).authenticated()
                         .requestMatchers(
                                 "/api/users/me/**"  // 내 정보 조회/수정/탈퇴 및 하위 API는 로그인 사용자만 접근 가능
+                        ).authenticated()
+                        .requestMatchers(
+                                "/api/notifications/**" // 알람 관련 API는 로그인 사용자만 접근 가능
                         ).authenticated()
                         .requestMatchers(
                                 "/api/auth/signup",
