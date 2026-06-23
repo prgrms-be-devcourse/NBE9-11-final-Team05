@@ -1,9 +1,14 @@
 package com.back.ovengers.domain.admin.service;
 
 
-import com.back.ovengers.domain.admin.dto.*;
+import com.back.ovengers.domain.admin.dto.AdminDashboardResponse;
+import com.back.ovengers.domain.admin.dto.AdminPendingCampingResponse;
+import com.back.ovengers.domain.admin.dto.CampingBulkApproveRequest;
+import com.back.ovengers.domain.admin.dto.CampingRejectRequest;
+import com.back.ovengers.domain.admin.dto.PendingCampingResponse;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.camping.event.CampingApprovedEvent;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.notification.entity.NotificationType;
 import com.back.ovengers.domain.notification.service.NotificationService;
@@ -14,6 +19,7 @@ import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,6 +36,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final CampingRepository campingRepository;
     private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboard() {
@@ -54,6 +61,10 @@ public class AdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
 
         camping.approve();
+
+        eventPublisher.publishEvent(
+                new CampingApprovedEvent(camping.getId(), camping.getName())
+        );
 
         // 호스트에게 알림
         notificationService.send(

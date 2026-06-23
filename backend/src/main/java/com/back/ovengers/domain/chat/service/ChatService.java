@@ -15,6 +15,7 @@ import com.back.ovengers.global.response.CursorResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -129,10 +130,10 @@ public class ChatService {
         }
     }
 
-    @Transactional
-    public ChatRoom createOpenChatRoom(Long campingId, String campingName) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void createOpenChatRoom(Long campingId, String campingName) {
 
-        return chatRoomRepository
+        chatRoomRepository
                 .findByCampingIdAndTypeAndStatus(
                         campingId,
                         ChatRoomType.OPEN,
