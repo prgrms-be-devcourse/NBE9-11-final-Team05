@@ -15,7 +15,10 @@ export default function HostLayout({
             대시보드
           </Link>
           <Link href="/host/campings" className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            내 캠핑장
+            내 캠핑장 목록
+          </Link>
+          <Link href="/host/campings/claim" className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            내 캠핑장 찾기
           </Link>
           <Link href="/host/campings/new" className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
             캠핑장 등록

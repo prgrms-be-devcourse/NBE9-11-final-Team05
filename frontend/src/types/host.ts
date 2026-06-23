@@ -208,4 +208,18 @@ export interface SiteFormValues {
     maxCapacity: string;
     totalAmount: string;
     price: string;
-  }
+}
+
+export interface CampingClaimRequest {
+  campingId: number;
+  tourNum: string;
+}
+
+export interface CampingClaimSearchItem {
+  campingId: number;
+  name: string;
+  region: string;
+  city: string;
+  address: string;
+  firstImageUrl: string | null;
+}

@@ -16,6 +16,8 @@ import {
     CampingImageCreateRequest,
     CampingImageCreateResponse,
     HostReservationListItem,
+    CampingClaimRequest,
+    CampingClaimSearchItem,
   } from "@/types/host";
   
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -192,4 +194,21 @@ export async function addCampingImage(
     );
   
     return response.data.content;
+  }
+ 
+  // 클레임 가능한 캠핑장 검색
+  export async function searchClaimableCampings(keyword: string) {
+    const response = await request<ApiResponse<CampingClaimSearchItem[]>>(
+      `/api/host/campings/claim/search?keyword=${encodeURIComponent(keyword)}`
+    );
+
+    return response.data;
+  }
+
+  // 캠핑장 소유권 인증
+  export async function claimCamping(data: CampingClaimRequest) {
+    await request<ApiResponse<null>>("/api/host/campings/claim", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }

@@ -135,6 +135,16 @@ public enum ErrorCode {
             "캠핑장 이미지를 찾을 수 없습니다."
     ),
 
+    INVALID_TOUR_NUMBER(
+            HttpStatus.BAD_REQUEST,
+            "관광사업자 등록번호가 일치하지 않습니다."
+    ),
+
+    CAMPING_ALREADY_CLAIMED(
+            HttpStatus.CONFLICT,
+            "이미 다른 호스트가 등록한 캠핑장입니다."
+    ),
+
     // 예약
     RESERVATION_NOT_FOUND(
             HttpStatus.NOT_FOUND,

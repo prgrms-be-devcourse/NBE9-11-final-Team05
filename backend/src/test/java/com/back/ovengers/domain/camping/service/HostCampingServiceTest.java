@@ -492,4 +492,177 @@ class HostCampingServiceTest {
 
         assertThat(foundCamping.getDeletedAt()).isNull();
     }
+
+    @Test
+    @DisplayName("클레임 가능한 캠핑장을 이름으로 검색할 수 있다")
+    void searchClaimableCampings_success() {
+        // given
+        campingRepository.save(
+                Camping.builder()
+                        .contentId(12345L)
+                        .tourNum("TOUR-1234")
+                        .name("가평 테스트 캠핑장")
+                        .region("경기")
+                        .city("가평")
+                        .address("가평군 어딘가")
+                        .build()
+        );
+
+        // when
+        List<CampingClaimSearchResponse> result =
+                hostCampingService.searchClaimableCampings("테스트");
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).campingId()).isNotNull();
+        assertThat(result.get(0).name()).isEqualTo("가평 테스트 캠핑장");
+    }
+
+    @Test
+    @DisplayName("이미 호스트가 등록된 캠핑장은 클레임 검색 결과에서 제외된다")
+    void searchClaimableCampings_excludeClaimedCamping() {
+        // given
+        User host = userRepository.save(createHost("host@test.com"));
+
+        Camping camping = Camping.builder()
+                .contentId(12345L)
+                .tourNum("TOUR-1234")
+                .name("가평 테스트 캠핑장")
+                .region("경기")
+                .city("가평")
+                .address("가평군 어딘가")
+                .build();
+
+        camping.assignHost(host);
+        campingRepository.save(camping);
+
+        // when
+        List<CampingClaimSearchResponse> result =
+                hostCampingService.searchClaimableCampings("테스트");
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("검색어가 비어 있으면 예외가 발생한다")
+    void searchClaimableCampings_blankKeyword() {
+        // when & then
+        CustomException exception = assertThrows(CustomException.class,
+                () -> hostCampingService.searchClaimableCampings(" "));
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.MISSING_REQUIRED_FIELD);
+    }
+
+    @Test
+    @DisplayName("호스트가 campingId와 tourNum으로 캠핑장을 클레임할 수 있다")
+    void claimCamping_success() {
+        // given
+        User host = userRepository.save(createHost("host@test.com"));
+
+        Camping camping = campingRepository.save(
+                Camping.builder()
+                        .contentId(12345L)
+                        .tourNum("TOUR-1234")
+                        .name("테스트 캠핑장")
+                        .region("경기")
+                        .city("가평")
+                        .address("가평군 어딘가")
+                        .build()
+        );
+
+        CampingClaimRequest request =
+                new CampingClaimRequest(camping.getId(), "TOUR-1234");
+
+        // when
+        hostCampingService.claimCamping(host.getId(), request);
+
+        // then
+        Camping result = campingRepository.findById(camping.getId()).orElseThrow();
+        assertThat(result.getHost().getId()).isEqualTo(host.getId());
+    }
+
+    @Test
+    @DisplayName("tourNum이 일치하지 않으면 클레임할 수 없다")
+    void claimCamping_invalidTourNum() {
+        // given
+        User host = userRepository.save(createHost("host@test.com"));
+
+        Camping camping = campingRepository.save(
+                Camping.builder()
+                        .contentId(12345L)
+                        .tourNum("TOUR-1234")
+                        .name("테스트 캠핑장")
+                        .region("경기")
+                        .city("가평")
+                        .address("가평군 어딘가")
+                        .build()
+        );
+
+        CampingClaimRequest request =
+                new CampingClaimRequest(camping.getId(), "WRONG-TOUR");
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class,
+                () -> hostCampingService.claimCamping(host.getId(), request));
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_TOUR_NUMBER);
+    }
+
+    @Test
+    @DisplayName("이미 클레임된 캠핑장은 다시 클레임할 수 없다")
+    void claimCamping_alreadyClaimed() {
+        // given
+        User originalHost = userRepository.save(createHost("original@test.com"));
+        User newHost = userRepository.save(createHost("new@test.com"));
+
+        Camping camping = Camping.builder()
+                .contentId(12345L)
+                .tourNum("TOUR-1234")
+                .name("테스트 캠핑장")
+                .region("경기")
+                .city("가평")
+                .address("가평군 어딘가")
+                .build();
+
+        camping.assignHost(originalHost);
+        Camping savedCamping = campingRepository.save(camping);
+
+        CampingClaimRequest request =
+                new CampingClaimRequest(savedCamping.getId(), "TOUR-1234");
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class,
+                () -> hostCampingService.claimCamping(newHost.getId(), request));
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.CAMPING_ALREADY_CLAIMED);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 campingId이면 예외가 발생한다")
+    void claimCamping_notFound() {
+        // given
+        User host = userRepository.save(createHost("host@test.com"));
+
+        CampingClaimRequest request =
+                new CampingClaimRequest(999999L, "TOUR-1234");
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class,
+                () -> hostCampingService.claimCamping(host.getId(), request));
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.CAMPING_NOT_FOUND);
+    }
+
+    private User createHost(String email) {
+        return User.builder()
+                .email(email)
+                .password("password")
+                .name("테스트호스트")
+                .nickname(email)
+                .phone("010-0000-0000")
+                .role(Role.HOST)
+                .status(Status.ACTIVE)
+                .build();
+    }
 }

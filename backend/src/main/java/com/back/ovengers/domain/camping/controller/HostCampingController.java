@@ -112,7 +112,7 @@ public class HostCampingController {
 
     @Operation(summary = "캠핑장 이미지 등록")
     @PostMapping("/{campingId}/images")
-    public ApiResponse<CampingImageCreateResponse> addCampingImage(
+    public ResponseEntity<ApiResponse<CampingImageCreateResponse>> addCampingImage(
             @AuthenticationPrincipal User user,
             @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable @Min(1) Long campingId,
@@ -121,12 +121,14 @@ public class HostCampingController {
         CampingImageCreateResponse response =
                 hostCampingService.addCampingImage(user.getId(), campingId, request);
 
-        return new ApiResponse<>("캠핑장 이미지가 등록되었습니다.", response);
+        return ResponseEntity.ok(
+                new ApiResponse<>("캠핑장 이미지가 등록되었습니다.", response)
+        );
     }
 
     @Operation(summary = "캠핑장 이미지 삭제")
     @DeleteMapping("/{campingId}/images/{imageId}")
-    public ApiResponse<Void> deleteCampingImage(
+    public ResponseEntity<ApiResponse<Void>> deleteCampingImage(
             @AuthenticationPrincipal User user,
             @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable @Min(1) Long campingId,
@@ -135,6 +137,34 @@ public class HostCampingController {
     ) {
         hostCampingService.deleteCampingImage(user.getId(), campingId, imageId);
 
-        return new ApiResponse<>("캠핑장 이미지가 삭제되었습니다.");
+        return ResponseEntity.ok(
+                new ApiResponse<>("캠핑장 이미지가 삭제되었습니다.")
+        );
+    }
+
+    @Operation(summary = "클레임 가능한 캠핑장 검색")
+    @GetMapping("/claim/search")
+    public ResponseEntity<ApiResponse<List<CampingClaimSearchResponse>>> searchClaimableCampings(
+            @RequestParam String keyword
+    ) {
+        List<CampingClaimSearchResponse> response =
+                hostCampingService.searchClaimableCampings(keyword);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>("클레임 가능한 캠핑장 목록 조회 성공", response)
+        );
+    }
+
+    @Operation(summary = "캠핑장 소유권 인증")
+    @PostMapping("/claim")
+    public ResponseEntity<ApiResponse<Void>> claimCamping(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody CampingClaimRequest request
+    ) {
+        hostCampingService.claimCamping(user.getId(), request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>("캠핑장 소유권 인증이 완료되었습니다.")
+        );
     }
 }
