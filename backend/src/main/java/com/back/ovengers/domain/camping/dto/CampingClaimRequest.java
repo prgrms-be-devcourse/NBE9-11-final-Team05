@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record CampingClaimRequest(
-        @NotNull Long contentId,
+        @NotNull Long campingId,
         @NotBlank String tourNum
 ) {
 }

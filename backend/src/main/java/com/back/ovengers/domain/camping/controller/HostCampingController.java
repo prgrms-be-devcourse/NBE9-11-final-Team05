@@ -142,6 +142,19 @@ public class HostCampingController {
         );
     }
 
+    @Operation(summary = "클레임 가능한 캠핑장 검색")
+    @GetMapping("/claim/search")
+    public ResponseEntity<ApiResponse<List<CampingClaimSearchResponse>>> searchClaimableCampings(
+            @RequestParam String keyword
+    ) {
+        List<CampingClaimSearchResponse> response =
+                hostCampingService.searchClaimableCampings(keyword);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>("클레임 가능한 캠핑장 목록 조회 성공", response)
+        );
+    }
+
     @Operation(summary = "캠핑장 소유권 인증")
     @PostMapping("/claim")
     public ResponseEntity<ApiResponse<Void>> claimCamping(

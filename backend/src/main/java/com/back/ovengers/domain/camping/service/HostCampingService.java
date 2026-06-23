@@ -17,6 +17,7 @@ import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -141,12 +142,25 @@ public class HostCampingService {
         campingImageRepository.delete(image);
     }
 
+    @Transactional(readOnly = true)
+    public List<CampingClaimSearchResponse> searchClaimableCampings(String keyword) {
+        if (!StringUtils.hasText(keyword)) {
+            throw new CustomException(ErrorCode.MISSING_REQUIRED_FIELD);
+        }
+
+        // 아직 호스트가 연결되지 않은 고캠핑 캠핑장만 검색 대상으로 반환
+        return campingRepository.searchClaimableCampings(keyword.trim())
+                .stream()
+                .map(CampingClaimSearchResponse::from)
+                .toList();
+    }
+
     @Transactional
     public void claimCamping(Long hostId, CampingClaimRequest request) {
         User host = userRepository.getReferenceById(hostId);
 
         Camping camping = campingRepository
-                .findByContentIdAndDeletedAtIsNull(request.contentId())
+                .findByIdAndDeletedAtIsNull(request.campingId())
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
 
         // 고캠핑에서 제공하는 관광사업자번호와 사용자가 입력한 번호가 일치해야 소유권 인증 가능

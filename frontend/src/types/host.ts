@@ -211,6 +211,15 @@ export interface SiteFormValues {
 }
 
 export interface CampingClaimRequest {
-  contentId: number;
+  campingId: number;
   tourNum: string;
+}
+
+export interface CampingClaimSearchItem {
+  campingId: number;
+  name: string;
+  region: string;
+  city: string;
+  address: string;
+  firstImageUrl: string | null;
 }

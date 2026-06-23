@@ -47,5 +47,13 @@ public interface CampingRepository extends JpaRepository<Camping, Long> {
     // IN 쿼리로 한 번에 가져와서 쿼리 1번에 완료
     List<Camping> findByIdIn(List<Long> campingIds);
 
-    Optional<Camping> findByContentIdAndDeletedAtIsNull(Long contentId);
+    @Query("""
+    SELECT c
+    FROM Camping c
+    WHERE c.deletedAt IS NULL
+      AND c.host IS NULL
+      AND c.contentId IS NOT NULL
+      AND LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    """)
+    List<Camping> searchClaimableCampings(@Param("keyword") String keyword);
 }
