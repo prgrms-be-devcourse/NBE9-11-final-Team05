@@ -24,7 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockCookie;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -97,15 +96,15 @@ class ReservationCreateTest {
     }
 
     private ReservationRequest createValidRequest() {
-        ReservationRequest request = new ReservationRequest();
-        ReflectionTestUtils.setField(request, "siteId", site.getId());
-        ReflectionTestUtils.setField(request, "rsvName", "홍길동");
-        ReflectionTestUtils.setField(request, "rsvPhone", "010-1234-5678");
-        ReflectionTestUtils.setField(request, "checkIn", LocalDate.now().plusDays(1));
-        ReflectionTestUtils.setField(request, "checkOut", LocalDate.now().plusDays(3));
-        ReflectionTestUtils.setField(request, "guestCount", 2);
-        ReflectionTestUtils.setField(request, "request", "늦은 체크인 부탁드립니다.");
-        return request;
+        return new ReservationRequest(
+                site.getId(),
+                "홍길동",
+                "010-1234-5678",
+                LocalDate.now().plusDays(1),
+                LocalDate.now().plusDays(3),
+                2,
+                "늦은 체크인 부탁드립니다."
+        );
     }
 
     @Test
@@ -128,8 +127,15 @@ class ReservationCreateTest {
     @DisplayName("예약 생성 실패 - 구역 없음")
     void createReservation_fail_siteNotFound() throws Exception {
 
-        ReservationRequest request = createValidRequest();
-        ReflectionTestUtils.setField(request, "siteId", 999999L);
+        ReservationRequest request = new ReservationRequest(
+                999999L,                        // 존재하지 않는 siteId
+                "홍길동",
+                "010-1234-5678",
+                LocalDate.now().plusDays(1),
+                LocalDate.now().plusDays(3),
+                2,
+                "늦은 체크인 부탁드립니다."
+        );
 
         mockMvc.perform(post("/api/reservations")
                         .cookie(new MockCookie("accessToken", accessToken))
@@ -142,9 +148,15 @@ class ReservationCreateTest {
     @DisplayName("예약 생성 실패 - 체크인이 체크아웃보다 늦음")
     void createReservation_fail_invalidDate() throws Exception {
 
-        ReservationRequest request = createValidRequest();
-        ReflectionTestUtils.setField(request, "checkIn", LocalDate.now().plusDays(5));
-        ReflectionTestUtils.setField(request, "checkOut", LocalDate.now().plusDays(3));
+        ReservationRequest request = new ReservationRequest(
+                site.getId(),
+                "홍길동",
+                "010-1234-5678",
+                LocalDate.now().plusDays(5),   // checkIn > checkOut
+                LocalDate.now().plusDays(3),
+                2,
+                "늦은 체크인 부탁드립니다."
+        );
 
         mockMvc.perform(post("/api/reservations")
                         .cookie(new MockCookie("accessToken", accessToken))
@@ -157,9 +169,15 @@ class ReservationCreateTest {
     @DisplayName("예약 생성 실패 - 과거 날짜")
     void createReservation_fail_pastDate() throws Exception {
 
-        ReservationRequest request = createValidRequest();
-        ReflectionTestUtils.setField(request, "checkIn", LocalDate.now().minusDays(1));
-        ReflectionTestUtils.setField(request, "checkOut", LocalDate.now().plusDays(1));
+        ReservationRequest request = new ReservationRequest(
+                site.getId(),
+                "홍길동",
+                "010-1234-5678",
+                LocalDate.now().minusDays(1),  // 과거 날짜
+                LocalDate.now().plusDays(1),
+                2,
+                "늦은 체크인 부탁드립니다."
+        );
 
         mockMvc.perform(post("/api/reservations")
                         .cookie(new MockCookie("accessToken", accessToken))
@@ -172,8 +190,15 @@ class ReservationCreateTest {
     @DisplayName("예약 생성 실패 - 인원수 초과")
     void createReservation_fail_guestCountExceeded() throws Exception {
 
-        ReservationRequest request = createValidRequest();
-        ReflectionTestUtils.setField(request, "guestCount", 10); // maxCapacity 4 초과
+        ReservationRequest request = new ReservationRequest(
+                site.getId(),
+                "홍길동",
+                "010-1234-5678",
+                LocalDate.now().plusDays(1),
+                LocalDate.now().plusDays(3),
+                10,                            // maxCapacity 4 초과
+                "늦은 체크인 부탁드립니다."
+        );
 
         mockMvc.perform(post("/api/reservations")
                         .cookie(new MockCookie("accessToken", accessToken))
@@ -186,10 +211,15 @@ class ReservationCreateTest {
     @DisplayName("예약 생성 실패 - 필수값 누락")
     void createReservation_fail_missingField() throws Exception {
 
-        ReservationRequest request = new ReservationRequest();
-        ReflectionTestUtils.setField(request, "rsvName", "홍길동");
-        ReflectionTestUtils.setField(request, "checkIn", LocalDate.now().plusDays(1));
-        ReflectionTestUtils.setField(request, "checkOut", LocalDate.now().plusDays(3));
+        ReservationRequest request = new ReservationRequest(
+                null,                          // siteId 누락
+                "홍길동",
+                null,                          // rsvPhone 누락
+                LocalDate.now().plusDays(1),
+                LocalDate.now().plusDays(3),
+                null,                          // guestCount 누락
+                null
+        );
 
         mockMvc.perform(post("/api/reservations")
                         .cookie(new MockCookie("accessToken", accessToken))

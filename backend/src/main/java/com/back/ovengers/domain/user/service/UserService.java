@@ -41,20 +41,20 @@ public class UserService {
         List<MyReservationResponse> reservations =
                 reservationRepository.findAllByUserId(userId)
                         .stream()
-                        .map(reservation -> MyReservationResponse.builder()
-                                .id(reservation.getId())
-                                .rsvNum(reservation.getRsvNum())
-                                .rsvName(reservation.getRsvName())
-                                .rsvPhone(reservation.getRsvPhone())
-                                .guestCount(reservation.getGuestCount())
-                                .request(reservation.getRequest())
-                                .campingName(reservation.getSite().getCamping().getName())
-                                .siteName(reservation.getSite().getName())
-                                .address(reservation.getSite().getCamping().getAddress())
-                                .imageUrl(reservation.getSite().getCamping().getFirstImageUrl())
-                                .checkIn(reservation.getCheckIn())
-                                .checkOut(reservation.getCheckOut())
-                                .build())
+                        .map(reservation -> new MyReservationResponse(
+                                reservation.getId(),
+                                reservation.getRsvNum(),
+                                reservation.getRsvName(),
+                                reservation.getRsvPhone(),
+                                reservation.getGuestCount(),
+                                reservation.getRequest(),
+                                reservation.getSite().getCamping().getName(),
+                                reservation.getSite().getName(),
+                                reservation.getSite().getCamping().getAddress(),
+                                reservation.getSite().getCamping().getFirstImageUrl(),
+                                reservation.getCheckIn(),
+                                reservation.getCheckOut()
+                        ))
                         .toList();
 
         List<MyReviewResponse> reviews =
