@@ -1,5 +1,7 @@
 package com.back.ovengers.domain.notification.service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -8,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@RequiredArgsConstructor
 public class SseEmitterService {
 
     // 일반 해시맵은 Tread-safe하지 않음
@@ -54,7 +57,7 @@ public class SseEmitterService {
         try{
             emitter.send(SseEmitter.event()
                     .name("notification")
-                    .data(data)
+                    .data(data, MediaType.APPLICATION_JSON)
             );
         } catch (IOException e) {
             // 전송 실패시 연결 안됨으로 판단하고 제거
