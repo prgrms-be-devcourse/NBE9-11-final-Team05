@@ -46,4 +46,6 @@ public interface CampingRepository extends JpaRepository<Camping, Long> {
 
     // IN 쿼리로 한 번에 가져와서 쿼리 1번에 완료
     List<Camping> findByIdIn(List<Long> campingIds);
+
+    Optional<Camping> findByContentIdAndDeletedAtIsNull(Long contentId);
 }

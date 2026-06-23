@@ -154,4 +154,12 @@ public class Camping extends BaseEntity {
         this.status = CampingStatus.REJECTED;
     }
 
+    public void assignHost(User host) {
+        // 한 캠핑장은 하나의 호스트에게만 소유권을 부여할 수 있음
+        if (this.host != null) {
+            throw new CustomException(ErrorCode.CAMPING_ALREADY_CLAIMED);
+        }
+
+        this.host = host;
+    }
 }

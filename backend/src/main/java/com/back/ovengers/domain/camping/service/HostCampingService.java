@@ -7,10 +7,9 @@ import com.back.ovengers.domain.camping.repository.CampingImageRepository;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
-import com.back.ovengers.domain.site.dto.*;
+import com.back.ovengers.domain.site.dto.SiteCreateRequest;
 import com.back.ovengers.domain.site.entity.Site;
 import com.back.ovengers.domain.site.repository.SiteRepository;
-import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -141,6 +141,23 @@ public class HostCampingService {
         campingImageRepository.delete(image);
     }
 
+    @Transactional
+    public void claimCamping(Long hostId, CampingClaimRequest request) {
+        User host = userRepository.getReferenceById(hostId);
+
+        Camping camping = campingRepository
+                .findByContentIdAndDeletedAtIsNull(request.contentId())
+                .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
+
+        // 고캠핑에서 제공하는 관광사업자번호와 사용자가 입력한 번호가 일치해야 소유권 인증 가능
+        if (!Objects.equals(camping.getTourNum(), request.tourNum())) {
+            throw new CustomException(ErrorCode.INVALID_TOUR_NUMBER);
+        }
+
+        // 이미 다른 호스트가 등록한 캠핑장인지 검증 후 host 할당
+        camping.assignHost(host);
+    }
+
     private Camping getOwnedCamping(Long hostId, Long campingId) {
         Camping camping = campingRepository.findByIdAndDeletedAtIsNull(campingId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
@@ -154,20 +171,6 @@ public class HostCampingService {
 
     private void validateSiteCapacity(SiteCreateRequest request) {
         if (request.baseCapacity() > request.maxCapacity()) {
-            throw new CustomException(ErrorCode.INVALID_CAPACITY);
-        }
-    }
-
-    private void validateSiteCapacity(Site site, SiteUpdateRequest request) {
-        Integer baseCapacity = request.baseCapacity() != null
-                ? request.baseCapacity()
-                : site.getBaseCapacity();
-
-        Integer maxCapacity = request.maxCapacity() != null
-                ? request.maxCapacity()
-                : site.getMaxCapacity();
-
-        if (baseCapacity > maxCapacity) {
             throw new CustomException(ErrorCode.INVALID_CAPACITY);
         }
     }
