@@ -35,7 +35,8 @@ public class ChatService {
                 chatRoomRepository.findChatRooms(
                                 userId,
                                 cursor,
-                                PageRequest.of(0, size + 1)
+                                PageRequest.of(0, size + 1),
+                                ChatRoomStatus.ACTIVE
                         )
                         .stream()
                         .map(ChatRoomResponse::from)
