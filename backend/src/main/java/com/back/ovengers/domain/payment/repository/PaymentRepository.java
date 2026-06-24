@@ -27,19 +27,19 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     @Query("""
         SELECT p FROM Payment p
-        JOIN p.reservation r
-        JOIN r.site s
-        JOIN s.camping c
-        WHERE c.host.id = :hostId
-        AND p.status = 'DONE'
+        JOIN FETCH p.reservation r
+        JOIN FETCH r.site s
+        JOIN FETCH s.camping c
+        JOIN FETCH c.host h
+        WHERE p.status = :status
         AND CAST(p.createdAt AS date) BETWEEN :startDate AND :endDate
         AND p.id NOT IN (
             SELECT sd.payment.id FROM SettlementDetail sd
         )
         """)
-    List<Payment> findSettlementTargets(
-            @Param("hostId") Long hostId,
+    List<Payment> findAllSettlementTargets(
             @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate
+            @Param("endDate") LocalDate endDate,
+            @Param("status") PaymentStatus status
     );
 }

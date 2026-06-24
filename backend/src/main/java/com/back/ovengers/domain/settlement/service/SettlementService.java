@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.settlement.service;
 
 import com.back.ovengers.domain.payment.entity.Payment;
+import com.back.ovengers.domain.payment.entity.PaymentStatus;
 import com.back.ovengers.domain.payment.repository.PaymentRepository;
 import com.back.ovengers.domain.settlement.dto.*;
 import com.back.ovengers.domain.settlement.entity.Settlement;
@@ -23,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -79,19 +82,27 @@ public class SettlementService {
         LocalDate startDate = settlementDate.minusDays(6);
         LocalDate endDate = settlementDate;
 
-        // 3. 모든 호스트 조회
-        List<User> hosts = userRepository.findByRole(Role.HOST);
+
+        // 3. 정산 대상 Payment 한 번에 조회 (N+1 해결)
+        List<Payment> payments = paymentRepository.findAllSettlementTargets(
+                startDate, endDate, PaymentStatus.DONE);
+
+        if (payments.isEmpty()) {
+            return new SettlementGenerateResponse(0, settlementDate, 0);
+        }
+
+        // 4. 호스트별로 그룹핑
+        Map<User, List<Payment>> groupedByHost = payments.stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getReservation().getSite().getCamping().getHost()
+                ));
 
         int generatedCount = 0;
         int totalPayoutAmount = 0;
 
-        for (User host : hosts) {
-
-            // 4. 정산 대상 Payment 조회
-            List<Payment> payments = paymentRepository
-                    .findSettlementTargets(host.getId(), startDate, endDate);
-
-            if (payments.isEmpty()) continue;
+        for (Map.Entry<User, List<Payment>> entry : groupedByHost.entrySet()) {
+            User host = entry.getKey();
+            List<Payment> hostPayments = entry.getValue();
 
             // 5. 금액 계산
             int totalAmount = payments.stream()
