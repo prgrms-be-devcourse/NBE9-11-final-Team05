@@ -95,7 +95,18 @@ class PaymentConfirmTest {
 
         accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole().name());
 
+        User host = userRepository.save(User.builder()
+                .email("host@test.com")
+                .password("password123!")
+                .name("호스트")
+                .nickname("호스트")
+                .phone("010-9999-9999")
+                .role(Role.HOST)
+                .status(Status.ACTIVE)
+                .build());
+
         Camping camping = campingRepository.save(Camping.builder()
+                .host(host)
                 .name("테스트 캠핑장")
                 .region("서울")
                 .city("강남구")
