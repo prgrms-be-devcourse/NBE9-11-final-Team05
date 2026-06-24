@@ -19,4 +19,14 @@ public interface SettlementRepository extends JpaRepository<Settlement, Long> {
             WHERE s.host.id = :hostId
             """)
     Page<Settlement> findByHostId(@Param("hostId") Long hostId, Pageable pageable);
+
+    @Query(value = """
+        SELECT s FROM Settlement s
+        JOIN FETCH s.host h
+        ORDER BY s.settlementDate DESC
+        """,
+            countQuery = """
+        SELECT COUNT(s) FROM Settlement s
+        """)
+    Page<Settlement> findAllWithHost(Pageable pageable);
 }

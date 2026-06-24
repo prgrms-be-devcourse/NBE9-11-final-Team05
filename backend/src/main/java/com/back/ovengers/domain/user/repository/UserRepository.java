@@ -1,9 +1,11 @@
 package com.back.ovengers.domain.user.repository;
 
+import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.Status;
 import com.back.ovengers.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -22,4 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 관리자 대시보드
     long countByStatus(Status status);
+
+    // 관리자 정산
+    List<User> findByRole(Role role);
 }
