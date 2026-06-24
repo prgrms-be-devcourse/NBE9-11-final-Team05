@@ -98,7 +98,7 @@ public class ReservationController {
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<ReservationCancelResponse>> cancelReservation(
             @AuthenticationPrincipal User user,
-            @PathVariable Long id) {
+            @PathVariable @Min(1) Long id) {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(
