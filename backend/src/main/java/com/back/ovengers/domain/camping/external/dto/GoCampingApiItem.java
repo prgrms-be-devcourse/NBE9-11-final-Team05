@@ -22,4 +22,5 @@ public record GoCampingApiItem(
         String exprnProgrm, // 체험프로그램명
         String mapX,
         String mapY
-) {}
+) {
+}

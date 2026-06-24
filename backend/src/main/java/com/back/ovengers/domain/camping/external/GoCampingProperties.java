@@ -12,7 +12,7 @@ public record GoCampingProperties(
     public record Endpoint(
         String basedList,
         String imageList
-    ) {}
+    ) { }
 
     public record Value(
             String numOfRows,
@@ -20,6 +20,6 @@ public record GoCampingProperties(
             String mobileApp,
             String serviceKey,
             String type
-    ) {}
+    ) { }
 
 }

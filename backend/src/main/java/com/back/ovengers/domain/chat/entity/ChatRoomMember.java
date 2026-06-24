@@ -24,9 +24,9 @@ import java.time.LocalDateTime;
 @Table(
         name = "chat_room_member",
         uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_room_user",
-                        columnNames = {"room_id", "user_id"}
+            @UniqueConstraint(
+                    name = "uk_room_user",
+                    columnNames = {"room_id", "user_id"}
                 )
         }
 )
