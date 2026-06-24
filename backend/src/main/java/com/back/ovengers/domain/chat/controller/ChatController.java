@@ -7,6 +7,7 @@ import com.back.ovengers.domain.chat.service.ChatService;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
 import com.back.ovengers.global.response.CursorResponse;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -77,7 +78,7 @@ public class ChatController {
     public ResponseEntity<ApiResponse<ChatMessageResponse>> sendMessage(
             @PathVariable @Min(1) Long roomId,
             @AuthenticationPrincipal User user,
-            @RequestBody ChatMessageRequest request
+            @RequestBody @Valid ChatMessageRequest request
     ) {
         ChatMessageResponse response = chatService.sendMessage(roomId, user, request);
 

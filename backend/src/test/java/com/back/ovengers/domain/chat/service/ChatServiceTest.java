@@ -68,6 +68,7 @@ class ChatServiceTest {
 
         // then
         assertThat(response.content()).isEqualTo("hello");
+        assertThat(response.senderName()).isEqualTo(user.getNickname());
 
         verify(chatMessageRepository, times(1))
                 .save(any(ChatMessage.class));

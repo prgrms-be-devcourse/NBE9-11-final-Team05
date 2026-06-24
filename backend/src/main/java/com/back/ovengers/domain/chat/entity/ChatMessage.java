@@ -27,6 +27,7 @@ public class ChatMessage extends BaseEntity {
         return ChatMessage.builder()
                 .roomId(roomId)
                 .senderId(user.getId())
+                .senderName(user.getNickname())
                 .senderImageUrl(user.getImageUrl())
                 .content(content)
                 .build();
