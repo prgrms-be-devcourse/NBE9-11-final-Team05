@@ -164,9 +164,9 @@ public class ReservationService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        // 3. 취소 가능 상태 확인
-        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
-            throw new CustomException(ErrorCode.INVALID_RESERVATION_STATUS);
+        // 3. 취소 가능 상태 확인 (CONFIRMED만 취소 가능)
+        if (reservation.getStatus() != ReservationStatus.CONFIRMED) {
+            throw new CustomException(ErrorCode.RESERVATION_CANNOT_BE_CANCELLED);
         }
 
         // 4. CONFIRMED 상태면 결제 취소도 같이 처리
