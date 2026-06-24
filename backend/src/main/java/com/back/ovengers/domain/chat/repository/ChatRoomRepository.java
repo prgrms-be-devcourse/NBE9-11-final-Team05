@@ -32,7 +32,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             and r.status = :status
             and (:cursor is null or r.id < :cursor)
         order by r.id desc
-    """)
+        """)
     List<ChatRoomSummary> findChatRooms(Long userId, Long cursor, Pageable pageable, ChatRoomStatus status);
 
     Optional<ChatRoom> findByReservationIdAndTypeAndStatus(Long reservationId, ChatRoomType chatRoomType, ChatRoomStatus chatRoomStatus);

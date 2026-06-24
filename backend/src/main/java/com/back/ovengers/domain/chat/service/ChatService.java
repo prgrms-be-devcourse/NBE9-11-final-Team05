@@ -1,7 +1,9 @@
 package com.back.ovengers.domain.chat.service;
 
+import com.back.ovengers.domain.chat.dto.ChatMessageRequest;
 import com.back.ovengers.domain.chat.dto.ChatMessageResponse;
 import com.back.ovengers.domain.chat.dto.ChatRoomResponse;
+import com.back.ovengers.domain.chat.entity.ChatMessage;
 import com.back.ovengers.domain.chat.entity.ChatRoom;
 import com.back.ovengers.domain.chat.entity.ChatRoomMember;
 import com.back.ovengers.domain.chat.enums.ChatRoomStatus;
@@ -9,6 +11,7 @@ import com.back.ovengers.domain.chat.enums.ChatRoomType;
 import com.back.ovengers.domain.chat.repository.ChatMessageRepository;
 import com.back.ovengers.domain.chat.repository.ChatRoomMemberRepository;
 import com.back.ovengers.domain.chat.repository.ChatRoomRepository;
+import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import com.back.ovengers.global.response.CursorResponse;
@@ -64,12 +67,7 @@ public class ChatService {
             int size
     ) {
 
-        ChatRoom room = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
-
-        if (!chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, userId)) {
-            throw new CustomException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
-        }
+        validateChatRoomMember(roomId, userId);
 
         List<ChatMessageResponse> messages =
                 chatMessageRepository.findChatMessages(
@@ -120,17 +118,6 @@ public class ChatService {
                 });
     }
 
-    private void joinChat(Long roomId, Long userId) {
-        if (!chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, userId)) {
-            chatRoomMemberRepository.save(
-                    ChatRoomMember.builder()
-                            .roomId(roomId)
-                            .userId(userId)
-                            .build()
-            );
-        }
-    }
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createOpenChatRoom(Long campingId, String campingName) {
 
@@ -161,6 +148,38 @@ public class ChatService {
         }
 
         joinChat(roomId, userId);
+    }
+
+    private void joinChat(Long roomId, Long userId) {
+        if (!chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, userId)) {
+            chatRoomMemberRepository.save(
+                    ChatRoomMember.builder()
+                            .roomId(roomId)
+                            .userId(userId)
+                            .build()
+            );
+        }
+    }
+
+    @Transactional
+    public ChatMessageResponse sendMessage(Long roomId, User user, ChatMessageRequest request) {
+
+        validateChatRoomMember(roomId, user.getId());
+
+        ChatMessage chatMessage = ChatMessage.create(roomId, user, request.content());
+        chatMessageRepository.save(chatMessage);
+
+        return ChatMessageResponse.from(chatMessage);
+    }
+
+    private void validateChatRoomMember(Long roomId, Long userId) {
+        if (!chatRoomRepository.existsById(roomId)) {
+            throw new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND);
+        }
+
+        if (!chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, userId)) {
+            throw new CustomException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
+        }
     }
 
 }

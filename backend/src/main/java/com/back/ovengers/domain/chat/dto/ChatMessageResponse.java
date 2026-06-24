@@ -8,6 +8,7 @@ public record ChatMessageResponse(
         Long messageId,
         Long senderId,
         String senderName,
+        String senderImageUrl,
         String content,
         LocalDateTime createdAt
 ) {
@@ -17,6 +18,7 @@ public record ChatMessageResponse(
                 chatMessage.getId(),
                 chatMessage.getSenderId(),
                 chatMessage.getSenderName(),
+                chatMessage.getSenderImageUrl(),
                 chatMessage.getContent(),
                 chatMessage.getCreatedAt()
         );
