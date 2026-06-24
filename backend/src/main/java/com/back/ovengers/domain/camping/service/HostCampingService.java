@@ -2,7 +2,6 @@ package com.back.ovengers.domain.camping.service;
 
 import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.entity.Camping;
-import com.back.ovengers.domain.camping.entity.CampingImage;
 import com.back.ovengers.domain.camping.repository.CampingImageRepository;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
@@ -101,45 +100,6 @@ public class HostCampingService {
         }
 
         camping.delete();
-    }
-
-    @Transactional
-    public CampingImageCreateResponse addCampingImage(
-            Long hostId,
-            Long campingId,
-            CampingImageCreateRequest request
-    ) {
-        Camping camping = campingRepository.findByIdAndDeletedAtIsNull(campingId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
-
-        if (!camping.getHost().getId().equals(hostId)) {
-            throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
-        }
-
-        CampingImage image = CampingImage.from(camping, request.imageUrl());
-
-        CampingImage savedImage = campingImageRepository.save(image);
-
-        return CampingImageCreateResponse.from(savedImage);
-    }
-
-    @Transactional
-    public void deleteCampingImage(
-            Long hostId,
-            Long campingId,
-            Long imageId
-    ) {
-        Camping camping = campingRepository.findByIdAndDeletedAtIsNull(campingId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_NOT_FOUND));
-
-        if (!camping.getHost().getId().equals(hostId)) {
-            throw new CustomException(ErrorCode.NOT_CAMPING_OWNER);
-        }
-
-        CampingImage image = campingImageRepository.findByIdAndCampingId(imageId, campingId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CAMPING_IMAGE_NOT_FOUND));
-
-        campingImageRepository.delete(image);
     }
 
     @Transactional(readOnly = true)

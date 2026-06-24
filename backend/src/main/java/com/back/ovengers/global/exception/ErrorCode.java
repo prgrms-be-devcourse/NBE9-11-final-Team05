@@ -290,7 +290,23 @@ public enum ErrorCode {
     SETTLEMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "정산 정보를 찾을 수 없습니다."),
     SETTLEMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 정산입니다."),
     SETTLEMENT_ALREADY_COMPLETED(HttpStatus.CONFLICT, "이미 완료된 정산입니다."),
-    INVALID_SETTLEMENT_DATE(HttpStatus.BAD_REQUEST, "잘못된 정산 기준일입니다.");
+    INVALID_SETTLEMENT_DATE(HttpStatus.BAD_REQUEST, "잘못된 정산 기준일입니다."),
+
+    // S3 이미지
+    FILE_UPLOAD_FAILED(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "파일 업로드에 실패했습니다."
+    ),
+
+    IMAGE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "이미지를 찾을 수 없습니다."
+    ),
+
+    INVALID_FILE_TYPE(
+            HttpStatus.BAD_REQUEST,
+            "이미지 파일만 업로드할 수 있습니다."
+    );
 
     private final HttpStatus status;
     private final String message;
