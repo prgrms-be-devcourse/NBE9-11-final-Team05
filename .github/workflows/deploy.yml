@@ -22,6 +22,16 @@ jobs:
           distribution: 'temurin'
         # Gradle로 빌드/테스트하려면 Java가 필요하니 미리 설치
 
+      - name: Gradle 캐시
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: gradlew 실행 권한 부여
         run: chmod +x backend/gradlew
         # git에서 받은 gradlew 파일은 실행 권한이 없는 경우가 있어서
