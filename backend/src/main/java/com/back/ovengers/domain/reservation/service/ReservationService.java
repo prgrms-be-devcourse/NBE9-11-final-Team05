@@ -1,7 +1,12 @@
 package com.back.ovengers.domain.reservation.service;
 
 import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.payment.client.TossPaymentClient;
 import com.back.ovengers.domain.payment.dto.PaymentSummaryResponse;
+import com.back.ovengers.domain.payment.entity.Payment;
+import com.back.ovengers.domain.payment.entity.PaymentStatus;
+import com.back.ovengers.domain.payment.repository.PaymentRepository;
+import com.back.ovengers.domain.reservation.dto.*;
 import com.back.ovengers.domain.reservation.dto.*;
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
@@ -17,11 +22,13 @@ import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import com.back.ovengers.global.response.PageResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -32,11 +39,14 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final SiteRepository siteRepository;
     private final UserRepository userRepository;
+    private final PaymentRepository paymentRepository;
+    private final TossPaymentClient tossPaymentClient;
     private final TimeDealRepository timeDealRepository;
 
     public ReservationResponse create(Long userId, ReservationRequest request) {
@@ -147,6 +157,48 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public Page<HostReservationResponse> getHostReservations(Long hostId, Pageable pageable) {
         return reservationRepository.findHostReservations(hostId, pageable);
+    }
+
+    public ReservationCancelResponse cancelReservation(Long reservationId, Long userId) {
+
+        // 1. 예약 조회
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        // 2. 본인 예약 확인
+        if (!reservation.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        // 3. 취소 가능 상태 확인
+        if (reservation.getStatus() != ReservationStatus.CONFIRMED) {
+            throw new CustomException(ErrorCode.RESERVATION_CANNOT_BE_CANCELLED);
+        }
+
+        // 4. DONE 상태 결제 조회
+        Payment payment = paymentRepository.findByReservation_IdAndStatus(reservationId, PaymentStatus.DONE)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        // 5. 토스 결제 취소 API 호출 (트랜잭션 밖에서 실행)
+        cancelPaymentOutsideTransaction(payment);
+
+        // 6. 예약/결제 상태 변경 (트랜잭션 안에서 처리)
+        payment.updateStatus(PaymentStatus.CANCELLED);
+        reservation.updateStatus(ReservationStatus.CANCELLED);
+
+        return ReservationCancelResponse.of(reservation);
+    }
+
+    // 트랜잭션 밖에서 토스 API 호출
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void cancelPaymentOutsideTransaction(Payment payment) {
+        try {
+            tossPaymentClient.cancel(payment.getPaymentKey(), "사용자 예약 취소");
+        } catch (Exception e) {
+            log.error("토스 결제 취소 실패 - paymentKey: {}, error: {}",
+                    payment.getPaymentKey(), e.getMessage());
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
