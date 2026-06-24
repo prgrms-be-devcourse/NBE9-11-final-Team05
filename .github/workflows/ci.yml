@@ -64,6 +64,6 @@ jobs:
           # GITHUB_TOKEN: 별도 발급 없이 GitHub Actions가 자동으로 제공하는 임시 토큰
           # PR에 코멘트를 달 수 있는 권한이 포함됨
           min-coverage-overall: 50       # 전체 커버리지 50% 미만이면 코멘트에 경고 표시
-          min-coverage-changed-lines: 60 # 변경된 라인 커버리지 60% 미만이면 경고 표시 (v1.8.0에서 changed-files → changed-lines로 변경됨)
+          min-coverage-changed-files: 60 # 변경된 라인 커버리지 60% 미만이면 경고 표시
           title: 테스트 커버리지 리포트
           update-comment: true           # 새 커밋 push 시 기존 코멘트 업데이트 (코멘트가 쌓이지 않음)
