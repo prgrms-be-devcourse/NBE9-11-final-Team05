@@ -72,13 +72,12 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public Page<ReviewResponse> getCampingReviews(Long campingId, Pageable pageable) {
 
-        // 리뷰 먼저 조회
-        Page<Review> reviews = reviewRepository.findByCampingIdWithUser(campingId, pageable);
-
-        // 리뷰 없을 때만 캠핑장 존재 여부 확인
-        if (reviews.isEmpty() && !campingRepository.existsByIdAndDeletedAtIsNull(campingId)) {
+        // 캠핑장 존재 여부 먼저 확인
+        if (!campingRepository.existsByIdAndDeletedAtIsNull(campingId)) {
             throw new CustomException(ErrorCode.CAMPING_NOT_FOUND);
         }
+
+        Page<Review> reviews = reviewRepository.findByCampingIdWithUser(campingId, pageable);
 
         return reviews.map(ReviewResponse::from);
     }
