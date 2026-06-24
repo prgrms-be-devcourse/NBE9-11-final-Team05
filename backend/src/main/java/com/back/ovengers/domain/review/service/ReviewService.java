@@ -33,7 +33,7 @@ public class ReviewService {
     private final CampingRepository campingRepository;
     private final NotificationService notificationService;
 
-    public void createReview(User user, Long reservationId, ReviewRequest request){
+    public void createReview(User user, Long reservationId, ReviewRequest request) {
 
         // 예약 존재 확인
         Reservation reservation = reservationRepository.findByIdWithSiteAndCamping(reservationId)
@@ -52,8 +52,8 @@ public class ReviewService {
                 .user(user)
                 .camping(reservation.getSite().getCamping())
                 .reservation(reservation)
-                .rating(request.getRating())
-                .content(request.getContent())
+                .rating(request.rating())
+                .content(request.content())
                 .build();
 
         reviewRepository.save(review);
@@ -92,7 +92,7 @@ public class ReviewService {
         review.validateOwner(user.getId());
 
         // 더티 체킹
-        review.update(request.getRating(), request.getContent());
+        review.update(request.rating(), request.content());
     }
 
     public void deleteReview(User user, Long reviewId) {

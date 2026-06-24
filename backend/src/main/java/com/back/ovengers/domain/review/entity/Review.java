@@ -41,7 +41,7 @@ public class Review extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    public void update(Integer rating, String content){
+    public void update(Integer rating, String content) {
         this.rating = rating;
         this.content = content;
     }

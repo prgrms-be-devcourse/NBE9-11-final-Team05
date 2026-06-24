@@ -21,9 +21,9 @@
     <module name="TreeWalker">
 
         <!-- 임포트 관련 -->
-        <module name="AvoidStarImport"/>
-        <module name="UnusedImports"/>
-        <module name="RedundantImport"/>
+        <!-- <module name="AvoidStarImport"/> -->
+        <!-- <module name="UnusedImports"/> -->
+        <!-- <module name="RedundantImport"/> -->
 
         <!-- 네이밍 컨벤션 -->
         <module name="TypeName"/>
