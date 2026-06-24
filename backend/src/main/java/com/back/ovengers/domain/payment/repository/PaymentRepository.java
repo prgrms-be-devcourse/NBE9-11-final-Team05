@@ -42,4 +42,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             @Param("endDate") LocalDate endDate,
             @Param("status") PaymentStatus status
     );
+
+    Optional<Payment> findByReservation_IdAndStatus(Long reservationId, PaymentStatus status);
 }

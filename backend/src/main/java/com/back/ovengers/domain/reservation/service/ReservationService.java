@@ -176,10 +176,7 @@ public class ReservationService {
         // 4. CONFIRMED 상태면 결제 취소도 같이 처리
         if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
 
-            Payment payment = paymentRepository.findAllByReservation_Id(reservationId)
-                    .stream()
-                    .filter(p -> p.getStatus() == PaymentStatus.DONE)
-                    .findFirst()
+            Payment payment = paymentRepository.findByReservation_IdAndStatus(reservationId, PaymentStatus.DONE)
                     .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
             try {
