@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { cancelReservationAction, type CancelReservationState } from "@/lib/actions/cancelReservation";
 import Button from "@/components/ui/Button";
@@ -9,35 +9,33 @@ interface Props {
   reservationId: number;
 }
 
-const initialState: CancelReservationState = {};
-
 export default function CancelReservationButton({ reservationId }: Props) {
   const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const boundAction = cancelReservationAction.bind(null, reservationId);
-  const [state, formAction, isPending] = useActionState(
-    async (prevState: CancelReservationState, _formData: FormData) => {
-      const result = await boundAction(prevState, _formData);
-      if (result.success) {
-        setShowConfirm(false);
-        setShowSuccess(true);
-      }
-      return result;
-    },
-    initialState
-  );
+  const handleCancel = async () => {
+    setIsPending(true);
+    setError(null);
+    const result: CancelReservationState = await cancelReservationAction(reservationId, {});
+    setIsPending(false);
+    if (result.success) {
+      setShowConfirm(false);
+      setShowSuccess(true);
+    } else {
+      setError(result.error ?? "예약 취소 중 오류가 발생했습니다.");
+    }
+  };
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
-    // 팝업 닫을 때 페이지 새로고침 — revalidatePath 대신 사용
     router.refresh();
   };
 
   return (
     <>
-      {/* 취소하기 버튼 */}
       <button
         onClick={() => setShowConfirm(true)}
         className="w-full rounded-full border border-red-200 bg-transparent px-6 py-3 text-sm font-semibold text-red-600 transition-colors hover:bg-white hover:text-red-700"
@@ -58,8 +56,8 @@ export default function CancelReservationButton({ reservationId }: Props) {
               <span className="text-xs text-red-400">취소 후에는 되돌릴 수 없습니다.</span>
             </p>
 
-            {state.error && (
-              <p className="mb-4 text-center text-xs text-red-600">{state.error}</p>
+            {error && (
+              <p className="mb-4 text-center text-xs text-red-600">{error}</p>
             )}
 
             <div className="flex gap-3">
@@ -71,21 +69,19 @@ export default function CancelReservationButton({ reservationId }: Props) {
               >
                 돌아가기
               </Button>
-              <form action={formAction} className="flex-1">
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="w-full rounded-full border border-red-200 bg-transparent px-6 py-3 text-sm font-semibold text-red-600 transition-colors hover:bg-white hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isPending ? "취소 중..." : "예약 취소"}
-                </button>
-              </form>
+              <button
+                onClick={handleCancel}
+                disabled={isPending}
+                className="flex-1 rounded-full border border-red-200 bg-transparent px-6 py-3 text-sm font-semibold text-red-600 transition-colors hover:bg-white hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isPending ? "취소 중..." : "예약 취소"}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 취소 완료 모달 — 사용자가 직접 닫아야 함 */}
+      {/* 취소 완료 모달 */}
       {showSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="mx-4 w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl text-center">
