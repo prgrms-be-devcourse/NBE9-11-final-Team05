@@ -165,8 +165,7 @@ public class ReservationService {
         }
 
         // 3. 취소 가능 상태 확인
-        if (reservation.getStatus() == ReservationStatus.CANCELLED ||
-                reservation.getStatus() == ReservationStatus.COMPLETED) {
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new CustomException(ErrorCode.INVALID_RESERVATION_STATUS);
         }
 
@@ -188,15 +187,7 @@ public class ReservationService {
             }
         }
 
-        // 5. PENDING 상태면 READY 결제만 취소 처리
-        if (reservation.getStatus() == ReservationStatus.PENDING) {
-            paymentRepository.findAllByReservation_Id(reservationId)
-                    .stream()
-                    .filter(p -> p.getStatus() == PaymentStatus.READY)
-                    .forEach(p -> p.updateStatus(PaymentStatus.CANCELLED));
-        }
-
-        // 6. 예약 취소
+        // 5. 예약 취소
         reservation.updateStatus(ReservationStatus.CANCELLED);
 
         return ReservationCancelResponse.of(reservation);
