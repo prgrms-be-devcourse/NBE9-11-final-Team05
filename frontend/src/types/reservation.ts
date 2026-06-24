@@ -60,6 +60,7 @@ export interface ReservationCreateResponse {
 
 // 예약 상세조회 응답 (백엔드 실제 응답 기준)
 export interface ReservationDetailResponse {
+  campingId: number;
   address: string;
   campingName: string;
   checkIn: string;
