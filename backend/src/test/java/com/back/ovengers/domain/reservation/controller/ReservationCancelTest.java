@@ -127,7 +127,7 @@ class ReservationCancelTest {
 
     @Test
     @DisplayName("예약 취소 성공")
-    void cancelReservation_success() throws Exception {
+    void CancelReservationSuccess() throws Exception {
 
         mockMvc.perform(patch("/api/reservations/{id}/cancel", reservation.getId())
                         .cookie(new MockCookie("accessToken", accessToken)))
@@ -139,7 +139,7 @@ class ReservationCancelTest {
 
     @Test
     @DisplayName("예약 취소 실패 - 예약 없음")
-    void cancelReservation_fail_notFound() throws Exception {
+    void CancelReservationFailNotFound() throws Exception {
 
         mockMvc.perform(patch("/api/reservations/{id}/cancel", 999999L)
                         .cookie(new MockCookie("accessToken", accessToken)))
@@ -149,7 +149,7 @@ class ReservationCancelTest {
 
     @Test
     @DisplayName("예약 취소 실패 - 본인 예약 아님")
-    void cancelReservation_fail_forbidden() throws Exception {
+    void CancelReservationFailForbidden() throws Exception {
 
         User otherUser = userRepository.save(
                 UserFixture.user()
@@ -168,7 +168,7 @@ class ReservationCancelTest {
 
     @Test
     @DisplayName("예약 취소 실패 - 취소 불가 상태 (CANCELLED)")
-    void cancelReservation_fail_alreadyCancelled() throws Exception {
+    void CancelReservationFailAlreadyCancelled() throws Exception {
 
         reservation.updateStatus(ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
@@ -181,7 +181,7 @@ class ReservationCancelTest {
 
     @Test
     @DisplayName("예약 취소 실패 - 취소 불가 상태 (COMPLETED)")
-    void cancelReservation_fail_completed() throws Exception {
+    void CancelReservationFailCompleted() throws Exception {
 
         reservation.updateStatus(ReservationStatus.COMPLETED);
         reservationRepository.save(reservation);
