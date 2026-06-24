@@ -19,13 +19,18 @@ export default function CancelReservationButton({ reservationId }: Props) {
   const handleCancel = async () => {
     setIsPending(true);
     setError(null);
-    const result: CancelReservationState = await cancelReservationAction(reservationId, {});
-    setIsPending(false);
-    if (result.success) {
-      setShowConfirm(false);
-      setShowSuccess(true);
-    } else {
-      setError(result.error ?? "예약 취소 중 오류가 발생했습니다.");
+    try {
+      const result: CancelReservationState = await cancelReservationAction(reservationId, {});
+      if (result.success) {
+        setShowConfirm(false);
+        setShowSuccess(true);
+      } else {
+        setError(result.error ?? "예약 취소 중 오류가 발생했습니다.");
+      }
+    } catch {
+      setError("예약 취소 중 오류가 발생했습니다.");
+    } finally {
+      setIsPending(false);
     }
   };
 
