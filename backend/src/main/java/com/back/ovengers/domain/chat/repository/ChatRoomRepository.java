@@ -18,11 +18,11 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             r.id as id,
             r.name as name,
             m.content as content,
-            m.createdAt as createdAt
+            m.createdAt as lastMessageAt
         from ChatRoom r
         join ChatRoomMember rm
             on r.id = rm.roomId
-        join ChatMessage m
+        left join ChatMessage m
             on m.id = (
                 select max(cm.id)
                 from ChatMessage cm

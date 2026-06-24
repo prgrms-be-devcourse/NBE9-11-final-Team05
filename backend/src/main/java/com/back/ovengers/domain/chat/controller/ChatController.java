@@ -60,9 +60,9 @@ public class ChatController {
 
     @PostMapping("/{roomId}/join")
     public void joinOpenChat(
-            @PathVariable Long roomId,
-            @AuthenticationPrincipal Long userId
+            @PathVariable @Min(1) Long roomId,
+            @AuthenticationPrincipal User user
     ) {
-        chatService.joinOpenChat(roomId, userId);
+        chatService.joinOpenChat(roomId, user.getId());
     }
 }
