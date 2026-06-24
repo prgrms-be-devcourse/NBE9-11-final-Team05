@@ -3,6 +3,8 @@ import CancelReservationButton from "@/components/reservation/CancelReservationB
 import Card from "@/components/ui/Card";
 import DataRow from "@/components/ui/DataRow";
 import Button from "@/components/ui/Button";
+import Link from "next/link";
+
 
 interface PageProps {
   params: Promise<{ reservationId: string }>;
@@ -50,9 +52,11 @@ export default async function MyReservationDetailPage({ params }: PageProps) {
       </Card>
 
       <div className="mt-6 flex flex-col gap-3">
+      <Link href={`/campings/${reservation.campingId}`} className="w-full">
         <Button variant="ghost" fullWidth>
           캠핑장 상세 페이지로 이동
         </Button>
+      </Link>
 
         {/* 이미 취소된 예약은 버튼 숨김 */}
         {isCancellable && (
