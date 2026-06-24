@@ -14,7 +14,7 @@ export default async function MyReservationDetailPage({ params }: PageProps) {
   const { reservationId } = await params;
   const reservation = await getReservation(Number(reservationId));
 
-  const isCancellable = reservation.status === "PENDING" || reservation.status === "CONFIRMED";
+  const isCancellable = reservation.status === "CONFIRMED";
 
   return (
     <div className="mx-auto max-w-md p-6">
