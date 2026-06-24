@@ -18,13 +18,13 @@ import lombok.NoArgsConstructor;
 @Table(
         name = "chat_room",
         uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_reservation_type",
-                        columnNames = {"reservation_id", "type"}
+            @UniqueConstraint(
+                    name = "uk_reservation_type",
+                    columnNames = {"reservation_id", "type"}
                 ),
-                @UniqueConstraint(
-                        name = "uk_camping_type",
-                        columnNames = {"camping_id", "type"}
+            @UniqueConstraint(
+                    name = "uk_camping_type",
+                    columnNames = {"camping_id", "type"}
                 )
         }
 )

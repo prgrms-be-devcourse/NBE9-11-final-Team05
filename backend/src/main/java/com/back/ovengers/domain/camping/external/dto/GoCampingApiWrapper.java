@@ -23,14 +23,14 @@ public record GoCampingApiWrapper(
 
     public record Response(
             Body body
-    ) {}
+    ) { }
 
     public record Body(
             Items items,
             int totalCount
-    ) {}
+    ) { }
 
     public record Items(
             List<GoCampingApiItem> item
-    ) {}
+    ) { }
 }

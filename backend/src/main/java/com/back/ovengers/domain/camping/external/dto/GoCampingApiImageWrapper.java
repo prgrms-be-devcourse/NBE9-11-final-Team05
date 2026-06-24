@@ -20,23 +20,23 @@ public record GoCampingApiImageWrapper(
     }
 
     public List<GoCampingApiImageItem> items() {
-        if(totalCount() == 0) {
+        if (totalCount() == 0) {
             return List.of();
         }
 
         JsonNode item = response.body().items().path("item");
         return objectMapper.convertValue(
                 item,
-                new TypeReference<>() {}
+                new TypeReference<>() { }
         );
     }
 
     public record Response(
             Body body
-    ) {}
+    ) { }
 
     public record Body(
             JsonNode items,
             int totalCount
-    ) {}
+    ) { }
 }
