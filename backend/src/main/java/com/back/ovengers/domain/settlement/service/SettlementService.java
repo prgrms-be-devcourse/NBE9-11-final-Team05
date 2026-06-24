@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -73,15 +74,18 @@ public class SettlementService {
     @Transactional
     public SettlementGenerateResponse generate(LocalDate settlementDate) {
 
-        // 1. 미래 날짜 방지
+        // 1. Null 체크
+        if (settlementDate == null) {
+            throw new CustomException(ErrorCode.INVALID_SETTLEMENT_DATE);
+        }
+
+        // 2. 미래 날짜 방지
         if (settlementDate.isAfter(LocalDate.now())) {
             throw new CustomException(ErrorCode.INVALID_SETTLEMENT_DATE);
         }
 
-        // 2. 정산 기간 계산 (해당 주 월~일)
         LocalDate startDate = settlementDate.minusDays(6);
         LocalDate endDate = settlementDate;
-
 
         // 3. 정산 대상 Payment 한 번에 조회 (N+1 해결)
         List<Payment> payments = paymentRepository.findAllSettlementTargets(
@@ -97,6 +101,9 @@ public class SettlementService {
                         p -> p.getReservation().getSite().getCamping().getHost()
                 ));
 
+        List<Settlement> settlements = new ArrayList<>();
+        List<SettlementDetail> details = new ArrayList<>();
+
         int generatedCount = 0;
         int totalPayoutAmount = 0;
 
@@ -104,42 +111,45 @@ public class SettlementService {
             User host = entry.getKey();
             List<Payment> hostPayments = entry.getValue();
 
-            // 5. 금액 계산
-            int totalAmount = payments.stream()
+            // 5. 금액 계산 (정수 연산으로 부동 소수점 오차 방지)
+            int totalAmount = hostPayments.stream()
                     .mapToInt(Payment::getPaidPrice)
                     .sum();
-            int feeAmount = (int) (totalAmount * FEE_RATE);
+            int feeAmount = totalAmount / 10;  // 10% 고정 수수료
             int payoutAmount = totalAmount - feeAmount;
 
             // 6. Settlement 생성
-            Settlement settlement = settlementRepository.save(
-                    Settlement.builder()
-                            .host(host)
-                            .settlementDate(endDate)
-                            .totalAmount(totalAmount)
-                            .feeAmount(feeAmount)
-                            .payoutAmount(payoutAmount)
-                            .status(SettlementStatus.PENDING)
-                            .build()
-            );
-
-            // 7. SettlementDetail 생성
-            for (Payment payment : payments) {
-                settlementDetailRepository.save(
-                        SettlementDetail.builder()
-                                .settlement(settlement)
-                                .payment(payment)
-                                .amount(payment.getPaidPrice())
-                                .build()
-                );
-            }
+            Settlement settlement = Settlement.builder()
+                    .host(host)
+                    .settlementDate(endDate)
+                    .totalAmount(totalAmount)
+                    .feeAmount(feeAmount)
+                    .payoutAmount(payoutAmount)
+                    .status(SettlementStatus.PENDING)
+                    .build();
+            settlements.add(settlement);
 
             generatedCount++;
             totalPayoutAmount += payoutAmount;
+
+            // 7. SettlementDetail 생성
+            for (Payment payment : hostPayments) {
+                details.add(SettlementDetail.builder()
+                        .settlement(settlement)
+                        .payment(payment)
+                        .amount(payment.getPaidPrice())
+                        .build());
+            }
         }
+
+        // 8. 배치 저장 (saveAll로 벌크 인서트)
+        settlementRepository.saveAll(settlements);
+        settlementDetailRepository.saveAll(details);
 
         return new SettlementGenerateResponse(generatedCount, settlementDate, totalPayoutAmount);
     }
+
+
 
     @Transactional(readOnly = true)
     public PageResponse<AdminSettlementListResponse> getAllSettlements(int page) {
