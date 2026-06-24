@@ -158,6 +158,9 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "예약 날짜가 올바르지 않습니다."
     ),
+    RESERVATION_CANNOT_BE_CANCELLED(
+            HttpStatus.CONFLICT,
+            "취소할 수 없는 예약 상태입니다."),
 
     // 구역
     SITE_NOT_FOUND(

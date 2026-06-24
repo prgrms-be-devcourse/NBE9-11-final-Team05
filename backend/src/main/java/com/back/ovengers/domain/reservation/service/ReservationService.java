@@ -1,11 +1,12 @@
 package com.back.ovengers.domain.reservation.service;
 
 import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.payment.client.TossPaymentClient;
 import com.back.ovengers.domain.payment.dto.PaymentSummaryResponse;
-import com.back.ovengers.domain.reservation.dto.HostReservationResponse;
-import com.back.ovengers.domain.reservation.dto.ReservationDetailResponse;
-import com.back.ovengers.domain.reservation.dto.ReservationRequest;
-import com.back.ovengers.domain.reservation.dto.ReservationResponse;
+import com.back.ovengers.domain.payment.entity.Payment;
+import com.back.ovengers.domain.payment.entity.PaymentStatus;
+import com.back.ovengers.domain.payment.repository.PaymentRepository;
+import com.back.ovengers.domain.reservation.dto.*;
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
 import com.back.ovengers.domain.reservation.repository.ReservationRepository;
@@ -38,6 +39,8 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final SiteRepository siteRepository;
     private final UserRepository userRepository;
+    private final PaymentRepository paymentRepository;
+    private final TossPaymentClient tossPaymentClient;
 
     public ReservationResponse create(Long userId, ReservationRequest request) {
 
@@ -147,5 +150,55 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public Page<HostReservationResponse> getHostReservations(Long hostId, Pageable pageable) {
         return reservationRepository.findHostReservations(hostId, pageable);
+    }
+
+    @Transactional
+    public ReservationCancelResponse cancelReservation(Long reservationId, Long userId) {
+
+        // 1. 예약 조회
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        // 2. 본인 예약 확인
+        if (!reservation.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        // 3. 취소 가능 상태 확인
+        if (reservation.getStatus() == ReservationStatus.CANCELLED ||
+                reservation.getStatus() == ReservationStatus.COMPLETED) {
+            throw new CustomException(ErrorCode.INVALID_RESERVATION_STATUS);
+        }
+
+        // 4. CONFIRMED 상태면 결제 취소도 같이 처리
+        if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
+
+            Payment payment = paymentRepository.findAllByReservation_Id(reservationId)
+                    .stream()
+                    .filter(p -> p.getStatus() == PaymentStatus.DONE)
+                    .findFirst()
+                    .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+            try {
+                // 토스 결제 취소 API 호출
+                tossPaymentClient.cancel(payment.getPaymentKey(), "사용자 예약 취소");
+                payment.updateStatus(PaymentStatus.CANCELLED);
+            } catch (Exception e) {
+                throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        // 5. PENDING 상태면 READY 결제만 취소 처리
+        if (reservation.getStatus() == ReservationStatus.PENDING) {
+            paymentRepository.findAllByReservation_Id(reservationId)
+                    .stream()
+                    .filter(p -> p.getStatus() == PaymentStatus.READY)
+                    .forEach(p -> p.updateStatus(PaymentStatus.CANCELLED));
+        }
+
+        // 6. 예약 취소
+        reservation.updateStatus(ReservationStatus.CANCELLED);
+
+        return ReservationCancelResponse.of(reservation);
     }
 }

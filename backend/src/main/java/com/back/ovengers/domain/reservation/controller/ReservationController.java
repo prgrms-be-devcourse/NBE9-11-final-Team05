@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.reservation.controller;
 
 import com.back.ovengers.domain.payment.dto.PaymentSummaryResponse;
+import com.back.ovengers.domain.reservation.dto.ReservationCancelResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationDetailResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationRequest;
 import com.back.ovengers.domain.reservation.dto.ReservationResponse;
@@ -88,6 +89,20 @@ public class ReservationController {
                 new ApiResponse<>(
                         "예약 목록 조회가 완료되었습니다.",
                         reservationService.getMyReservations(user.getId(), page)
+                )
+        );
+    }
+
+    @Operation(summary = "내 예약 취소")
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<ReservationCancelResponse>> cancelReservation(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "예약이 취소되었습니다.",
+                        reservationService.cancelReservation(id, user.getId())
                 )
         );
     }
