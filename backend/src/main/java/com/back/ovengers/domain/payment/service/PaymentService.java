@@ -1,11 +1,17 @@
 package com.back.ovengers.domain.payment.service;
 
+import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.notification.entity.NotificationType;
 import com.back.ovengers.domain.notification.service.NotificationService;
 import com.back.ovengers.domain.payment.client.TossPaymentClient;
-import com.back.ovengers.domain.payment.dto.*;
+import com.back.ovengers.domain.payment.dto.PaymentConfirmRequest;
+import com.back.ovengers.domain.payment.dto.PaymentConfirmResponse;
+import com.back.ovengers.domain.payment.dto.PaymentRequest;
+import com.back.ovengers.domain.payment.dto.PaymentResponse;
+import com.back.ovengers.domain.payment.dto.TossConfirmResponse;
 import com.back.ovengers.domain.payment.entity.Payment;
 import com.back.ovengers.domain.payment.entity.PaymentStatus;
+import com.back.ovengers.domain.payment.event.PaymentCompletedEvent;
 import com.back.ovengers.domain.payment.repository.PaymentRepository;
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
@@ -14,6 +20,7 @@ import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -30,6 +37,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final ReservationRepository reservationRepository;
     private final TossPaymentClient tossPaymentClient;
+    private final ApplicationEventPublisher eventPublisher;
     private final NotificationService notificationService;
 
     @Transactional
@@ -104,6 +112,19 @@ public class PaymentService {
                     .filter(p -> !p.getId().equals(payment.getId()))
                     .filter(p -> p.getStatus() == PaymentStatus.READY)
                     .forEach(p -> p.updateStatus(PaymentStatus.CANCELLED));
+
+            // 1:1 채팅방 개설
+            Reservation reservation = payment.getReservation();
+            Camping camping = reservation.getSite().getCamping();
+
+            eventPublisher.publishEvent(
+                    new PaymentCompletedEvent(
+                            reservation.getId(),
+                            reservation.getUser().getId(),
+                            camping.getHost().getId(),
+                            camping.getName()
+                    )
+            );
 
             // 5-2. 유저에게 결제 완료 알림
             notificationService.send(
