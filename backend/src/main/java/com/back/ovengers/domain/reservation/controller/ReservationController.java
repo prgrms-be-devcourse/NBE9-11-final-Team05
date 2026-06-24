@@ -4,6 +4,7 @@ import com.back.ovengers.domain.payment.dto.PaymentSummaryResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationDetailResponse;
 import com.back.ovengers.domain.reservation.dto.ReservationRequest;
 import com.back.ovengers.domain.reservation.dto.ReservationResponse;
+import com.back.ovengers.domain.reservation.dto.TimeDealReservationRequest;
 import com.back.ovengers.domain.reservation.service.ReservationService;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
@@ -90,5 +91,29 @@ public class ReservationController {
                         reservationService.getMyReservations(user.getId(), page)
                 )
         );
+    }
+
+    /**
+     * 타임딜 예약 생성
+     *
+     * - siteId, checkIn, checkOut, 가격은 서버에서 timeDealId 기반으로 결정한다.
+     * - 요청자는 예약자 정보(이름, 연락처, 인원, 요청사항)만 입력한다.
+     * - soldCount 증가와 예약 저장이 하나의 트랜잭션으로 처리된다.
+     *
+     * POST /api/reservations/timedeal/{timeDealId}
+     */
+    @Operation(summary = "타임딜 예약 생성")
+    @PostMapping("/timedeal/{timeDealId}")
+    public ResponseEntity<ApiResponse<ReservationResponse>> createTimeDealReservation(
+            @AuthenticationPrincipal User user,
+            @Parameter(description = "타임딜 ID", example = "1")
+            @PathVariable @Min(1) Long timeDealId,
+            @RequestBody @Valid TimeDealReservationRequest request) {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(
+                        "타임딜 예약이 생성되었습니다.",
+                        reservationService.createTimeDealReservation(user.getId(), timeDealId, request)
+                ));
     }
 }
