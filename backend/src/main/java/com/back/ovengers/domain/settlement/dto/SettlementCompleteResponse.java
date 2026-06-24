@@ -8,7 +8,7 @@ public record SettlementCompleteResponse(
         Long id,
         String hostNickname,
         LocalDate settlementDate,
-        Integer payoutAmount,
+        int payoutAmount,
         String status
 ) {
     public static SettlementCompleteResponse of(Settlement settlement) {

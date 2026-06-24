@@ -5,5 +5,5 @@ import java.time.LocalDate;
 public record SettlementGenerateResponse(
         int generatedCount,
         LocalDate settlementDate,
-        Integer totalPayoutAmount
+        int totalPayoutAmount
 ) {}

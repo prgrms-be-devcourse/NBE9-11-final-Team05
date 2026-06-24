@@ -9,9 +9,9 @@ public record AdminSettlementListResponse(
         Long hostId,
         String hostNickname,
         LocalDate settlementDate,
-        Integer totalAmount,
-        Integer feeAmount,
-        Integer payoutAmount,
+        int totalAmount,
+        int feeAmount,
+        int payoutAmount,
         String status
 ) {
     public static AdminSettlementListResponse of(Settlement settlement) {

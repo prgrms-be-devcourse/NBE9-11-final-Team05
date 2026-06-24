@@ -10,7 +10,7 @@ public record SettlementDetailResponse(
         String rsvName,
         LocalDate checkIn,
         LocalDate checkOut,
-        Integer amount
+        int amount
 ) {
     public static SettlementDetailResponse of(SettlementDetail detail) {
         return new SettlementDetailResponse(
