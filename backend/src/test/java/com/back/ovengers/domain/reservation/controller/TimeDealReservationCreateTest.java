@@ -4,7 +4,6 @@ import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import com.back.ovengers.domain.reservation.dto.TimeDealReservationRequest;
-import com.back.ovengers.domain.reservation.repository.ReservationRepository;
 import com.back.ovengers.domain.site.entity.Site;
 import com.back.ovengers.domain.site.repository.SiteRepository;
 import com.back.ovengers.domain.timedeal.entity.TimeDeal;
@@ -14,7 +13,6 @@ import com.back.ovengers.domain.user.entity.Status;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.security.JwtProvider;
-import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +24,7 @@ import org.springframework.mock.web.MockCookie;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,7 +42,6 @@ class TimeDealReservationCreateTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
 
-    @Autowired private ReservationRepository reservationRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private SiteRepository siteRepository;
     @Autowired private CampingRepository campingRepository;
@@ -104,7 +102,7 @@ class TimeDealReservationCreateTest {
                         .build()
         );
 
-        accessToken = jwtProvider.createRefreshToken(user.getId(), user.getRole().name());
+        accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole().name());
     }
 
     private TimeDealReservationRequest createRequest() {
