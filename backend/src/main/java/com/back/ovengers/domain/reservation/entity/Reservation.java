@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.reservation.entity;
 
 import com.back.ovengers.domain.site.entity.Site;
+import com.back.ovengers.domain.timedeal.entity.TimeDeal;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.entity.BaseEntity;
 import com.back.ovengers.global.exception.CustomException;
@@ -27,6 +28,17 @@ public class Reservation extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "site_id", nullable = false)
     private Site site;
+
+    /**
+     * 타임딜을 통한 예약인 경우에만 값이 존재한다.
+     * 일반 예약은 null.
+     *
+     * nullable = true이므로 DB 컬럼도 NULL 허용.
+     * Reservation 삭제 시 TimeDeal은 유지되어야 하므로 cascade 없음.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "time_deal_id")
+    private TimeDeal timeDeal;
 
     @Column(nullable = false)
     private String rsvNum;
@@ -70,4 +82,7 @@ public class Reservation extends BaseEntity {
         }
     }
 
+    public boolean isTimeDealReservation() {
+        return this.timeDeal != null;
+    }
 }

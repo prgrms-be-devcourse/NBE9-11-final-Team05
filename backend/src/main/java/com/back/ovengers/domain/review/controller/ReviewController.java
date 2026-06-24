@@ -38,7 +38,7 @@ public class ReviewController {
             @Parameter(description = "예약 ID", example = "1")
             @RequestParam Long reservationId,
             @Valid @RequestBody ReviewRequest request
-    ){
+    ) {
         reviewService.createReview(user, reservationId, request);
         return ResponseEntity.ok(new ApiResponse<>("리뷰가 작성되었습니다."));
     }
