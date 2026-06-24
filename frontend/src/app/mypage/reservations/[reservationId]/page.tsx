@@ -12,6 +12,8 @@ export default async function MyReservationDetailPage({ params }: PageProps) {
   const { reservationId } = await params;
   const reservation = await getReservation(Number(reservationId));
 
+  const isCancellable = reservation.status === "PENDING" || reservation.status === "CONFIRMED";
+
   return (
     <div className="mx-auto max-w-md p-6">
       <Card>
@@ -51,7 +53,11 @@ export default async function MyReservationDetailPage({ params }: PageProps) {
         <Button variant="ghost" fullWidth>
           캠핑장 상세 페이지로 이동
         </Button>
-        <CancelReservationButton />
+
+        {/* 이미 취소된 예약은 버튼 숨김 */}
+        {isCancellable && (
+          <CancelReservationButton reservationId={Number(reservationId)} />
+        )}
       </div>
     </div>
   );

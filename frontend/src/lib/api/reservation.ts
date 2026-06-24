@@ -6,8 +6,7 @@ import type {
   ReservationDetailResponse,
   ReservationListResponse,
 } from "@/types/reservation";
-import { CampingDetail } from "@/types/camping";
-
+import type { CampingDetail } from "@/types/camping";
 
 /** 예약 생성 */
 export function createReservation(payload: CreateReservationRequest) {
@@ -34,4 +33,12 @@ export function getMyReservations(page: number = 0) {
 /** 캠핑장 상세조회 — 구역(site) 목록 가져올 때 사용 */
 export function getCampingDetail(campingId: number) {
   return serverApiFetch<CampingDetail>(`/api/campings/${campingId}`);
+}
+
+/** 예약 취소 (서버 액션에서 호출) */
+export function cancelReservation(reservationId: number) {
+  return serverApiFetch<{ id: number; rsvNum: string; status: string }>(
+    `/api/reservations/${reservationId}/cancel`,
+    { method: "PATCH" }
+  );
 }
