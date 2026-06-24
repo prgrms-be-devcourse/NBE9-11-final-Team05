@@ -88,15 +88,15 @@ public class ChatService {
         return new CursorResponse<>(messages, nextCursor, hasNext);
     }
 
-    @Transactional
-    public ChatRoom createDirectChatRoom(
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void createDirectChatRoom(
             Long reservationId,
             Long userId,
             Long hostId,
             String campingName
     ) {
 
-        return chatRoomRepository
+        chatRoomRepository
                 .findByReservationIdAndTypeAndStatus(
                         reservationId,
                         ChatRoomType.DIRECT,

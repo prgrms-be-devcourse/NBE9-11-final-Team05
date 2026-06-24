@@ -62,6 +62,7 @@ public class AdminService {
 
         camping.approve();
 
+        // 오픈 채팅방 개설
         eventPublisher.publishEvent(
                 new CampingApprovedEvent(camping.getId(), camping.getName())
         );
