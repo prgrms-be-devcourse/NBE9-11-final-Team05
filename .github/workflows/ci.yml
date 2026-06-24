@@ -46,11 +46,15 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
 
-      - name: Checkstyle 실행
-        run: |
-          cd backend
-          ./gradlew checkstyleMain --no-daemon
-        # ignoreFailures = true 설정으로 경고만 출력하고 CI는 통과
+      - name: Checkstyle 실행 및 PR 인라인 코멘트
+        uses: dbelyaev/action-checkstyle@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review        # PR 코드에 인라인 코멘트로 달기
+          level: warning                    # 경고 수준으로 표시 (빌드 막지 않음)
+          checkstyle_config: backend/config/checkstyle/checkstyle.xml
+          workdir: backend                  # 분석할 작업 디렉토리
+
 
       - name: PR에 커버리지 코멘트 추가
         uses: madrapps/jacoco-report@v1.8.0
