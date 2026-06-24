@@ -8,7 +8,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "notification")
+@Table(
+        name = "notification",
+        indexes = {
+                @Index(name = "idx_notification_user_created", columnList = "user_id, created_at DESC")
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Builder
