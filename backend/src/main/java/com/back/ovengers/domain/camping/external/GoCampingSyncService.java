@@ -27,7 +27,7 @@ public class GoCampingSyncService {
     private final GoCampingPersistenceService campingPersistenceService;
 
     public void syncInitialData() {
-        if(campingRepository.count() > 0) {
+        if (campingRepository.count() > 0) {
             throw new CustomException(ErrorCode.INITIAL_DATA_ALREADY_EXISTS);
         }
 
@@ -43,11 +43,15 @@ public class GoCampingSyncService {
         List<Long> failedCampIds = new ArrayList<>();
         int successCount = 0;
 
-        for(Camping camp : camps) {
-            if (campingIdsWithImages.contains(camp.getId())) continue;
+        for (Camping camp : camps) {
+            if (campingIdsWithImages.contains(camp.getId())) {
+                continue;
+            }
 
             Long contentId = camp.getContentId();
-            if(contentId == null) continue;
+            if (contentId == null) {
+                continue;
+            }
 
             try {
                 List<GoCampingApiImageItem> items = goCampingClient.getCampImageList(contentId);

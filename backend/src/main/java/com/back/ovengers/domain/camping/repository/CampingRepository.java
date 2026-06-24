@@ -27,7 +27,7 @@ public interface CampingRepository extends JpaRepository<Camping, Long> {
                 and (:keywordLike is null
                 or c.name like :keywordLike
                 or c.region like :keywordLike)
-    """)
+        """)
     Page<Camping> searchApprovedCamping(CampingStatus status, String keywordLike, Pageable pageable);
 
     // 관리자 대시보드
@@ -48,12 +48,12 @@ public interface CampingRepository extends JpaRepository<Camping, Long> {
     List<Camping> findByIdIn(List<Long> campingIds);
 
     @Query("""
-    SELECT c
-    FROM Camping c
-    WHERE c.deletedAt IS NULL
-      AND c.host IS NULL
-      AND c.contentId IS NOT NULL
-      AND LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
-    """)
+        SELECT c
+        FROM Camping c
+        WHERE c.deletedAt IS NULL
+          AND c.host IS NULL
+          AND c.contentId IS NOT NULL
+          AND LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        """)
     List<Camping> searchClaimableCampings(@Param("keyword") String keyword);
 }
