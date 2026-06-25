@@ -1,5 +1,6 @@
 package com.back.ovengers.domain.chat.service;
 
+import com.back.ovengers.domain.chat.dto.ChatJoinResponse;
 import com.back.ovengers.domain.chat.dto.ChatMessageRequest;
 import com.back.ovengers.domain.chat.dto.ChatMessageResponse;
 import com.back.ovengers.domain.chat.dto.ChatRoomResponse;
@@ -129,27 +130,27 @@ public class ChatService {
                         ChatRoomType.OPEN,
                         ChatRoomStatus.ACTIVE
                 )
-                .orElseGet(() -> chatRoomRepository.save(
-                        ChatRoom.builder()
+                .orElseGet(() ->
+                        chatRoomRepository.save(ChatRoom.builder()
                                 .campingId(campingId)
                                 .name(campingName + " 오픈 채팅방")
                                 .type(ChatRoomType.OPEN)
                                 .status(ChatRoomStatus.ACTIVE)
                                 .build()
-                ));
+                        )
+                );
     }
 
     @Transactional
-    public void joinOpenChat(Long roomId, Long userId) {
+    public ChatJoinResponse joinOpenChat(Long campingId, Long userId) {
 
-        ChatRoom room = chatRoomRepository.findById(roomId)
+        ChatRoom room = chatRoomRepository
+                .findByCampingIdAndTypeAndStatus(campingId, ChatRoomType.OPEN, ChatRoomStatus.ACTIVE)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
 
-        if (room.getType() != ChatRoomType.OPEN) {
-            throw new CustomException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
-        }
+        joinChat(room.getId(), userId);
 
-        joinChat(roomId, userId);
+        return new ChatJoinResponse(room.getId());
     }
 
     private void joinChat(Long roomId, Long userId) {

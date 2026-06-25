@@ -6,6 +6,7 @@ import com.back.ovengers.domain.camping.external.dto.GoCampingApiImageItem;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiItem;
 import com.back.ovengers.domain.camping.repository.CampingImageRepository;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ public class GoCampingPersistenceService {
 
     private final CampingRepository campingRepository;
     private final CampingImageRepository campingImageRepository;
+    private final ChatService chatService;
 
     @Transactional
     public void saveCamps(List<GoCampingApiItem> items) {
@@ -29,6 +31,13 @@ public class GoCampingPersistenceService {
         }
 
         campingRepository.saveAll(camps);
+
+        for (Camping camp : camps) {
+            chatService.createOpenChatRoom(
+                    camp.getId(),
+                    camp.getName()
+            );
+        }
     }
 
     @Transactional
