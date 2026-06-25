@@ -7,8 +7,8 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -37,21 +37,21 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                 .orderBy(user.createdAt.desc())
                 .fetch();
 
-        // countQuery 분리 - 페이지네이션 최적화
-        // content 쿼리와 달리 count만 필요하므로 orderBy 불필요
-        Long total = queryFactory
-                .select(user.count())
-                .from(user)
-                .where(
-                        roleEq(role),
-                        statusEq(status),
-                        notDeleted(includeDeleted),
-                        keywordContains(keyword)
-                )
-                .fetchOne();
-
-        // JPA가 자동으로 만들어줬지만 수동으로 해야함
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+        // PageableExecutionUtils.getPage: count 쿼리 최적화
+        // 첫 페이지이면서 content 수 < size, 마지막 페이지, 데이터 없을 때 count 쿼리 생략
+        return PageableExecutionUtils.getPage(content, pageable, () -> {
+            Long total = queryFactory
+                    .select(user.count())
+                    .from(user)
+                    .where(
+                            roleEq(role),
+                            statusEq(status),
+                            notDeleted(includeDeleted),
+                            keywordContains(keyword)
+                    )
+                    .fetchOne();
+            return total != null ? total : 0L;
+        });
     }
 
     // role 필터

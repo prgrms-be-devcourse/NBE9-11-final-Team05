@@ -5,7 +5,7 @@ import com.back.ovengers.domain.user.entity.User;
 import java.time.LocalDateTime;
 
 public record AdminUserResponse(
-        Long userId,
+        long userId,
         String email,
         String name,
         String nickname,
