@@ -42,3 +42,49 @@ export async function getChatMessages(roomId: number, cursor?: number | null) {
 
   return result.data; // CursorResponse
 }
+
+/* 채팅방 목록 */
+export async function getChatRooms(cursor?: number | null) {
+  const url = new URL(`${API_URL}/api/chats/rooms`);
+
+  if (cursor != null) {
+    url.searchParams.append("cursor", String(cursor));
+  }
+
+  const res = await fetch(url.toString(), {
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(result.message || "채팅방 목록 실패");
+  }
+
+  return result.data; 
+}
+
+/* 메시지 전송 (http) */
+export async function sendChatMessage(roomId: number, content: string) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/chats/messages`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        roomId,
+        content,
+      }),
+    }
+  );
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(result.message || "메시지 전송 실패");
+  }
+
+  return result.data;
+}

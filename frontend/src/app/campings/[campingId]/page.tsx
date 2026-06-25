@@ -5,7 +5,7 @@ import FacilitySection from "@/components/camping/FacilitySection";
 import ReservationCard from "@/components/camping/ReservationCard";
 import ReviewSection from "@/components/camping/ReviewSection";
 import SiteSection from "@/components/camping/SiteSection";
-import ChatRoomEntry from "@/components/chat/ChatRoomEntry";
+import ChatJoinButton from "@/components/chat/ChatJoinButton";
 import { getCampingDetail } from "@/lib/api/reservation";
 import { canReserve } from "@/lib/utils/auth";
 
@@ -40,7 +40,7 @@ export default async function CampingDetailPage({ params }: Props) {
         <div className="space-y-12">
           <CampingSummary camping={camping} />
           <FacilitySection />
-          <ChatRoomEntry campingId={id} />
+          <ChatJoinButton campingId={id} />
           <CampingDescription camping={camping} />
           <SiteSection sites={camping.sites} />
           <ReviewSection />
