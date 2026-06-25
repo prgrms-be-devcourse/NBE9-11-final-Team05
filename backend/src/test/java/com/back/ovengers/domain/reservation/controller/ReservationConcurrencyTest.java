@@ -12,11 +12,8 @@ import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.fixture.UserFixture;
 import com.back.ovengers.global.security.JwtProvider;
+import org.junit.jupiter.api.*;
 import tools.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.client.RestTemplate;
@@ -38,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Disabled("동시성 테스트 - 별도 MySQL 환경 필요, 수동 실행")
 class ReservationConcurrencyTest {
 
     private RestTemplate restTemplate = new RestTemplate();

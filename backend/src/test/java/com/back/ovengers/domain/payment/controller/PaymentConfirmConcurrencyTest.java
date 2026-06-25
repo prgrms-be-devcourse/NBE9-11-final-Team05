@@ -1,0 +1,492 @@
+package com.back.ovengers.domain.payment.controller;
+
+import com.back.ovengers.domain.camping.entity.Camping;
+import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.payment.client.TossPaymentClient;
+import com.back.ovengers.domain.payment.dto.PaymentConfirmRequest;
+import com.back.ovengers.domain.payment.dto.TossConfirmResponse;
+import com.back.ovengers.domain.payment.entity.Payment;
+import com.back.ovengers.domain.payment.entity.PaymentStatus;
+import com.back.ovengers.domain.payment.repository.PaymentRepository;
+import com.back.ovengers.domain.payment.service.PaymentService;
+import com.back.ovengers.domain.reservation.entity.Reservation;
+import com.back.ovengers.domain.reservation.entity.ReservationStatus;
+import com.back.ovengers.domain.reservation.repository.ReservationRepository;
+import com.back.ovengers.domain.reservation.service.ReservationService;
+import com.back.ovengers.domain.site.entity.Site;
+import com.back.ovengers.domain.site.repository.SiteRepository;
+import com.back.ovengers.domain.user.entity.User;
+import com.back.ovengers.domain.user.repository.UserRepository;
+import com.back.ovengers.fixture.UserFixture;
+import com.back.ovengers.global.security.JwtProvider;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import javax.sql.DataSource;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+
+@SpringBootTest
+@Disabled("동시성 테스트 - 별도 MySQL 환경 필요, 수동 실행")
+class PaymentConfirmConcurrencyTest {
+
+    @Autowired private PaymentService paymentService;
+    @Autowired private ReservationService reservationService;
+    @Autowired private PaymentRepository paymentRepository;
+    @Autowired private ReservationRepository reservationRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private SiteRepository siteRepository;
+    @Autowired private CampingRepository campingRepository;
+    @Autowired private JwtProvider jwtProvider;
+    @Autowired private DataSource dataSource;
+
+    @MockitoBean
+    private TossPaymentClient tossPaymentClient;
+
+    private User user;
+    private Reservation reservation;
+    private Payment payment;
+
+
+    private void cleanDatabase() {
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.createStatement()) {
+            stmt.execute("SET FOREIGN_KEY_CHECKS = 0");
+            stmt.execute("TRUNCATE TABLE notification");
+            stmt.execute("TRUNCATE TABLE settlement_detail");
+            stmt.execute("TRUNCATE TABLE settlement");
+            stmt.execute("TRUNCATE TABLE review");
+            stmt.execute("TRUNCATE TABLE payment");
+            stmt.execute("TRUNCATE TABLE reservation");
+            stmt.execute("TRUNCATE TABLE site");
+            stmt.execute("TRUNCATE TABLE camping_image");
+            stmt.execute("TRUNCATE TABLE camping");
+            stmt.execute("TRUNCATE TABLE refresh_tokens");
+            stmt.execute("TRUNCATE TABLE users");
+            stmt.execute("SET FOREIGN_KEY_CHECKS = 1");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @BeforeEach
+    void setUp() {
+        cleanDatabase();
+        paymentRepository.deleteAll();
+        reservationRepository.deleteAll();
+        siteRepository.deleteAll();
+        campingRepository.deleteAll();
+        userRepository.deleteAll();
+
+        user = userRepository.save(
+                UserFixture.user()
+                        .email("user" + System.nanoTime() + "@test.com")
+                        .nickname("유저" + System.nanoTime())
+                        .build()
+        );
+
+        User host = userRepository.save(
+                UserFixture.host()
+                        .email("host" + System.nanoTime() + "@test.com")
+                        .nickname("호스트" + System.nanoTime())
+                        .build()
+        );
+
+        Camping camping = campingRepository.save(Camping.builder()
+                .host(host)
+                .name("테스트 캠핑장")
+                .region("서울")
+                .city("강남구")
+                .address("서울시 강남구 테스트로 123")
+                .status(CampingStatus.APPROVED)
+                .build());
+
+        Site site = siteRepository.save(Site.builder()
+                .camping(camping)
+                .name("A구역")
+                .baseCapacity(2)
+                .maxCapacity(4)
+                .totalAmount(5)
+                .price(50000)
+                .build());
+
+        reservation = reservationRepository.save(Reservation.builder()
+                .user(user)
+                .site(site)
+                .rsvNum("RSV-" + UUID.randomUUID())
+                .rsvName("홍길동")
+                .rsvPhone("010-1234-5678")
+                .checkIn(LocalDate.now().plusDays(1))
+                .checkOut(LocalDate.now().plusDays(3))
+                .guestCount(2)
+                .rsvPrice(100000)
+                .status(ReservationStatus.PENDING)
+                .build());
+
+        payment = paymentRepository.save(Payment.builder()
+                .reservation(reservation)
+                .orderId("ORD-" + UUID.randomUUID())
+                .paidPrice(100000)
+                .status(PaymentStatus.READY)
+                .build());
+    }
+
+    @AfterEach
+    void tearDown() {
+        cleanDatabase();
+        paymentRepository.deleteAll();
+        reservationRepository.deleteAll();
+        siteRepository.deleteAll();
+        campingRepository.deleteAll();
+        userRepository.deleteAll();
+    }
+
+    private PaymentConfirmRequest makeConfirmRequest() {
+        return new PaymentConfirmRequest(
+                "test_payment_key",
+                payment.getOrderId(),
+                100000
+        );
+    }
+
+    private TossConfirmResponse makeTossResponse(String orderId) {
+        return new TossConfirmResponse(
+                "test_payment_key",
+                orderId,
+                "카드",
+                100000,
+                "2026-06-25T10:00:00+09:00",
+                "DONE"
+        );
+    }
+
+    @Test
+    @DisplayName("같은 orderId로 동시에 결제 승인 5명 시도 - 1명만 성공해야 함")
+    void confirmPayment_concurrently_onlyOneSuccess() throws InterruptedException {
+
+        given(tossPaymentClient.confirm(any(), any(), any()))
+                .willAnswer(invocation -> makeTossResponse(invocation.getArgument(1)));
+
+        int threadCount = 5;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch readyLatch = new CountDownLatch(threadCount);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch doneLatch = new CountDownLatch(threadCount);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        PaymentConfirmRequest request = makeConfirmRequest();
+
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    readyLatch.countDown();
+                    startLatch.await();
+
+                    paymentService.confirm(request);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    failCount.incrementAndGet();
+                } finally {
+                    doneLatch.countDown();
+                }
+            });
+        }
+
+        readyLatch.await();
+        startLatch.countDown();
+        doneLatch.await();
+        executorService.shutdown();
+
+        System.out.println("결제 승인 성공: " + successCount.get());
+        System.out.println("결제 승인 실패: " + failCount.get());
+
+        // 1명만 성공해야 함
+        assertThat(successCount.get()).isEqualTo(1);
+        assertThat(failCount.get()).isEqualTo(4);
+
+        // DB에 DONE 결제가 1개만 있어야 함
+        List<Payment> payments = paymentRepository.findAllByReservation_Id(reservation.getId());
+        long doneCount = payments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.DONE)
+                .count();
+        assertThat(doneCount).isEqualTo(1);
+
+        // Reservation이 CONFIRMED 상태여야 함
+        Reservation updatedReservation = reservationRepository.findById(reservation.getId()).orElseThrow();
+        assertThat(updatedReservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
+    }
+
+    @Test
+    @DisplayName("한 예약에 여러 결제 생성 후 동시에 각각 confirm 시도 - 1개만 성공해야 함")
+    void multiplePayments_concurrentConfirm_onlyOneSuccess() throws InterruptedException {
+
+        // 메서드 레벨에서 선언
+        List<Payment> payments = new java.util.ArrayList<>();
+        payments.add(payment);
+
+        for (int i = 0; i < 4; i++) {
+            payments.add(paymentRepository.save(Payment.builder()
+                    .reservation(reservation)
+                    .orderId("ORD-" + UUID.randomUUID())
+                    .paidPrice(100000)
+                    .status(PaymentStatus.READY)
+                    .build()));
+        }
+
+        given(tossPaymentClient.confirm(any(), any(), any()))
+                .willAnswer(invocation -> makeTossResponse(invocation.getArgument(1)));
+
+        int threadCount = 5;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch readyLatch = new CountDownLatch(threadCount);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch doneLatch = new CountDownLatch(threadCount);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        for (int i = 0; i < threadCount; i++) {
+            final Payment p = payments.get(i);
+            executorService.submit(() -> {
+                try {
+                    readyLatch.countDown();
+                    startLatch.await();
+
+                    PaymentConfirmRequest request = new PaymentConfirmRequest(
+                            "test_payment_key_" + p.getOrderId(),
+                            p.getOrderId(),
+                            100000
+                    );
+
+                    paymentService.confirm(request);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    System.out.println("실패: " + e.getMessage());
+                    failCount.incrementAndGet();
+                } finally {
+                    doneLatch.countDown();
+                }
+            });
+        }
+
+        readyLatch.await();
+        startLatch.countDown();
+        doneLatch.await();
+        executorService.shutdown();
+
+        System.out.println("결제 승인 성공: " + successCount.get());
+        System.out.println("결제 승인 실패: " + failCount.get());
+
+        // 1개만 성공해야 함
+        assertThat(successCount.get()).isEqualTo(1);
+        assertThat(failCount.get()).isEqualTo(4);
+
+        // DB에 DONE 결제가 1개만 있어야 함
+        List<Payment> allPayments = paymentRepository.findAllByReservation_Id(reservation.getId());
+        long doneCount = allPayments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.DONE)
+                .count();
+        assertThat(doneCount).isEqualTo(1);
+
+        // Reservation이 CONFIRMED 상태여야 함
+        Reservation updatedReservation = reservationRepository
+                .findById(reservation.getId()).orElseThrow();
+        assertThat(updatedReservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
+
+        // 나머지 4개는 CANCELLED 처리되어야 함
+        long cancelledCount = allPayments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.CANCELLED)
+                .count();
+        assertThat(cancelledCount).isEqualTo(4);
+    }
+
+
+    @Test
+    @DisplayName("결제 승인 + 예약 취소 동시 실행 - 둘 중 하나만 성공해야 함")
+    void confirmPayment_and_cancelReservation_concurrently() throws InterruptedException {
+
+        // 메서드 레벨에서 선언 (람다에서 접근 가능)
+        final Payment newPayment = paymentRepository.save(Payment.builder()
+                .reservation(reservation)
+                .orderId("ORD-NEW-" + UUID.randomUUID())
+                .paidPrice(100000)
+                .status(PaymentStatus.READY)
+                .build());
+
+        reservation.updateStatus(ReservationStatus.CONFIRMED);
+        reservationRepository.save(reservation);
+
+        payment.confirm("test_payment_key");
+        paymentRepository.save(payment);
+
+        given(tossPaymentClient.confirm(any(), any(), any()))
+                .willAnswer(invocation -> makeTossResponse(invocation.getArgument(1)));
+        doNothing().when(tossPaymentClient).cancel(any(), any());
+
+        CountDownLatch readyLatch = new CountDownLatch(2);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch doneLatch = new CountDownLatch(2);
+
+        AtomicInteger confirmSuccess = new AtomicInteger(0);
+        AtomicInteger cancelSuccess = new AtomicInteger(0);
+        AtomicInteger confirmFail = new AtomicInteger(0);
+        AtomicInteger cancelFail = new AtomicInteger(0);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        // 스레드 1: 결제 승인 시도
+        executorService.submit(() -> {
+            try {
+                readyLatch.countDown();
+                startLatch.await();
+
+                PaymentConfirmRequest confirmRequest = new PaymentConfirmRequest(
+                        "test_payment_key",
+                        newPayment.getOrderId(),
+                        100000
+                );
+
+                paymentService.confirm(confirmRequest);
+                confirmSuccess.incrementAndGet();
+            } catch (Exception e) {
+                System.out.println("결제 승인 실패: " + e.getMessage());
+                confirmFail.incrementAndGet();
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        // 스레드 2: 예약 취소 시도
+        executorService.submit(() -> {
+            try {
+                readyLatch.countDown();
+                startLatch.await();
+
+                reservationService.cancelReservation(reservation.getId(), user.getId());
+                cancelSuccess.incrementAndGet();
+            } catch (Exception e) {
+                System.out.println("예약 취소 실패: " + e.getMessage());
+                cancelFail.incrementAndGet();
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        readyLatch.await();
+        startLatch.countDown();
+        doneLatch.await();
+        executorService.shutdown();
+
+        System.out.println("결제 승인 성공: " + confirmSuccess.get());
+        System.out.println("결제 승인 실패: " + confirmFail.get());
+        System.out.println("예약 취소 성공: " + cancelSuccess.get());
+        System.out.println("예약 취소 실패: " + cancelFail.get());
+
+        assertThat(confirmSuccess.get() + cancelSuccess.get()).isEqualTo(1);
+
+        Reservation finalReservation = reservationRepository.findById(reservation.getId()).orElseThrow();
+        List<Payment> finalPayments = paymentRepository.findAllByReservation_Id(reservation.getId());
+
+        if (finalReservation.getStatus() == ReservationStatus.CONFIRMED) {
+            long doneCount = finalPayments.stream()
+                    .filter(p -> p.getStatus() == PaymentStatus.DONE)
+                    .count();
+            assertThat(doneCount).isEqualTo(1);
+        } else if (finalReservation.getStatus() == ReservationStatus.CANCELLED) {
+            long doneCount = finalPayments.stream()
+                    .filter(p -> p.getStatus() == PaymentStatus.DONE)
+                    .count();
+            assertThat(doneCount).isEqualTo(0);
+        } else {
+            throw new AssertionError("예약 상태가 중간값: " + finalReservation.getStatus());
+        }
+    }
+
+    @Test
+    @DisplayName("같은 예약에 동시에 취소 요청 2개 - 1개만 성공하고 상태 불일치 없어야 함")
+    void cancelReservation_concurrently_onlyOneSuccess() throws InterruptedException {
+
+        // CONFIRMED 상태로 세팅
+        reservation.updateStatus(ReservationStatus.CONFIRMED);
+        reservationRepository.save(reservation);
+
+        payment.confirm("test_payment_key");
+        paymentRepository.save(payment);
+
+        doNothing().when(tossPaymentClient).cancel(any(), any());
+
+        int threadCount = 2;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch readyLatch = new CountDownLatch(threadCount);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch doneLatch = new CountDownLatch(threadCount);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    readyLatch.countDown();
+                    startLatch.await();
+
+                    reservationService.cancelReservation(reservation.getId(), user.getId());
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    System.out.println("취소 실패: " + e.getMessage());
+                    failCount.incrementAndGet();
+                } finally {
+                    doneLatch.countDown();
+                }
+            });
+        }
+
+        readyLatch.await();
+        startLatch.countDown();
+        doneLatch.await();
+        executorService.shutdown();
+
+        System.out.println("취소 성공: " + successCount.get());
+        System.out.println("취소 실패: " + failCount.get());
+
+        // 1개만 성공해야 함
+        assertThat(successCount.get()).isEqualTo(1);
+        assertThat(failCount.get()).isEqualTo(1);
+
+        // Reservation CANCELLED 상태 확인
+        Reservation finalReservation = reservationRepository
+                .findById(reservation.getId()).orElseThrow();
+        assertThat(finalReservation.getStatus()).isEqualTo(ReservationStatus.CANCELLED);
+
+        // Payment CANCELLED 상태 확인
+        Payment finalPayment = paymentRepository
+                .findById(payment.getId()).orElseThrow();
+        assertThat(finalPayment.getStatus()).isEqualTo(PaymentStatus.CANCELLED);
+
+        // 상태 불일치 없어야 함
+        // CONFIRMED + CANCELLED 조합 또는 CANCELLED + DONE 조합이 나오면 안 됨
+        boolean isConsistent =
+                (finalReservation.getStatus() == ReservationStatus.CANCELLED &&
+                        finalPayment.getStatus() == PaymentStatus.CANCELLED);
+
+        assertThat(isConsistent)
+                .withFailMessage("상태 불일치 발생! Reservation: %s, Payment: %s",
+                        finalReservation.getStatus(), finalPayment.getStatus())
+                .isTrue();
+    }
+}

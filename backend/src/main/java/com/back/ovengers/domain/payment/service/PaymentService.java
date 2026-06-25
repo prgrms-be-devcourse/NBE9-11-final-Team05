@@ -27,6 +27,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -111,6 +112,7 @@ public class PaymentService {
             otherPayments.stream()
                     .filter(p -> !p.getId().equals(payment.getId()))
                     .filter(p -> p.getStatus() == PaymentStatus.READY)
+                    .sorted(Comparator.comparing(Payment::getId))
                     .forEach(p -> p.updateStatus(PaymentStatus.CANCELLED));
 
             // 1:1 채팅방 개설
