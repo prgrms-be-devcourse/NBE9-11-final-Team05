@@ -85,18 +85,9 @@ export default function SignupStep2() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* 헤더 */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h1 className="text-xl font-bold text-gray-900 tracking-tight">캠핑가잣</h1>
-        <button aria-label="메뉴 열기" className="flex flex-col gap-1.5 p-2 hover:opacity-70 transition-opacity">
-          <span className="block w-6 h-0.5 bg-gray-800" />
-          <span className="block w-6 h-0.5 bg-gray-800" />
-          <span className="block w-6 h-0.5 bg-gray-800" />
-        </button>
-      </header>
 
       {/* 본문 */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-10 gap-6">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-10 gap-6 -mt-60">
         <h2 className="text-2xl font-bold text-gray-800">
           안녕하세요😀 먼저 아래 정보를 입력해주세요
         </h2>
@@ -238,19 +229,6 @@ export default function SignupStep2() {
         </div>
       </main>
 
-      {/* 푸터 */}
-      <footer className="px-6 py-6 border-t border-gray-100">
-        <div className="max-w-3xl mx-auto flex flex-col md:flex-row md:justify-between gap-3">
-          <div>
-            <p className="font-semibold text-gray-800 text-sm">캠핑가잣</p>
-            <p className="text-gray-500 text-xs mt-1">최고의 캠핑을 소개합니다 어쩌구.. 우리 캠핑<br />사이트 최고</p>
-          </div>
-          <div className="flex flex-col md:flex-row gap-2 md:gap-8 text-xs text-gray-500">
-            <span>연락처: 어쩌구</span>
-            <span>메일: 어쩌구@이쩌구.com</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -94,15 +94,6 @@ export default function MyPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8F4]">
-      {/* 헤더 */}
-      <header className="flex items-center justify-between px-5 py-4 bg-white border-b border-gray-100">
-        <h1 className="text-xl font-bold text-gray-900 tracking-tight">캠핑가잣</h1>
-        <button aria-label="메뉴" className="flex flex-col gap-1.5 p-1">
-          <span className="block w-6 h-0.5 bg-gray-800" />
-          <span className="block w-6 h-0.5 bg-gray-800" />
-          <span className="block w-6 h-0.5 bg-gray-800" />
-        </button>
-      </header>
 
       <main className="flex-1 px-5 py-6 max-w-2xl mx-auto w-full flex flex-col gap-6">
         <h2 className="text-xl font-bold text-gray-900">마이 페이지</h2>
@@ -259,21 +250,6 @@ export default function MyPage() {
         </div>
       </main>
 
-      {/* 푸터 */}
-      <footer className="px-5 py-6 border-t border-gray-200 bg-white">
-        <div className="max-w-2xl mx-auto flex flex-col md:flex-row md:justify-between gap-2">
-          <div>
-            <p className="font-semibold text-gray-800 text-sm">캠핑가잣</p>
-            <p className="text-gray-400 text-xs mt-1">
-              최고의 캠핑을 소개합니다 어쩌구.. 우리 캠핑<br />사이트 최고
-            </p>
-          </div>
-          <div className="flex flex-col md:flex-row gap-1 md:gap-8 text-xs text-gray-400">
-            <span>연락처: 어쩌구</span>
-            <span>메일: 어쩌구@이쩌구.com</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
