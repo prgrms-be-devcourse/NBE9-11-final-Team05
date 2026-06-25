@@ -20,6 +20,10 @@ class ChatClient {
       debug: () => {},
     });
 
+    this.client.onConnect = () => {
+        console.log("WS 연결 성공");
+      };
+
     this.client.activate();
   }
 
@@ -35,7 +39,10 @@ class ChatClient {
   }
 
   sendMessage(roomId: number, content: string) {
-    if (!this.client) return;
+
+    if (!this.client) {
+        return;
+    }
 
     this.client.publish({
       destination: "/app/chat-send",

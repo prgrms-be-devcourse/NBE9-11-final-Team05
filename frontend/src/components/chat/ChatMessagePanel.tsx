@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
+import { getChatMessages } from "@/lib/api/chat";
+import { chatClient } from "@/lib/ws/chatClient";
 import { useAuthStore } from "@/stores/authStore";
 
 export default function ChatMessagePanel({
@@ -21,7 +22,7 @@ export default function ChatMessagePanel({
 
   const myUserId = Number(useAuthStore((s) => s.userId));
 
-  // 1️⃣ 최초 로딩
+  // 최초 메시지 조회
   useEffect(() => {
     const load = async () => {
       const res = await getChatMessages(roomId);
@@ -36,7 +37,23 @@ export default function ChatMessagePanel({
     load();
   }, [roomId]);
 
-  // 👉 채팅방 들어오면 input 자동 focus
+  // WebSocket 구독
+  useEffect(() => {
+    const subscription = chatClient.subscribe(
+      roomId,
+      (message) => {
+        setMessages((prev) => [...prev, message]);
+
+        requestAnimationFrame(scrollToBottom);
+      }
+    );
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [roomId]);
+
+  // input focus
   useEffect(() => {
     requestAnimationFrame(() => {
       inputRef.current?.focus();
@@ -50,7 +67,7 @@ export default function ChatMessagePanel({
       scrollRef.current.scrollHeight;
   };
 
-  // 3️⃣ 과거 메시지 로딩
+  // 과거 메시지 로딩
   const loadMore = async () => {
     if (!roomId || !hasNext || loadingMore || cursor === null) return;
     if (!scrollRef.current) return;
@@ -93,43 +110,23 @@ export default function ChatMessagePanel({
     }
   };
 
-  // 4️⃣ 메시지 전송 (API 분리 적용 버전)
-  const sendMessage = async () => {
+  // WebSocket 메시지 전송
+  const sendMessage = () => {
     if (!input.trim()) return;
 
-    const content = input;
+    chatClient.sendMessage(
+      roomId,
+      input.trim()
+    );
+
     setInput("");
-
-    const tempId = Date.now();
-
-    // 1️⃣ optimistic update
-    setMessages((prev) => [
-      ...prev,
-      {
-        messageId: tempId,
-        content,
-        senderId: myUserId,
-        senderName: "나",
-      },
-    ]);
-
-    try {
-      // 2️⃣ API 호출 (분리된 함수)
-      await sendChatMessage(roomId, content);
-    } catch (e) {
-      console.error(e);
-
-      // 실패 시 rollback
-      setMessages((prev) =>
-        prev.filter((m) => m.messageId !== tempId)
-      );
-    }
 
     requestAnimationFrame(scrollToBottom);
   };
 
-  // 👉 Enter 전송
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (e.key === "Enter") {
       sendMessage();
     }
@@ -138,7 +135,6 @@ export default function ChatMessagePanel({
   return (
     <div className="flex flex-col h-full">
 
-      {/* MESSAGES */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
@@ -151,22 +147,25 @@ export default function ChatMessagePanel({
             <div
               key={m.messageId}
               className={`flex ${
-                isMine ? "justify-end" : "justify-start"
+                isMine
+                  ? "justify-end"
+                  : "justify-start"
               }`}
             >
               <div
                 className={`max-w-[70%] px-3 py-2 rounded-lg text-sm
-                  ${
-                    isMine
-                      ? "bg-blue-500 text-white rounded-br-none"
-                      : "bg-gray-200 text-black rounded-bl-none"
-                  }`}
+                ${
+                  isMine
+                    ? "bg-blue-500 text-white rounded-br-none"
+                    : "bg-gray-200 text-black rounded-bl-none"
+                }`}
               >
                 {!isMine && (
                   <div className="text-xs font-bold mb-1">
                     {m.senderName}
                   </div>
                 )}
+
                 {m.content}
               </div>
             </div>
@@ -174,7 +173,6 @@ export default function ChatMessagePanel({
         })}
       </div>
 
-      {/* INPUT */}
       <div className="p-3 border-t flex gap-2">
         <input
           ref={inputRef}
