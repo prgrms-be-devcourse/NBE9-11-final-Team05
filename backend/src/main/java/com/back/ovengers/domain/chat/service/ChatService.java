@@ -176,7 +176,7 @@ public class ChatService {
         ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
 
         messagingTemplate.convertAndSend(
-                "/topic/chatroom/" + request.roomId(),
+                "/topic/chatroom/" + roomId,
                 response
         );
 

@@ -40,7 +40,7 @@ export default function LoginPage() {
       const userId = Number(payload.sub);
 
       // 로그인 상태 저장
-      useAuthStore.getState().setAuth(role, userId);
+      useAuthStore.getState().setAuth(role, userId, token);
 
       if (role === "HOST") {
         router.push("/host/dashboard");
