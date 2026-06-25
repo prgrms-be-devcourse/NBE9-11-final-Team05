@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Test</title>
+</head>
+<body>
+
+<h2>채팅 테스트</h2>
+
+<button onclick="connect()">연결</button>
+<button onclick="subscribeRoom()">구독</button>
+
+<br><br>
+
+<input type="text" id="message" placeholder="메시지 입력">
+<button onclick="sendMessage()">전송</button>
+
+<hr>
+
+<div id="messages"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+
+<script>
+
+  let stompClient;
+
+  function connect() {
+
+    const socket = new SockJS('/ws');
+
+    stompClient = new StompJs.Client({
+      webSocketFactory: () => socket,
+
+      onConnect: () => {
+        console.log("연결 성공");
+        alert("연결 성공");
+      }
+    });
+
+    stompClient.activate();
+  }
+
+  function subscribeRoom() {
+
+    stompClient.subscribe('/topic/chatroom/1', message => {
+
+      const data = JSON.parse(message.body);
+
+      document.getElementById("messages").innerHTML +=
+              "<p>" + data.senderName + " : " + data.content + "</p>";
+    });
+
+    alert("구독 완료");
+  }
+
+  function sendMessage() {
+
+    stompClient.publish({
+      destination: "/app/chat-send",
+      body: JSON.stringify({
+        roomId: 1,
+        userId: 1,
+        content: document.getElementById("message").value
+      })
+    });
+  }
+
+</script>
+
+</body>
+</html>

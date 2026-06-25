@@ -17,6 +17,7 @@ import com.back.ovengers.global.exception.ErrorCode;
 import com.back.ovengers.global.response.CursorResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional(readOnly = true)
     public CursorResponse<ChatRoomResponse> getChatRooms(Long userId, Long cursor, int size) {
@@ -162,14 +164,22 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatMessageResponse sendMessage(Long roomId, User user, ChatMessageRequest request) {
+    public ChatMessageResponse sendMessage(User user, ChatMessageRequest request) {
+        Long roomId = request.roomId();
 
         validateChatRoomMember(roomId, user.getId());
 
         ChatMessage chatMessage = ChatMessage.create(roomId, user, request.content());
         chatMessageRepository.save(chatMessage);
 
-        return ChatMessageResponse.from(chatMessage);
+        ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
+
+        messagingTemplate.convertAndSend(
+                "/topic/chatroom/" + request.roomId(),
+                response
+        );
+
+        return response;
     }
 
     private void validateChatRoomMember(Long roomId, Long userId) {

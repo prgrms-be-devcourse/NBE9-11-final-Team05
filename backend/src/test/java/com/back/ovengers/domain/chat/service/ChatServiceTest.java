@@ -56,7 +56,7 @@ class ChatServiceTest {
         User user = UserFixture.user().build();
         ReflectionTestUtils.setField(user, "id", 1L);
 
-        ChatMessageRequest request = new ChatMessageRequest("hello");
+        ChatMessageRequest request = new ChatMessageRequest(1L, 1L, "hello");
 
         when(chatRoomRepository.existsById(roomId)).thenReturn(true);
         when(chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, user.getId()))
@@ -64,7 +64,7 @@ class ChatServiceTest {
 
         // when
         ChatMessageResponse response =
-                chatService.sendMessage(roomId, user, request);
+                chatService.sendMessage(user, request);
 
         // then
         assertThat(response.content()).isEqualTo("hello");
@@ -83,7 +83,7 @@ class ChatServiceTest {
         User user = UserFixture.user().build();
         ReflectionTestUtils.setField(user, "id", 10L);
 
-        ChatMessageRequest request = new ChatMessageRequest("hello");
+        ChatMessageRequest request = new ChatMessageRequest(1L, 10L, "hello");
 
         when(chatRoomRepository.existsById(roomId)).thenReturn(true);
         when(chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, user.getId()))
@@ -92,7 +92,7 @@ class ChatServiceTest {
         // when & then
         CustomException ex = assertThrows(
                 CustomException.class,
-                () -> chatService.sendMessage(roomId, user, request)
+                () -> chatService.sendMessage(user, request)
         );
 
         assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
