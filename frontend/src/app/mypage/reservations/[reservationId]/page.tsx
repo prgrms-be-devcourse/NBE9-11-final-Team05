@@ -3,6 +3,8 @@ import CancelReservationButton from "@/components/reservation/CancelReservationB
 import Card from "@/components/ui/Card";
 import DataRow from "@/components/ui/DataRow";
 import Button from "@/components/ui/Button";
+import Link from "next/link";
+
 
 interface PageProps {
   params: Promise<{ reservationId: string }>;
@@ -11,6 +13,8 @@ interface PageProps {
 export default async function MyReservationDetailPage({ params }: PageProps) {
   const { reservationId } = await params;
   const reservation = await getReservation(Number(reservationId));
+
+  const isCancellable = reservation.status === "CONFIRMED";
 
   return (
     <div className="mx-auto max-w-md p-6">
@@ -48,10 +52,16 @@ export default async function MyReservationDetailPage({ params }: PageProps) {
       </Card>
 
       <div className="mt-6 flex flex-col gap-3">
+      <Link href={`/campings/${reservation.campingId}`} className="w-full">
         <Button variant="ghost" fullWidth>
           캠핑장 상세 페이지로 이동
         </Button>
-        <CancelReservationButton />
+      </Link>
+
+        {/* 이미 취소된 예약은 버튼 숨김 */}
+        {isCancellable && (
+          <CancelReservationButton reservationId={Number(reservationId)} />
+        )}
       </div>
     </div>
   );

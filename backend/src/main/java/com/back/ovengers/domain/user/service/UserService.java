@@ -83,37 +83,37 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        if (request.getNickname() != null) {
+        if (request.nickname() != null) {
 
-            if (!StringUtils.hasText(request.getNickname())) {
+            if (!StringUtils.hasText(request.nickname())) {
                 throw new CustomException(ErrorCode.EMPTY_NICKNAME);
             }
 
-            if (!user.getNickname().equals(request.getNickname())
-                    && userRepository.existsByNickname(request.getNickname())) {
+            if (!user.getNickname().equals(request.nickname())
+                    && userRepository.existsByNickname(request.nickname())) {
 
                 throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
             }
 
-            user.changeNickname(request.getNickname());
+            user.changeNickname(request.nickname());
         }
 
-        if (request.getPhone() != null) {
+        if (request.phone() != null) {
 
-            if (!StringUtils.hasText(request.getPhone())) {
+            if (!StringUtils.hasText(request.phone())) {
                 throw new CustomException(ErrorCode.EMPTY_PHONE);
             }
 
-            user.changePhone(request.getPhone());
+            user.changePhone(request.phone());
         }
 
-        if (request.getImageUrl() != null) {
+        if (request.imageUrl() != null) {
 
-            if (!StringUtils.hasText(request.getImageUrl())) {
+            if (!StringUtils.hasText(request.imageUrl())) {
                 throw new CustomException(ErrorCode.EMPTY_IMAGE_URL);
             }
 
-            user.changeImageUrl(request.getImageUrl());
+            user.changeImageUrl(request.imageUrl());
         }
 
         return new UserUpdateResponse(
@@ -133,7 +133,7 @@ public class UserService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 입력한 비밀번호와 저장된 암호화 비밀번호 비교
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new CustomException(ErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
 
@@ -156,20 +156,20 @@ public class UserService {
 
         // 현재 비밀번호 확인
         if (!passwordEncoder.matches(
-                request.getCurrentPassword(),
+                request.currentPassword(),
                 user.getPassword()
         )) {
             throw new CustomException(ErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
 
         // 기존 비밀번호와 동일한지 확인
-        if (request.getNewPassword().equals(request.getCurrentPassword())) {
+        if (request.newPassword().equals(request.currentPassword())) {
             throw new CustomException(ErrorCode.SAME_PASSWORD);
         }
 
         // 새 비밀번호 암호화 후 저장
         user.changePassword(
-                passwordEncoder.encode(request.getNewPassword())
+                passwordEncoder.encode(request.newPassword())
         );
     }
 }

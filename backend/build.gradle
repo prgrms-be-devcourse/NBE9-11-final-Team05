@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'jacoco'
+    id 'checkstyle'
     id 'org.springframework.boot' version '4.0.6'
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -56,15 +58,55 @@ dependencies {
     implementation 'software.amazon.awssdk:s3:2.31.78'
 }
 
+jacoco {
+    toolVersion = "0.8.15"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/dto/**',
+                    '**/entity/**',
+                    '**/config/**',
+                    '**/exception/**',
+                    '**/global/**',
+                    '**/*Application*'
+            ])
+        }))
+    }
+}
+
 tasks.named('test') {
     useJUnitPlatform()
     testLogging {
         exceptionFormat = "full"
     }
+    finalizedBy jacocoTestReport
 }
 
 // 필요 없는 plain jar 만드는 작업을 막고 bootJar만 필요
 // plain jar는 의존성 등 외부 라이브러리가 안들어가 있음
 jar {
     enabled = false
+}
+
+checkstyle {
+    toolVersion = '10.21.4'
+    configFile = file("${projectDir}/config/checkstyle/checkstyle.xml")
+    ignoreFailures = true    // 경고만 보여주고 빌드는 막지 않음
+    showViolations = true    // 콘솔에 위반 사항 출력
+}
+
+checkstyleMain {
+    source = sourceSets.main.java.srcDirs
+}
+
+checkstyleTest {
+    enabled = false  // 테스트 코드는 체크 안 함
 }

@@ -33,7 +33,7 @@ public class ReviewService {
     private final CampingRepository campingRepository;
     private final NotificationService notificationService;
 
-    public void createReview(User user, Long reservationId, ReviewRequest request){
+    public void createReview(User user, Long reservationId, ReviewRequest request) {
 
         // 예약 존재 확인
         Reservation reservation = reservationRepository.findByIdWithSiteAndCamping(reservationId)
@@ -52,8 +52,8 @@ public class ReviewService {
                 .user(user)
                 .camping(reservation.getSite().getCamping())
                 .reservation(reservation)
-                .rating(request.getRating())
-                .content(request.getContent())
+                .rating(request.rating())
+                .content(request.content())
                 .build();
 
         reviewRepository.save(review);
@@ -72,13 +72,12 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public Page<ReviewResponse> getCampingReviews(Long campingId, Pageable pageable) {
 
-        // 리뷰 먼저 조회
-        Page<Review> reviews = reviewRepository.findByCampingIdWithUser(campingId, pageable);
-
-        // 리뷰 없을 때만 캠핑장 존재 여부 확인
-        if (reviews.isEmpty() && !campingRepository.existsByIdAndDeletedAtIsNull(campingId)) {
+        // 캠핑장 존재 여부 먼저 확인
+        if (!campingRepository.existsByIdAndDeletedAtIsNull(campingId)) {
             throw new CustomException(ErrorCode.CAMPING_NOT_FOUND);
         }
+
+        Page<Review> reviews = reviewRepository.findByCampingIdWithUser(campingId, pageable);
 
         return reviews.map(ReviewResponse::from);
     }
@@ -92,7 +91,7 @@ public class ReviewService {
         review.validateOwner(user.getId());
 
         // 더티 체킹
-        review.update(request.getRating(), request.getContent());
+        review.update(request.rating(), request.content());
     }
 
     public void deleteReview(User user, Long reviewId) {

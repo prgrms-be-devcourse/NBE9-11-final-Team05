@@ -196,8 +196,8 @@ class ReviewServiceTest {
         Page<ReviewResponse> result = reviewService.getCampingReviews(camping.getId(), pageable);
 
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getRating()).isEqualTo(5);
-        assertThat(result.getContent().get(0).getContent()).isEqualTo("좋았어요");
+        assertThat(result.getContent().get(0).rating()).isEqualTo(5);
+        assertThat(result.getContent().get(0).content()).isEqualTo("좋았어요");
         assertThat(result.getTotalElements()).isEqualTo(1);
     }
 
@@ -366,9 +366,9 @@ class ReviewServiceTest {
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).isHasReview()).isTrue();
-        assertThat(result.getContent().get(0).getReview().getRating()).isEqualTo(5);
-        assertThat(result.getContent().get(0).getReview().getContent()).isEqualTo("좋았어요");
+        assertThat(result.getContent().get(0).hasReview()).isTrue();
+        assertThat(result.getContent().get(0).review().rating()).isEqualTo(5);
+        assertThat(result.getContent().get(0).review().content()).isEqualTo("좋았어요");
     }
 
     @Test
@@ -382,8 +382,8 @@ class ReviewServiceTest {
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).isHasReview()).isFalse();
-        assertThat(result.getContent().get(0).getReview()).isNull();
+        assertThat(result.getContent().get(0).hasReview()).isFalse();
+        assertThat(result.getContent().get(0).review()).isNull();
     }
 
     @Test

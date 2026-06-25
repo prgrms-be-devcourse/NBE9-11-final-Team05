@@ -12,10 +12,10 @@ import lombok.*;
 @Entity
 @Table(
         name = "review",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_review_rsv_id",
-                columnNames = "rsv_id"
-        )
+        uniqueConstraints = @UniqueConstraint(name = "uk_review_rsv_id", columnNames = "rsv_id"),
+        indexes = {
+                @Index(name = "idx_review_camping_created", columnList = "camping_id, created_at DESC")
+        }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -41,7 +41,7 @@ public class Review extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    public void update(Integer rating, String content){
+    public void update(Integer rating, String content) {
         this.rating = rating;
         this.content = content;
     }

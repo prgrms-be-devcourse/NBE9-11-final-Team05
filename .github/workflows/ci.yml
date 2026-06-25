@@ -7,6 +7,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write  # PR에 커버리지 코멘트 달기 위해 필요
+      contents: read        # 리포지토리 코드 읽기 권한
 
     steps:
       - name: 코드 체크아웃
@@ -17,15 +20,38 @@ jobs:
         with:
           java-version: '25'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - name: gradlew 실행 권한 부여
         run: chmod +x backend/gradlew
 
-      - name: 테스트 실행
+      - name: 테스트 및 커버리지 측정
         run: |
           cd backend
           ./gradlew test --no-daemon
+        # --no-daemon: CI 환경에서는 Gradle Daemon이 어차피 재사용 안 되니 사용 안 함
+        # build.gradle의 finalizedBy jacocoTestReport 설정으로 테스트 완료 후 자동으로 JaCoCo 리포트 생성
         env:
           SPRING_PROFILES_ACTIVE: test
-        # 이 결과가 PR 화면에 체크 표시(통과/실패)로 나타남
-        # 팀원이 머지하기 전에 테스트 통과 여부를 바로 확인할 수 있음
+
+      - name: Checkstyle 실행 및 PR 인라인 코멘트
+        uses: dbelyaev/action-checkstyle@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review        # PR 코드에 인라인 코멘트로 달기
+          level: warning                    # 경고 수준으로 표시 (빌드 막지 않음)
+          checkstyle_config: backend/config/checkstyle/checkstyle.xml
+          workdir: backend                  # 분석할 작업 디렉토리
+
+
+      - name: PR에 커버리지 코멘트 추가
+        uses: madrapps/jacoco-report@v1.8.0
+        with:
+          paths: backend/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # GITHUB_TOKEN: 별도 발급 없이 GitHub Actions가 자동으로 제공하는 임시 토큰
+          # PR에 코멘트를 달 수 있는 권한이 포함됨
+          min-coverage-overall: 50       # 전체 커버리지 50% 미만이면 코멘트에 경고 표시
+          min-coverage-changed-files: 60 # 변경된 라인 커버리지 60% 미만이면 경고 표시
+          title: 테스트 커버리지 리포트
+          update-comment: true           # 새 커밋 push 시 기존 코멘트 업데이트 (코멘트가 쌓이지 않음)

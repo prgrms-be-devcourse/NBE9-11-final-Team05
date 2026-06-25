@@ -26,6 +26,9 @@ export default function HostLayout({
           <Link href="/host/reservations" className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
             예약 관리
           </Link>
+          <Link href="/host/timedeals" className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            타임딜 관리
+          </Link>
         </nav>
       </aside>
 

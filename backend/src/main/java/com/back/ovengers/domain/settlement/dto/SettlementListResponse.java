@@ -6,9 +6,9 @@ import java.time.LocalDate;
 public record SettlementListResponse(
         Long id,
         LocalDate settlementDate,
-        Integer totalAmount,
-        Integer feeAmount,
-        Integer payoutAmount,
+        int totalAmount,
+        int feeAmount,
+        int payoutAmount,
         String status
 ) {
     public static SettlementListResponse of(Settlement settlement) {
