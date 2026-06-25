@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -133,4 +134,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     long countActiveReservationsByOverlappingDates(@Param("siteId") Long siteId,
                                                    @Param("checkIn") LocalDate checkIn,
                                                    @Param("checkOut") LocalDate checkOut);
+
+    @Query("""
+    SELECT r FROM Reservation r
+    LEFT JOIN FETCH r.timeDeal
+    WHERE r.status = 'PENDING'
+      AND r.createdAt < :expireTime
+      AND NOT EXISTS (
+          SELECT p FROM Payment p
+          WHERE p.reservation.id = r.id
+      )
+    """)
+    List<Reservation> findAbandonedReservations(@Param("expireTime") LocalDateTime expireTime);
 }

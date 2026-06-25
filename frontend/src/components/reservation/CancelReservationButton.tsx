@@ -36,13 +36,11 @@ export default function CancelReservationButton({ reservationId }: Props) {
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
-    // 팝업 닫을 때 페이지 새로고침 — revalidatePath 대신 사용
     router.refresh();
   };
 
   return (
     <>
-      {/* 취소하기 버튼 */}
       <button
         onClick={() => setShowConfirm(true)}
         className="w-full rounded-full border border-red-200 bg-transparent px-6 py-3 text-sm font-semibold text-red-600 transition-colors hover:bg-white hover:text-red-700"

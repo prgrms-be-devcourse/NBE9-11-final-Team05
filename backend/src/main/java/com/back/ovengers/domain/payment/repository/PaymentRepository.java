@@ -20,9 +20,16 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("SELECT COALESCE(SUM(p.paidPrice), 0L) FROM Payment p WHERE p.status = :status")
     long getTotalSalesAmount(@Param("status") PaymentStatus status);
 
+    @Query("""
+    SELECT p FROM Payment p
+    JOIN FETCH p.reservation r
+    LEFT JOIN FETCH r.timeDeal
+    WHERE p.status = :status
+      AND p.createdAt < :expireTime
+    """)
     List<Payment> findByStatusAndCreatedAtBefore(
-            PaymentStatus status,
-            LocalDateTime dateTime
+            @Param("status") PaymentStatus status,
+            @Param("expireTime") LocalDateTime expireTime
     );
 
     @Query("""
