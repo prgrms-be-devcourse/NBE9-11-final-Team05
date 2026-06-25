@@ -6,7 +6,8 @@ import { persist } from "zustand/middleware";
 interface AuthState {
     isLoggedIn: boolean;   // 로그인 여부
     role: string | null;   // 유저 권한 (USER, HOST, ADMIN)
-    setAuth: (role: string) => void;  // 로그인 시 호출
+    userId: number | null;
+    setAuth: (role: string, userId: number, ) => void;  // 로그인 시 호출
     clearAuth: () => void;            // 로그아웃 시 호출
 }
 
@@ -16,12 +17,13 @@ export const useAuthStore = create<AuthState>()(
         (set) => ({
             isLoggedIn: false,
             role: null,
+            userId: null,
 
             // 로그인 성공 시 role 저장하고 isLoggedIn = true
-            setAuth: (role) => set({ isLoggedIn: true, role }),
+            setAuth: (role, userId) => set({ isLoggedIn: true, role, userId, }),
 
             // 로그아웃 시 상태 초기화
-            clearAuth: () => set({ isLoggedIn: false, role: null }),
+            clearAuth: () => set({ isLoggedIn: false, role: null, userId: null, }),
         }),
         {
             // localStorage에 저장될 키 이름
