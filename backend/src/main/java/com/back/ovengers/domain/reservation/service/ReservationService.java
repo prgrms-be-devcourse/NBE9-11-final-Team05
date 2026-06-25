@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -77,13 +78,24 @@ public class ReservationService {
             throw new CustomException(ErrorCode.GUEST_COUNT_EXCEEDED);
         }
 
-        long reservedCount = reservationRepository.countOverlappingReservation(
+//        long reservedCount = reservationRepository.countOverlappingReservation(
+//                request.siteId(),
+//                request.checkIn(),
+//                request.checkOut(),
+//                ReservationStatus.CANCELLED
+//        );
+//        if (reservedCount >= site.getTotalAmount()) {
+//            throw new CustomException(ErrorCode.SITE_NOT_AVAILABLE);
+//        }
+
+        // Reservation 비관적 락 + 재고 확인
+        List<Reservation> overlapping = reservationRepository.findOverlappingReservationsWithLock(
                 request.siteId(),
                 request.checkIn(),
                 request.checkOut(),
                 ReservationStatus.CANCELLED
         );
-        if (reservedCount >= site.getTotalAmount()) {
+        if (overlapping.size() >= site.getTotalAmount()) {
             throw new CustomException(ErrorCode.SITE_NOT_AVAILABLE);
         }
 
