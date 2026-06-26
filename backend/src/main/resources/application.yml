@@ -4,10 +4,10 @@ spring:
   profiles:
     active: dev
     include: secret
-  datasource:
-    hikari:
-      maximum-pool-size: 150
-      connection-timeout: 30000
+#  datasource:
+#    hikari:
+#      maximum-pool-size: 150
+#      connection-timeout: 30000
 
 
   servlet: #SSE 응답 깨짐 현상 해결
