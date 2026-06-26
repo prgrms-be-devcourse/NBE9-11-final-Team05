@@ -44,6 +44,12 @@ public class AdminController {
         goCampingSyncService.syncImageData();
     }
 
+    // 기존 생성된 캠핑장의 채팅방 생성 (실행 후 삭제 예정)
+    @GetMapping("/chat/sync")
+    public void syncChatRoom() {
+        goCampingSyncService.createMissingOpenChatRooms();
+    }
+
     @Operation(summary = "관리자 대시보드 조회")
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<AdminDashboardResponse>> getDashboard() {

@@ -5,14 +5,13 @@ import com.back.ovengers.domain.camping.external.dto.GoCampingApiImageItem;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiItem;
 import com.back.ovengers.domain.camping.repository.CampingImageRepository;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
-import com.back.ovengers.global.exception.CustomException;
-import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -27,12 +26,19 @@ public class GoCampingSyncService {
     private final GoCampingPersistenceService campingPersistenceService;
 
     public void syncInitialData() {
-        if (campingRepository.count() > 0) {
-            throw new CustomException(ErrorCode.INITIAL_DATA_ALREADY_EXISTS);
-        }
-
         List<GoCampingApiItem> items = goCampingClient.getCampList();
-        campingPersistenceService.saveCamps(items);
+
+        List<Long> apiContentIds = items.stream()
+                        .map(item -> Long.valueOf(item.contentId()))
+                        .toList();
+
+        Set<Long> existingIds = new HashSet<>(campingRepository.findContentIdsIn(apiContentIds));
+
+        List<GoCampingApiItem> newItems = items.stream()
+                        .filter(item -> !existingIds.contains(Long.valueOf(item.contentId())))
+                        .toList();
+
+        campingPersistenceService.saveCamps(newItems);
     }
 
     public void syncImageData() {
@@ -87,4 +93,8 @@ public class GoCampingSyncService {
         log.info("이미지 동기화 실패 항목 : {}", failedCampIds);
     }
 
+    // 임시 채팅방 데이터 생성 (기존 호출된 캠핑장 API)
+    public void createMissingOpenChatRooms() {
+        campingPersistenceService.createMissingOpenChatRooms();
+    }
 }

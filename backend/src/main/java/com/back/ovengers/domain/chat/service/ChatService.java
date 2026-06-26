@@ -1,5 +1,6 @@
 package com.back.ovengers.domain.chat.service;
 
+import com.back.ovengers.domain.chat.dto.ChatJoinResponse;
 import com.back.ovengers.domain.chat.dto.ChatMessageRequest;
 import com.back.ovengers.domain.chat.dto.ChatMessageResponse;
 import com.back.ovengers.domain.chat.dto.ChatRoomResponse;
@@ -17,6 +18,7 @@ import com.back.ovengers.global.exception.ErrorCode;
 import com.back.ovengers.global.response.CursorResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional(readOnly = true)
     public CursorResponse<ChatRoomResponse> getChatRooms(Long userId, Long cursor, int size) {
@@ -127,27 +130,27 @@ public class ChatService {
                         ChatRoomType.OPEN,
                         ChatRoomStatus.ACTIVE
                 )
-                .orElseGet(() -> chatRoomRepository.save(
-                        ChatRoom.builder()
+                .orElseGet(() ->
+                        chatRoomRepository.save(ChatRoom.builder()
                                 .campingId(campingId)
                                 .name(campingName + " 오픈 채팅방")
                                 .type(ChatRoomType.OPEN)
                                 .status(ChatRoomStatus.ACTIVE)
                                 .build()
-                ));
+                        )
+                );
     }
 
     @Transactional
-    public void joinOpenChat(Long roomId, Long userId) {
+    public ChatJoinResponse joinOpenChat(Long campingId, Long userId) {
 
-        ChatRoom room = chatRoomRepository.findById(roomId)
+        ChatRoom room = chatRoomRepository
+                .findByCampingIdAndTypeAndStatus(campingId, ChatRoomType.OPEN, ChatRoomStatus.ACTIVE)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
 
-        if (room.getType() != ChatRoomType.OPEN) {
-            throw new CustomException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
-        }
+        joinChat(room.getId(), userId);
 
-        joinChat(roomId, userId);
+        return new ChatJoinResponse(room.getId());
     }
 
     private void joinChat(Long roomId, Long userId) {
@@ -162,14 +165,22 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatMessageResponse sendMessage(Long roomId, User user, ChatMessageRequest request) {
+    public ChatMessageResponse sendMessage(User user, ChatMessageRequest request) {
+        Long roomId = request.roomId();
 
         validateChatRoomMember(roomId, user.getId());
 
         ChatMessage chatMessage = ChatMessage.create(roomId, user, request.content());
         chatMessageRepository.save(chatMessage);
 
-        return ChatMessageResponse.from(chatMessage);
+        ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
+
+        messagingTemplate.convertAndSend(
+                "/topic/chatroom/" + roomId,
+                response
+        );
+
+        return response;
     }
 
     private void validateChatRoomMember(Long roomId, Long userId) {

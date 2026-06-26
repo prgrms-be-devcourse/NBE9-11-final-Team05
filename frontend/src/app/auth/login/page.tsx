@@ -12,6 +12,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  function parseJwt(token: string) {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+  
+    return JSON.parse(jsonPayload);
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -20,9 +34,13 @@ export default function LoginPage() {
     try {
       const data = await authApi.login(email, password);
       const role = data.data.role;
+      
+      const token = data.data.accessToken;
+      const payload = parseJwt(token);
+      const userId = Number(payload.sub);
 
       // 로그인 상태 저장
-      useAuthStore.getState().setAuth(role);
+      useAuthStore.getState().setAuth(role, userId, token);
 
       if (role === "HOST") {
         router.push("/host/dashboard");
