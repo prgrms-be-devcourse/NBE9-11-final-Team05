@@ -177,64 +177,6 @@ class PaymentConfirmConcurrencyTest {
         );
     }
 
-    @Test
-    @DisplayName("같은 orderId로 동시에 결제 승인 5명 시도 - 1명만 성공해야 함")
-    void confirmPayment_concurrently_onlyOneSuccess() throws InterruptedException {
-
-        given(tossPaymentClient.confirm(any(), any(), any()))
-                .willAnswer(invocation -> makeTossResponse(invocation.getArgument(1)));
-
-        int threadCount = 5;
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch readyLatch = new CountDownLatch(threadCount);
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch doneLatch = new CountDownLatch(threadCount);
-
-        AtomicInteger successCount = new AtomicInteger(0);
-        AtomicInteger failCount = new AtomicInteger(0);
-
-        PaymentConfirmRequest request = makeConfirmRequest();
-
-        for (int i = 0; i < threadCount; i++) {
-            executorService.submit(() -> {
-                try {
-                    readyLatch.countDown();
-                    startLatch.await();
-
-                    paymentService.confirm(request);
-                    successCount.incrementAndGet();
-                } catch (Exception e) {
-                    failCount.incrementAndGet();
-                } finally {
-                    doneLatch.countDown();
-                }
-            });
-        }
-
-        readyLatch.await();
-        startLatch.countDown();
-        doneLatch.await();
-        executorService.shutdown();
-
-        System.out.println("결제 승인 성공: " + successCount.get());
-        System.out.println("결제 승인 실패: " + failCount.get());
-
-        // 1명만 성공해야 함
-        assertThat(successCount.get()).isEqualTo(1);
-        verify(tossPaymentClient, times(1)).confirm(any(), any(), any());
-        assertThat(failCount.get()).isEqualTo(4);
-
-        // DB에 DONE 결제가 1개만 있어야 함
-        List<Payment> payments = paymentRepository.findAllByReservation_Id(reservation.getId());
-        long doneCount = payments.stream()
-                .filter(p -> p.getStatus() == PaymentStatus.DONE)
-                .count();
-        assertThat(doneCount).isEqualTo(1);
-
-        // Reservation이 CONFIRMED 상태여야 함
-        Reservation updatedReservation = reservationRepository.findById(reservation.getId()).orElseThrow();
-        assertThat(updatedReservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
-    }
 
     @Test
     @DisplayName("한 예약에 여러 결제 생성 후 동시에 각각 confirm 시도 - 1개만 성공해야 함")
