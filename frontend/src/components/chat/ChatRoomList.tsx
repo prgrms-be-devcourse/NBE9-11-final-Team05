@@ -5,6 +5,7 @@ import { getChatRooms } from "@/lib/api/chat";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
 import { ChatRoomResponse } from "@/types/chat";
+import { chatClient } from "@/lib/ws/chatClient";
 
 type Tab = "ALL" | "DIRECT" | "OPEN";
 
@@ -15,6 +16,9 @@ export default function ChatRoomList() {
   const openChat = useChatStore((s) => s.openChat);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
 
+  /* =========================
+     1. 최초 로딩
+  ========================= */
   useEffect(() => {
     if (!isLoggedIn) {
       setRooms([]);
@@ -33,6 +37,35 @@ export default function ChatRoomList() {
     load();
   }, [isLoggedIn]);
 
+  /* =========================
+     2. WebSocket (room list 실시간 업데이트)
+  ========================= */
+  useEffect(() => {
+    if (!isLoggedIn) return;
+  
+    const userId = Number(useAuthStore.getState().userId);
+  
+    const subscription = chatClient.subscribeRoomList(
+      userId,
+      (updatedRoom: ChatRoomResponse) => {
+        setRooms((prev) => {
+          const map = new Map<number, ChatRoomResponse>();
+  
+          prev.forEach((r) => map.set(r.roomId, r));
+          map.set(updatedRoom.roomId, updatedRoom);
+  
+          return Array.from(map.values()).sort(
+            (a, b) =>
+              new Date(b.lastMessageAt ?? 0).getTime() -
+              new Date(a.lastMessageAt ?? 0).getTime()
+          );
+        });
+      }
+    );
+  
+    return () => subscription?.unsubscribe?.();
+  }, [isLoggedIn]);
+
   if (!isLoggedIn) {
     return (
       <div className="flex h-full items-center justify-center text-gray-500 text-sm">
@@ -41,6 +74,9 @@ export default function ChatRoomList() {
     );
   }
 
+  /* =========================
+     3. 필터링 (탭)
+  ========================= */
   const filteredRooms = rooms.filter((r) => {
     if (tab === "ALL") return true;
     return r.type === tab;
@@ -67,7 +103,7 @@ export default function ChatRoomList() {
   return (
     <div className="h-full flex flex-col">
 
-      {/* 🔥 TAB BUTTON */}
+      {/* TAB */}
       <div className="flex gap-2 p-2 border-b">
         <button
           onClick={() => setTab("ALL")}
@@ -97,7 +133,7 @@ export default function ChatRoomList() {
         </button>
       </div>
 
-      {/* 🔥 LIST */}
+      {/* LIST */}
       <div className="p-2 space-y-2 overflow-y-auto flex-1">
         {filteredRooms.length === 0 ? (
           <div className="text-xs text-gray-400">

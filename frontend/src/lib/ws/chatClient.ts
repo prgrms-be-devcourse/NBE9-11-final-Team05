@@ -31,7 +31,18 @@ class ChatClient {
     if (!this.client) return;
 
     return this.client.subscribe(
-      `/topic/chatroom/${roomId}`,
+      `/topic/chat/room/${roomId}`,
+      (message: IMessage) => {
+        callback(JSON.parse(message.body));
+      }
+    );
+  }
+
+  subscribeRoomList(userId: number, callback: (room: any) => void) {
+    if (!this.client) return;
+
+    return this.client.subscribe(
+      `/topic/chat/list/${userId}`,
       (message: IMessage) => {
         callback(JSON.parse(message.body));
       }

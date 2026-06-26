@@ -182,9 +182,29 @@ public class ChatService {
         ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
 
         messagingTemplate.convertAndSend(
-                "/topic/chatroom/" + roomId,
+                "/topic/chat/room/" + roomId,
                 response
         );
+
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        ChatMessage lastMessage = chatMessageRepository.findTopByRoomIdOrderByIdDesc(roomId);
+
+        List<Long> userIds = chatRoomMemberRepository.findUserIdsByRoomId(roomId);
+
+        for(Long userId : userIds) {
+            messagingTemplate.convertAndSend(
+                    "/topic/chat/list/" + userId,
+                    new ChatRoomResponse(
+                            room.getId(),
+                            room.getName(),
+                            lastMessage.getContent(),
+                            room.getType(),
+                            lastMessage.getCreatedAt()
+                    )
+            );
+        }
 
         return response;
     }
