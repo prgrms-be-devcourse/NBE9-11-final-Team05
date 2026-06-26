@@ -1,5 +1,7 @@
 package com.back.ovengers.domain.chat.dto.projection;
 
+import com.back.ovengers.domain.chat.enums.ChatRoomType;
+
 import java.time.LocalDateTime;
 
 public interface ChatRoomSummary {
@@ -8,6 +10,8 @@ public interface ChatRoomSummary {
     String getName();
 
     String getContent();
+
+    ChatRoomType getType();
 
     LocalDateTime getLastMessageAt();
 }

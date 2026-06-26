@@ -4,6 +4,7 @@ import Card from "@/components/ui/Card";
 import DataRow from "@/components/ui/DataRow";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
+import DirectChatButton from "@/components/chat/DirectChatButton";
 
 
 interface PageProps {
@@ -58,6 +59,8 @@ export default async function MyReservationDetailPage({ params }: PageProps) {
         </Button>
       </Link>
 
+      <DirectChatButton reservationId={Number(reservationId)} />
+      
         {/* 이미 취소된 예약은 버튼 숨김 */}
         {isCancellable && (
           <CancelReservationButton reservationId={Number(reservationId)} />
