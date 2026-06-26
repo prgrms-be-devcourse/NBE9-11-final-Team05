@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api/auth";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -24,6 +25,8 @@ export default function AdminLoginPage() {
       if (data.data.role !== "ADMIN") {
         throw new Error("관리자 계정만 로그인할 수 있습니다.");
       }
+
+      useAuthStore.getState().setAuth(data.data.role);
 
       router.push("/admin/dashboard");
     } catch (err) {
@@ -74,12 +77,12 @@ export default function AdminLoginPage() {
             className="flex flex-col gap-4"
           >
             <input
-            autoFocus
-            type="email"
-            placeholder="관리자 이메일"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-[#5C7A5C]"
+              autoFocus
+              type="email"
+              placeholder="관리자 이메일"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-[#5C7A5C]"
             />
 
             <input
@@ -91,11 +94,11 @@ export default function AdminLoginPage() {
             />
 
             <div className="h-5">
-            {error && (
+              {error && (
                 <p className="text-sm text-red-500">
-                {error}
+                  {error}
                 </p>
-            )}
+              )}
             </div>
 
             <button
