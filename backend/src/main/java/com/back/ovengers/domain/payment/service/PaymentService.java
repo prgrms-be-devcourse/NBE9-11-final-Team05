@@ -124,7 +124,6 @@ public class PaymentService {
         Payment payment = paymentRepository.findByOrderId(request.orderId())
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        // 예약 락 → 여기서 직렬화
         Reservation reservation = reservationRepository
                 .findByIdWithLock(payment.getReservation().getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
@@ -133,9 +132,23 @@ public class PaymentService {
             throw new CustomException(ErrorCode.ALREADY_PAID);
         }
 
-        // ★ 예약 단위 가드: 같은 예약의 "다른" 결제가 이미 진행/완료 중이면 막음
-        //   서로 다른 결제건이 동시에 들어와도 하나만 선점하도록 보장
-        boolean otherActive = paymentRepository.findAllByReservation_Id(reservation.getId()).stream()
+        // 락 조회로 같은 예약의 모든 결제를 current-read
+        List<Payment> lockedPayments = paymentRepository.findAllByReservationIdWithLock(reservation.getId());
+
+        // 자기 자신을 포함해 최신 상태 확인
+        Payment lockedSelf = lockedPayments.stream()
+                .filter(p -> p.getId().equals(payment.getId()))
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        // 내 payment(최신값)가 이미 진행/완료면 차단
+        if (lockedSelf.getStatus() == PaymentStatus.DONE
+                || lockedSelf.getStatus() == PaymentStatus.IN_PROGRESS) {
+            throw new CustomException(ErrorCode.ALREADY_PAID);
+        }
+
+        // 다른 결제가 진행/완료 중이어도 차단
+        boolean otherActive = lockedPayments.stream()
                 .filter(p -> !p.getId().equals(payment.getId()))
                 .anyMatch(p -> p.getStatus() == PaymentStatus.IN_PROGRESS
                         || p.getStatus() == PaymentStatus.DONE);
@@ -143,22 +156,17 @@ public class PaymentService {
             throw new CustomException(ErrorCode.ALREADY_PAID);
         }
 
-        // 내 payment 상태 검증
-        if (payment.getStatus() == PaymentStatus.DONE
-                || payment.getStatus() == PaymentStatus.IN_PROGRESS) {
-            throw new CustomException(ErrorCode.ALREADY_PAID);
-        }
-        if (payment.getStatus() != PaymentStatus.READY) {
+        if (lockedSelf.getStatus() != PaymentStatus.READY) {
             throw new CustomException(ErrorCode.INVALID_PAYMENT_STATUS);
         }
-        if (!payment.getPaidPrice().equals(request.amount())) {
+        if (!lockedSelf.getPaidPrice().equals(request.amount())) {
             throw new CustomException(ErrorCode.AMOUNT_MISMATCH);
         }
 
-        // 선점
-        payment.updateStatus(PaymentStatus.IN_PROGRESS);
+        // 선점 (락 조회로 읽은 lockedSelf를 변경 — 영속 상태라 dirty checking 됨)
+        lockedSelf.updateStatus(PaymentStatus.IN_PROGRESS);
 
-        return payment.getId();
+        return lockedSelf.getId();
     }
 
     // 3단계: 락 + 최종 반영
