@@ -22,7 +22,7 @@ services:
       - CUSTOM_PROD_JWT_SECRET=${JWT_SECRET}
       - CUSTOM_PROD_TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
       - CUSTOM_PROD_GO_CAMPING_SERVICE_KEY=${GO_CAMPING_SERVICE_KEY}
-      - AWS_S3_BUCKET=${AWS_S3_BUCKET}           # ← 추가
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
       - CLOUDFRONT_DOMAIN=${CLOUDFRONT_DOMAIN}
       # ${...} 부분은 docker compose가 실행될 때
       # 같은 폴더의 .env 파일에서 값을 읽어와서 채워줌
