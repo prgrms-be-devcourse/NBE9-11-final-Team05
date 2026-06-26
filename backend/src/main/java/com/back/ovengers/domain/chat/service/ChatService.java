@@ -34,6 +34,7 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
+    // 채팅방 목록 조회
     @Transactional(readOnly = true)
     public CursorResponse<ChatRoomResponse> getChatRooms(Long userId, Long cursor, int size) {
 
@@ -62,6 +63,7 @@ public class ChatService {
         );
     }
 
+    // 채팅 메시지 조회
     @Transactional(readOnly = true)
     public CursorResponse<ChatMessageResponse> getChatMessages(
             Long userId,
@@ -90,6 +92,7 @@ public class ChatService {
         return new CursorResponse<>(messages, nextCursor, hasNext);
     }
 
+    // 1:1 채팅방 생성
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createDirectChatRoom(
             Long reservationId,
@@ -121,6 +124,7 @@ public class ChatService {
                 });
     }
 
+    // 오픈 채팅방 생성
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createOpenChatRoom(Long campingId, String campingName) {
 
@@ -141,6 +145,7 @@ public class ChatService {
                 );
     }
 
+    // 오픈 채팅방 참여
     @Transactional
     public ChatJoinResponse joinOpenChat(Long campingId, Long userId) {
 
@@ -164,6 +169,7 @@ public class ChatService {
         }
     }
 
+    // 메시지 전송
     @Transactional
     public ChatMessageResponse sendMessage(User user, ChatMessageRequest request) {
         Long roomId = request.roomId();
@@ -193,4 +199,19 @@ public class ChatService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public ChatJoinResponse getDirectRoom(Long userId, Long reservationId) {
+        ChatRoom room = chatRoomRepository
+                .findByReservationIdAndTypeAndStatus(
+                        reservationId,
+                        ChatRoomType.DIRECT,
+                        ChatRoomStatus.ACTIVE
+                )
+                .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        validateChatRoomMember(room.getId(), userId);
+
+        return new ChatJoinResponse(room.getId());
+
+    }
 }

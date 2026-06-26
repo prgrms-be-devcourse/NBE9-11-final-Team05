@@ -65,6 +65,29 @@ export async function getChatRooms(cursor?: number | null) {
   return result.data; 
 }
 
+/* DIRECT 채팅방 조회 (reservationId → roomId) */
+export async function getDirectChatRoom(reservationId: number) {
+  const url = new URL(
+    `${API_URL}/api/chats/direct`
+  );
+
+  url.searchParams.append("reservationId", String(reservationId));
+
+  const res = await fetch(url.toString(), {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(result.message || "DIRECT 채팅방 조회 실패");
+  }
+
+  return result.data; // { roomId }
+}
+
 /* 메시지 전송 (http) */
 export async function sendChatMessage(roomId: number, content: string) {
   const res = await fetch(
