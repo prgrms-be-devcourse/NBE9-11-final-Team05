@@ -64,7 +64,10 @@ export default function DashboardPage() {
         </div>
 
         {/* 활동 회원 */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition">
+        <Link
+          href="/admin/members"
+          className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition block"
+        >
           <div className="w-12 h-1 rounded-full bg-[#5C7A5C]" />
 
           <p className="mt-6 text-sm text-gray-400">
@@ -78,26 +81,26 @@ export default function DashboardPage() {
           <p className="mt-4 text-sm text-[#F4A261]">
             현재 활성 사용자
           </p>
-        </div>
+        </Link>
 
         {/* 승인 대기 */}
         <Link
-            href="/admin/camping-approvals"
-            className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition block"
+          href="/admin/camping-approvals"
+          className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition block"
         >
-            <div className="w-12 h-1 rounded-full bg-[#5C7A5C]" />
+          <div className="w-12 h-1 rounded-full bg-[#5C7A5C]" />
 
-            <p className="mt-6 text-sm text-gray-400">
-                승인 대기 캠핑장
-            </p>
+          <p className="mt-6 text-sm text-gray-400">
+            승인 대기 캠핑장
+          </p>
 
-            <h2 className="mt-3 text-4xl font-bold text-[#5C7A5C]">
-                {dashboard.pendingCampingCount.toLocaleString()}개
-            </h2>
+          <h2 className="mt-3 text-4xl font-bold text-[#5C7A5C]">
+            {dashboard.pendingCampingCount.toLocaleString()}개
+          </h2>
 
-            <p className="mt-4 text-sm text-[#F4A261]">
-                검토 필요
-            </p>
+          <p className="mt-4 text-sm text-[#F4A261]">
+            검토 필요
+          </p>
         </Link>
 
       </div>
