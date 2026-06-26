@@ -54,4 +54,16 @@ public class GoCampingPersistenceService {
             campingImageRepository.saveAll(images);
         }
     }
+
+    @Transactional
+    public void createMissingOpenChatRooms() {
+        List<Camping> camps = campingRepository.findAll();
+
+        for (Camping camp : camps) {
+            chatService.createOpenChatRoom(
+                    camp.getId(),
+                    camp.getName()
+            );
+        }
+    }
 }
