@@ -251,6 +251,14 @@ public enum ErrorCode {
             HttpStatus.UNPROCESSABLE_ENTITY,
             "결제 승인에 실패했습니다."
     ),
+    PAYMENT_CONFIRM_FAILED(
+            HttpStatus.BAD_GATEWAY,
+            "결제 승인에 실패했습니다. 잠시 후 다시 시도해주세요."
+    ),
+    INVALID_PAYMENT_STATUS(
+            HttpStatus.CONFLICT,
+            "처리할 수 없는 결제 상태입니다."
+    ),
 
     // 관리자
     INVALID_CAMPING_ID(
