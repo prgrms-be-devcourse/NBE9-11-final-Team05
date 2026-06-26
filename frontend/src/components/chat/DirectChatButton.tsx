@@ -3,6 +3,7 @@
 import { useChatStore } from "@/stores/chatStore";
 import { getDirectChatRoom } from "@/lib/api/chat";
 import Button from "@/components/ui/Button";
+import { toast } from "sonner";
 
 export default function DirectChatButton({
   reservationId,
@@ -17,6 +18,7 @@ export default function DirectChatButton({
       openChat(res.roomId);
     } catch (e) {
       console.error(e);
+      toast.error("채팅방을 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.");
     }
   };
 

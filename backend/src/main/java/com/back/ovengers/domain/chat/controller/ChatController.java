@@ -78,7 +78,7 @@ public class ChatController {
     @GetMapping("/direct")
     public ResponseEntity<ApiResponse<ChatJoinResponse>> getDirectRoom(
             @AuthenticationPrincipal User user,
-            @RequestParam Long reservationId
+            @RequestParam @Min(1) Long reservationId
     ) {
         return ResponseEntity.ok(
                 new ApiResponse<>("DIRECT 채팅방 조회 성공",

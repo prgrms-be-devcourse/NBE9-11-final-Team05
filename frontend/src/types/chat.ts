@@ -14,9 +14,9 @@ export interface ChatMessageResponse {
 export interface ChatRoomResponse {
     roomId: number;
     roomName: string;
-    lastMessage: string;
+    lastMessage: string | null;
     type: "OPEN" | "DIRECT";
-    lastMessageAt: string;
+    lastMessageAt: string | null;
   }
 
 export interface CursorResponse<T> {

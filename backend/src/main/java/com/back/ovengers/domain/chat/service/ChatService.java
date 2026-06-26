@@ -177,9 +177,9 @@ public class ChatService {
         validateChatRoomMember(roomId, user.getId());
 
         ChatMessage chatMessage = ChatMessage.create(roomId, user, request.content());
-        chatMessageRepository.save(chatMessage);
+        ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
 
-        ChatMessageResponse response = ChatMessageResponse.from(chatMessage);
+        ChatMessageResponse response = ChatMessageResponse.from(savedMessage);
 
         messagingTemplate.convertAndSend(
                 "/topic/chat/room/" + roomId,
@@ -189,19 +189,17 @@ public class ChatService {
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
 
-        ChatMessage lastMessage = chatMessageRepository.findTopByRoomIdOrderByIdDesc(roomId);
-
         List<Long> userIds = chatRoomMemberRepository.findUserIdsByRoomId(roomId);
 
-        for(Long userId : userIds) {
+        for (Long userId : userIds) {
             messagingTemplate.convertAndSend(
                     "/topic/chat/list/" + userId,
                     new ChatRoomResponse(
                             room.getId(),
                             room.getName(),
-                            lastMessage.getContent(),
+                            savedMessage.getContent(),
                             room.getType(),
-                            lastMessage.getCreatedAt()
+                            savedMessage.getCreatedAt()
                     )
             );
         }

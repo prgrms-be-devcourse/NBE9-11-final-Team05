@@ -80,9 +80,6 @@ class ChatServiceTest {
         when(chatMessageRepository.save(any(ChatMessage.class)))
                 .thenReturn(savedMessage);
 
-        when(chatMessageRepository.findTopByRoomIdOrderByIdDesc(roomId))
-                .thenReturn(savedMessage);
-
         when(chatRoomRepository.findById(roomId))
                 .thenReturn(Optional.of(room));
 
