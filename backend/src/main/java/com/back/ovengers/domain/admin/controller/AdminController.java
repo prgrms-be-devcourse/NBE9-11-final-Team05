@@ -1,13 +1,13 @@
 package com.back.ovengers.domain.admin.controller;
 
 
-import com.back.ovengers.domain.admin.dto.AdminDashboardResponse;
-import com.back.ovengers.domain.admin.dto.AdminPendingCampingResponse;
-import com.back.ovengers.domain.admin.dto.CampingBulkApproveRequest;
-import com.back.ovengers.domain.admin.dto.CampingRejectRequest;
+import com.back.ovengers.domain.admin.dto.*;
 import com.back.ovengers.domain.admin.service.AdminService;
 import com.back.ovengers.domain.camping.external.GoCampingSyncService;
+import com.back.ovengers.domain.user.entity.Role;
+import com.back.ovengers.domain.user.entity.Status;
 import com.back.ovengers.global.response.ApiResponse;
+import com.back.ovengers.global.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -101,4 +101,47 @@ public class AdminController {
         adminService.approveCampingList(request);
         return ResponseEntity.ok(new ApiResponse<>("캠핑장 일괄 승인 성공"));
     }
+
+    // 회원 목록 조회
+    @Operation(summary = "회원 목록 조회")
+    @GetMapping("/users")
+    public ResponseEntity<ApiResponse<PageResponse<AdminUserResponse>>> getUsers(
+            @Parameter(description = "역할 필터 (USER, HOST, ADMIN)")
+            @RequestParam(required = false) Role role,
+            @Parameter(description = "상태 필터 (ACTIVE, BANNED)")
+            @RequestParam(required = false) Status status,
+            @Parameter(description = "탈퇴 회원 포함 여부 (기본값 false)")
+            @RequestParam(defaultValue = "false") boolean includeDeleted,
+            @Parameter(description = "검색 키워드 (이름, 이메일, 닉네임)")
+            @RequestParam(required = false) String keyword,
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(new ApiResponse<>(
+                "회원 목록 조회 성공",
+                adminService.getUsers(role, status, includeDeleted, keyword, pageable)
+        ));
+    }
+
+    // 회원 정지
+    @Operation(summary = "회원 정지")
+    @PatchMapping("/users/{userId}/ban")
+    public ResponseEntity<ApiResponse<Void>> banUser(
+            @Parameter(description = "유저 ID", example = "1")
+            @PathVariable @Min(1) Long userId
+    ) {
+        adminService.banUser(userId);
+        return ResponseEntity.ok(new ApiResponse<>("회원 정지가 완료되었습니다."));
+    }
+
+    // 회원 정지 해제
+    @Operation(summary = "회원 정지 해제")
+    @PatchMapping("/users/{userId}/unban")
+    public ResponseEntity<ApiResponse<Void>> unbanUser(
+            @Parameter(description = "유저 ID", example = "1")
+            @PathVariable @Min(1) Long userId
+    ) {
+        adminService.unbanUser(userId);
+        return ResponseEntity.ok(new ApiResponse<>("회원 정지 해제가 완료되었습니다."));
+    }
+
 }

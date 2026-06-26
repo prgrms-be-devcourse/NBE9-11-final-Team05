@@ -1,9 +1,6 @@
 package com.back.ovengers.domain.admin.service;
 
-import com.back.ovengers.domain.admin.dto.AdminDashboardResponse;
-import com.back.ovengers.domain.admin.dto.AdminPendingCampingResponse;
-import com.back.ovengers.domain.admin.dto.CampingBulkApproveRequest;
-import com.back.ovengers.domain.admin.dto.CampingRejectRequest;
+import com.back.ovengers.domain.admin.dto.*;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
@@ -21,6 +18,7 @@ import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
+import com.back.ovengers.global.response.PageResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -356,5 +354,151 @@ class AdminServiceTest {
         assertThatThrownBy(() -> adminService.approveCampingList(request))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CAMPING_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("회원 목록을 조회할 수 있다")
+    void test11() {
+        // given
+        userRepository.save(User.builder()
+                .email("user1@test.com")
+                .password("1234")
+                .name("홍길동")
+                .nickname("길동")
+                .phone("010-1111-1111")
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build());
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // when
+        PageResponse<AdminUserResponse> result = adminService.getUsers(null, null, false, null, pageable);
+
+        // then
+        assertThat(result.getContent()).hasSizeGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("role 필터로 회원 목록을 조회할 수 있다")
+    void test12() {
+        // given
+        userRepository.save(User.builder()
+                .email("user1@test.com")
+                .password("1234")
+                .name("일반유저")
+                .nickname("user1")
+                .phone("010-1111-1111")
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build());
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // when
+        PageResponse<AdminUserResponse> result = adminService.getUsers(Role.HOST, null, false, null, pageable);
+
+        // then
+        assertThat(result.getContent()).allMatch(u -> u.role().equals("HOST"));
+    }
+
+    @Test
+    @DisplayName("키워드로 회원을 검색할 수 있다")
+    void test13() {
+        // given
+        userRepository.save(User.builder()
+                .email("hong@test.com")
+                .password("1234")
+                .name("홍길동")
+                .nickname("hong")
+                .phone("010-1111-1111")
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build());
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // when
+        PageResponse<AdminUserResponse> result = adminService.getUsers(null, null, false, "홍길동", pageable);
+
+        // then
+        assertThat(result.getContent()).allMatch(u -> u.name().equals("홍길동"));
+    }
+
+    @Test
+    @DisplayName("탈퇴 회원을 포함해서 조회할 수 있다")
+    void test14() {
+        // given
+        User deletedUser = userRepository.save(User.builder()
+                .email("deleted@test.com")
+                .password("1234")
+                .name("탈퇴유저")
+                .nickname("deleted")
+                .phone("010-2222-2222")
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build());
+        deletedUser.delete(); // deletedAt 세팅
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // when
+        PageResponse<AdminUserResponse> result = adminService.getUsers(null, null, true, null, pageable);
+
+        // then
+        assertThat(result.getContent()).anyMatch(AdminUserResponse::isDeleted);
+    }
+
+    @Test
+    @DisplayName("회원을 정지할 수 있다")
+    void test15() {
+        // given
+        User targetUser = userRepository.save(User.builder()
+                .email("user@test.com")
+                .password("1234")
+                .name("일반유저")
+                .nickname("user")
+                .phone("010-3333-3333")
+                .role(Role.USER)
+                .status(Status.ACTIVE)
+                .build());
+
+        // when
+        adminService.banUser(targetUser.getId());
+
+        // then
+        User updated = userRepository.findById(targetUser.getId()).orElseThrow();
+        assertThat(updated.getStatus()).isEqualTo(Status.BANNED);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 회원 정지 시 예외가 발생한다")
+    void test16() {
+        // when & then
+        assertThatThrownBy(() -> adminService.banUser(999L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("회원 정지를 해제할 수 있다")
+    void test17() {
+        // given
+        User bannedUser = userRepository.save(User.builder()
+                .email("banned@test.com")
+                .password("1234")
+                .name("정지유저")
+                .nickname("banned")
+                .phone("010-4444-4444")
+                .role(Role.USER)
+                .status(Status.BANNED)
+                .build());
+
+        // when
+        adminService.unbanUser(bannedUser.getId());
+
+        // then
+        User updated = userRepository.findById(bannedUser.getId()).orElseThrow();
+        assertThat(updated.getStatus()).isEqualTo(Status.ACTIVE);
     }
 }
