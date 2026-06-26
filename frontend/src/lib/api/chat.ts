@@ -91,7 +91,7 @@ export async function getDirectChatRoom(reservationId: number) {
 /* 메시지 전송 (http) */
 export async function sendChatMessage(roomId: number, content: string) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/chats/messages`,
+    `${API_URL}/api/chats/messages`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

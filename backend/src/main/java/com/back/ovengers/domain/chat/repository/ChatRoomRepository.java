@@ -18,6 +18,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             r.id as id,
             r.name as name,
             m.content as content,
+            r.type as type,
             m.createdAt as lastMessageAt
         from ChatRoom r
         join ChatRoomMember rm
@@ -31,7 +32,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
         where rm.userId = :userId
             and r.status = :status
             and (:cursor is null or r.id < :cursor)
-        order by r.id desc
+        order by m.createdAt desc nulls last, r.id desc
         """)
     List<ChatRoomSummary> findChatRooms(Long userId, Long cursor, Pageable pageable, ChatRoomStatus status);
 
