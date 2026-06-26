@@ -50,6 +50,12 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
+    // QueryDSL
+    implementation 'io.github.openfeign.querydsl:querydsl-jpa:7.4.0'
+    annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:7.4.0:jakarta'
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+
     //랜덤문자
     implementation 'org.apache.commons:commons-lang3'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
