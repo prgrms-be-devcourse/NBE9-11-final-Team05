@@ -21,20 +21,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     // 해당 날짜에 예약된 수 조회
     @Query("""
-    SELECT COUNT(r) FROM Reservation r
-    WHERE r.site.id = :siteId
-    AND r.status != :cancelledStatus
-    AND r.checkIn < :checkOut
-    AND r.checkOut > :checkIn
-""")
-    long countOverlappingReservation(
-            @Param("siteId") Long siteId,
-            @Param("checkIn") LocalDate checkIn,
-            @Param("checkOut") LocalDate checkOut,
-            @Param("cancelledStatus") ReservationStatus cancelledStatus
-    );
-
-    @Query("""
     SELECT r FROM Reservation r
     WHERE r.site.id = :siteId
     AND r.status != :cancelledStatus
@@ -49,9 +35,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("cancelledStatus") ReservationStatus cancelledStatus
     );
 
-
-
-    Page<Reservation> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    // ReservationRepository 추가
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Reservation r WHERE r.id = :id")
+    Optional<Reservation> findByIdWithLock(@Param("id") Long id);
 
     @Query(value = """
     SELECT r FROM Reservation r

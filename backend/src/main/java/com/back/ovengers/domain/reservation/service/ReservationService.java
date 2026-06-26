@@ -55,7 +55,7 @@ public class ReservationService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // getter -> record accessor (get 제거)
+
         if (!request.checkIn().isBefore(request.checkOut())) {
             throw new CustomException(ErrorCode.INVALID_RESERVATION_DATE);
         }
@@ -78,15 +78,6 @@ public class ReservationService {
             throw new CustomException(ErrorCode.GUEST_COUNT_EXCEEDED);
         }
 
-//        long reservedCount = reservationRepository.countOverlappingReservation(
-//                request.siteId(),
-//                request.checkIn(),
-//                request.checkOut(),
-//                ReservationStatus.CANCELLED
-//        );
-//        if (reservedCount >= site.getTotalAmount()) {
-//            throw new CustomException(ErrorCode.SITE_NOT_AVAILABLE);
-//        }
 
         // Reservation 비관적 락 + 재고 확인
         List<Reservation> overlapping = reservationRepository.findOverlappingReservationsWithLock(
@@ -174,7 +165,7 @@ public class ReservationService {
     public ReservationCancelResponse cancelReservation(Long reservationId, Long userId) {
 
         // 1. 예약 조회
-        Reservation reservation = reservationRepository.findById(reservationId)
+        Reservation reservation = reservationRepository.findByIdWithLock(reservationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
 
         // 2. 본인 예약 확인
