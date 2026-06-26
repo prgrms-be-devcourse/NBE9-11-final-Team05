@@ -3,6 +3,7 @@ package com.back.ovengers.domain.chat.service;
 
 import com.back.ovengers.domain.chat.dto.ChatMessageRequest;
 import com.back.ovengers.domain.chat.dto.ChatMessageResponse;
+import com.back.ovengers.domain.chat.dto.ChatRoomResponse;
 import com.back.ovengers.domain.chat.entity.ChatMessage;
 import com.back.ovengers.domain.chat.entity.ChatRoom;
 import com.back.ovengers.domain.chat.entity.ChatRoomMember;
@@ -25,11 +26,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,9 +66,25 @@ class ChatServiceTest {
 
         ChatMessageRequest request = new ChatMessageRequest(roomId, "hello");
 
-        when(chatRoomRepository.existsById(roomId)).thenReturn(true);
+        ChatRoom room = ChatRoomFixture.openRoom(roomId);
+
+        ChatMessage savedMessage = ChatMessage.create(roomId, user, "hello");
+        ReflectionTestUtils.setField(savedMessage, "id", 10L);
+
+        when(chatRoomRepository.existsById(roomId))
+                .thenReturn(true);
+
         when(chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, user.getId()))
                 .thenReturn(true);
+
+        when(chatMessageRepository.save(any(ChatMessage.class)))
+                .thenReturn(savedMessage);
+
+        when(chatRoomRepository.findById(roomId))
+                .thenReturn(Optional.of(room));
+
+        when(chatRoomMemberRepository.findUserIdsByRoomId(roomId))
+                .thenReturn(List.of(1L, 2L));
 
         // when
         ChatMessageResponse response = chatService.sendMessage(user, request);
@@ -74,11 +93,24 @@ class ChatServiceTest {
         assertThat(response.content()).isEqualTo("hello");
         assertThat(response.senderName()).isEqualTo(user.getNickname());
 
+        // 1. 메시지 저장
         verify(chatMessageRepository).save(any(ChatMessage.class));
 
+        // 2. 채팅방 메시지 전송
         verify(messagingTemplate).convertAndSend(
-                "/topic/chatroom/" + roomId,
+                "/topic/chat/room/" + roomId,
                 response
+        );
+
+        // 3. 유저별 채팅방 리스트 업데이트
+        verify(messagingTemplate).convertAndSend(
+                eq("/topic/chat/list/1"),
+                any(ChatRoomResponse.class)
+        );
+
+        verify(messagingTemplate).convertAndSend(
+                eq("/topic/chat/list/2"),
+                any(ChatRoomResponse.class)
         );
     }
 

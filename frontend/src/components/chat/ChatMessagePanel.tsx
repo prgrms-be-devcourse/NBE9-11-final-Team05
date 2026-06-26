@@ -22,7 +22,9 @@ export default function ChatMessagePanel({
 
   const myUserId = Number(useAuthStore((s) => s.userId));
 
-  // 최초 메시지 조회
+  /* =========================
+     최초 메시지 로딩
+  ========================= */
   useEffect(() => {
     const load = async () => {
       const res = await getChatMessages(roomId);
@@ -37,39 +39,40 @@ export default function ChatMessagePanel({
     load();
   }, [roomId]);
 
-  // WebSocket 구독
+  /* =========================
+     WebSocket 구독
+  ========================= */
   useEffect(() => {
-    const subscription = chatClient.subscribe(
-      roomId,
-      (message) => {
-        setMessages((prev) => [...prev, message]);
+    const subscription = chatClient.subscribe(roomId, (message) => {
+      setMessages((prev) => [...prev, message]);
+      requestAnimationFrame(scrollToBottom);
+    });
 
-        requestAnimationFrame(scrollToBottom);
-      }
-    );
-
-    return () => {
-      subscription?.unsubscribe();
-    };
+    return () => subscription?.unsubscribe();
   }, [roomId]);
 
-  // input focus
+  /* =========================
+     input focus
+  ========================= */
   useEffect(() => {
     requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
   }, [roomId]);
 
+  /* =========================
+     스크롤 아래로
+  ========================= */
   const scrollToBottom = () => {
     if (!scrollRef.current) return;
-
-    scrollRef.current.scrollTop =
-      scrollRef.current.scrollHeight;
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   };
 
-  // 과거 메시지 로딩
+  /* =========================
+     과거 메시지 로딩
+  ========================= */
   const loadMore = async () => {
-    if (!roomId || !hasNext || loadingMore || cursor === null) return;
+    if (!hasNext || loadingMore || cursor === null) return;
     if (!scrollRef.current) return;
 
     const prevHeight = scrollRef.current.scrollHeight;
@@ -104,75 +107,131 @@ export default function ChatMessagePanel({
 
   const handleScroll = () => {
     if (!scrollRef.current) return;
-
-    if (scrollRef.current.scrollTop < 50) {
-      loadMore();
-    }
+    if (scrollRef.current.scrollTop < 50) loadMore();
   };
 
-  // WebSocket 메시지 전송
+  /* =========================
+     메시지 전송
+  ========================= */
   const sendMessage = () => {
     if (!input.trim()) return;
 
-    chatClient.sendMessage(
-      roomId,
-      input.trim()
-    );
-
+    chatClient.sendMessage(roomId, input.trim());
     setInput("");
 
     requestAnimationFrame(scrollToBottom);
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") sendMessage();
   };
 
+  /* =========================
+     시간 / 날짜 포맷
+  ========================= */
+  const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return `${d.getHours().toString().padStart(2, "0")}:${d
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+
+  /* =========================
+     UI
+  ========================= */
   return (
     <div className="flex flex-col h-full">
 
+      {/* 메시지 영역 */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-3 space-y-2"
+        className="flex-1 overflow-y-auto p-3 space-y-3"
       >
-        {messages.map((m) => {
+        {messages.map((m, idx) => {
           const isMine = m.senderId === myUserId;
 
+          const currentDate = formatDate(m.createdAt);
+          const prevDate =
+            idx > 0 ? formatDate(messages[idx - 1].createdAt) : null;
+
+          const showDateDivider = currentDate !== prevDate;
+
           return (
-            <div
-              key={m.messageId}
-              className={`flex ${
-                isMine
-                  ? "justify-end"
-                  : "justify-start"
-              }`}
-            >
+            <div key={m.messageId}>
+
+              {/* 날짜 구분선 */}
+              {showDateDivider && (
+                <div className="flex justify-center my-3">
+                  <div className="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-500">
+                    {currentDate}
+                  </div>
+                </div>
+              )}
+
+              {/* 메시지 */}
               <div
-                className={`max-w-[70%] px-3 py-2 rounded-lg text-sm
-                ${
-                  isMine
-                    ? "bg-blue-500 text-white rounded-br-none"
-                    : "bg-gray-200 text-black rounded-bl-none"
+                className={`flex items-end gap-2 ${
+                  isMine ? "justify-end" : "justify-start"
                 }`}
               >
+                {/* 상대만 프로필 */}
                 {!isMine && (
-                  <div className="text-xs font-bold mb-1">
-                    {m.senderName}
-                  </div>
+                  <img
+                    src={
+                      m.senderImageUrl ||
+                      "/images/default-profile.png"
+                    }
+                    alt="profile"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
                 )}
 
-                {m.content}
+                {/* 말풍선 */}
+                <div
+                  className={`max-w-[70%] px-3 py-2 rounded-lg text-sm`}
+                >
+                  {!isMine && (
+                    <div className="text-xs font-bold mb-1">
+                      {m.senderName}
+                    </div>
+                  )}
+
+                  <div
+                    className={
+                      isMine
+                        ? "bg-blue-500 text-white rounded-br-none px-3 py-2 rounded-lg"
+                        : "bg-gray-200 text-black rounded-bl-none px-3 py-2 rounded-lg"
+                    }
+                  >
+                    {m.content}
+                  </div>
+
+                  {/* 시간 (양쪽 다 표시) */}
+                  <div
+                    className={`text-[10px] mt-1 ${
+                      isMine ? "text-right text-gray-400" : "text-gray-400"
+                    }`}
+                  >
+                    {formatTime(m.createdAt)}
+                  </div>
+                </div>
               </div>
             </div>
           );
         })}
       </div>
 
+      {/* 입력창 */}
       <div className="p-3 border-t flex gap-2">
         <input
           ref={inputRef}
