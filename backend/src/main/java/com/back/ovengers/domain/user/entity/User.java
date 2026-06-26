@@ -83,4 +83,12 @@ public class User extends BaseEntity {
     public void delete() {
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void ban() {
+        this.status = Status.BANNED;
+    }
+
+    public void unban() {
+        this.status = Status.ACTIVE;
+    }
 }

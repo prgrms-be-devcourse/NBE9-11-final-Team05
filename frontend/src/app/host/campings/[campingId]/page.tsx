@@ -14,6 +14,7 @@ import {
 } from "@/types/host";
 import HostCampingDetail from "@/components/host/HostCampingDetail";
 import HostSiteManager from "@/components/host/HostSiteManager";
+import HostImageManager from "@/components/host/HostImageManager";
 
 export default function HostCampingDetailPage() {
   const params = useParams();
@@ -24,23 +25,23 @@ export default function HostCampingDetailPage() {
   const [sites, setSites] = useState<Site[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchCamping() {
-      try {
-        const [campingData, siteData] = await Promise.all([
-          getHostCampingDetail(campingId),
-          getHostSites(campingId),
-        ]);
+  async function fetchCamping() {
+    try {
+      const [campingData, siteData] = await Promise.all([
+        getHostCampingDetail(campingId),
+        getHostSites(campingId),
+      ]);
 
-        setCamping(campingData);
-        setSites(siteData);
-      } catch {
-        alert("캠핑장 정보를 불러오지 못했습니다.");
-      } finally {
-        setIsLoading(false);
-      }
+      setCamping(campingData);
+      setSites(siteData);
+    } catch {
+      alert("캠핑장 정보를 불러오지 못했습니다.");
+    } finally {
+      setIsLoading(false);
     }
+  }
 
+  useEffect(() => {
     fetchCamping();
   }, [campingId]);
 
@@ -86,6 +87,12 @@ export default function HostCampingDetailPage() {
       </div>
 
       <HostCampingDetail camping={camping} />
+
+      <HostImageManager
+        campingId={campingId}
+        initialImages={camping.images}
+        onChange={fetchCamping}
+      />
 
       <HostSiteManager campingId={campingId} sites={sites} />
     </div>

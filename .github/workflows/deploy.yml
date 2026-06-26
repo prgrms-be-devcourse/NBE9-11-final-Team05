@@ -95,6 +95,8 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
           GO_CAMPING_SERVICE_KEY: ${{ secrets.GO_CAMPING_SERVICE_KEY }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          CLOUDFRONT_DOMAIN: ${{ secrets.CLOUDFRONT_DOMAIN }}
           # secrets.* 값은 워크플로우 문법 안에서만 읽히는 값이라서
           # 이렇게 env: 블록에서 한 번 "진짜 환경변수"로 바꿔줘야
           # 아래 envs: 옵션이 그 값을 찾아서 EC2로 전달할 수 있음
@@ -102,7 +104,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}       # 탄력적 IP
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}      # .pem 키 내용 전체
-          envs: DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,TOSS_SECRET_KEY,GO_CAMPING_SERVICE_KEY
+          envs: DB_URL,DB_USERNAME,DB_PASSWORD,JWT_SECRET,TOSS_SECRET_KEY,GO_CAMPING_SERVICE_KEY,AWS_S3_BUCKET,CLOUDFRONT_DOMAIN
           # 위 env: 블록에서 만든 값들을 SSH 세션 안으로 같이 넘겨줌
           script: |
             cd ~/app
@@ -114,6 +116,8 @@ jobs:
             JWT_SECRET=${JWT_SECRET}
             TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
             GO_CAMPING_SERVICE_KEY=${GO_CAMPING_SERVICE_KEY}
+            AWS_S3_BUCKET=${AWS_S3_BUCKET}
+            CLOUDFRONT_DOMAIN=${CLOUDFRONT_DOMAIN}
             ENV_EOF
 
             docker pull artiffect/team5-backend:latest

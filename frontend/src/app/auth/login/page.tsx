@@ -12,6 +12,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  function parseJwt(token: string) {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+  
+    return JSON.parse(jsonPayload);
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -20,9 +34,13 @@ export default function LoginPage() {
     try {
       const data = await authApi.login(email, password);
       const role = data.data.role;
+      
+      const token = data.data.accessToken;
+      const payload = parseJwt(token);
+      const userId = Number(payload.sub);
 
       // 로그인 상태 저장
-      useAuthStore.getState().setAuth(role);
+      useAuthStore.getState().setAuth(role, userId, token);
 
       if (role === "HOST") {
         router.push("/host/dashboard");
@@ -48,21 +66,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* 헤더 */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h1 className="text-xl font-bold text-gray-900 tracking-tight">캠핑가잣</h1>
-        <button
-          aria-label="메뉴 열기"
-          className="flex flex-col gap-1.5 p-2 hover:opacity-70 transition-opacity"
-        >
-          <span className="block w-6 h-0.5 bg-gray-800" />
-          <span className="block w-6 h-0.5 bg-gray-800" />
-          <span className="block w-6 h-0.5 bg-gray-800" />
-        </button>
-      </header>
 
       {/* 본문 */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 pt-2 pb-60">
         <div className="w-full max-w-3xl flex rounded-2xl overflow-hidden shadow-lg">
           {/* 왼쪽 이미지 */}
           <div className="hidden md:block w-1/2 relative">
@@ -156,23 +162,6 @@ export default function LoginPage() {
         </div>
       </main>
 
-      {/* 푸터 */}
-      <footer className="px-6 py-6 border-t border-gray-100">
-        <div className="max-w-3xl mx-auto flex flex-col md:flex-row md:justify-between gap-3">
-          <div>
-            <p className="font-semibold text-gray-800 text-sm">캠핑가잣</p>
-            <p className="text-gray-500 text-xs mt-1">
-              최고의 캠핑을 소개합니다 어쩌구.. 우리 캠핑
-              <br />
-              사이트 최고
-            </p>
-          </div>
-          <div className="flex flex-col md:flex-row gap-2 md:gap-8 text-xs text-gray-500">
-            <span>연락처: 어쩌구</span>
-            <span>메일: 어쩌구@이쩌구.com</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

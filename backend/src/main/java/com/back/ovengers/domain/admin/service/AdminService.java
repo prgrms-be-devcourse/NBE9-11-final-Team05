@@ -1,11 +1,7 @@
 package com.back.ovengers.domain.admin.service;
 
 
-import com.back.ovengers.domain.admin.dto.AdminDashboardResponse;
-import com.back.ovengers.domain.admin.dto.AdminPendingCampingResponse;
-import com.back.ovengers.domain.admin.dto.CampingBulkApproveRequest;
-import com.back.ovengers.domain.admin.dto.CampingRejectRequest;
-import com.back.ovengers.domain.admin.dto.PendingCampingResponse;
+import com.back.ovengers.domain.admin.dto.*;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.event.CampingApprovedEvent;
@@ -14,10 +10,13 @@ import com.back.ovengers.domain.notification.entity.NotificationType;
 import com.back.ovengers.domain.notification.service.NotificationService;
 import com.back.ovengers.domain.payment.entity.PaymentStatus;
 import com.back.ovengers.domain.payment.repository.PaymentRepository;
+import com.back.ovengers.domain.user.entity.Role;
 import com.back.ovengers.domain.user.entity.Status;
+import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.domain.user.repository.UserRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
+import com.back.ovengers.global.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -112,5 +111,28 @@ public class AdminService {
             );
         });
 
+    }
+
+    // 회원 목록 조회
+    @Transactional(readOnly = true)
+    public PageResponse<AdminUserResponse> getUsers(Role role, Status status, boolean includeDeleted, String keyword, Pageable pageable) {
+
+        Page<User> users = userRepository.searchUsers(role, status, includeDeleted, keyword, pageable);
+
+        return PageResponse.from(users.map(AdminUserResponse::from));
+    }
+
+    // 회원 정지
+    public void banUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.ban();
+    }
+
+    // 회원 정지 해제
+    public void unbanUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.unban();
     }
 }

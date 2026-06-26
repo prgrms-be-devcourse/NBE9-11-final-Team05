@@ -5,6 +5,7 @@ import com.back.ovengers.domain.camping.entity.CampingStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.List;
 
 public record HostCampingDetailResponse(
         Long id,
@@ -24,9 +25,13 @@ public record HostCampingDetailResponse(
         LocalTime checkOutTime,
         BigDecimal lat,
         BigDecimal lng,
-        Float rating
+        Float rating,
+        List<HostCampingImageResponse> images
 ) {
-    public static HostCampingDetailResponse from(Camping camping) {
+    public static HostCampingDetailResponse from(
+            Camping camping,
+            List<HostCampingImageResponse> images
+    ) {
         return new HostCampingDetailResponse(
                 camping.getId(),
                 camping.getFirstImageUrl(),
@@ -45,7 +50,8 @@ public record HostCampingDetailResponse(
                 camping.getCheckOutTime(),
                 camping.getLat(),
                 camping.getLng(),
-                camping.getRating()
+                camping.getRating(),
+                images
         );
     }
 }

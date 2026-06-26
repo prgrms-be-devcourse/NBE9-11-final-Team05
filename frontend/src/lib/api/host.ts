@@ -13,8 +13,7 @@ import {
     SiteCreateResponse,
     SiteUpdateRequest,
     SiteUpdateResponse,
-    CampingImageCreateRequest,
-    CampingImageCreateResponse,
+    CampingImageResponse,
     HostReservationListItem,
     CampingClaimRequest,
     CampingClaimSearchItem,
@@ -26,17 +25,23 @@ import {
     url: string,
     options: RequestInit = {}
   ): Promise<T> {
+    const isFormData = options.body instanceof FormData;
+  
     const response = await fetch(`${API_BASE_URL}${url}`, {
       ...options,
       headers: {
-        "Content-Type": "application/json",
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...options.headers,
       },
       credentials: "include",
     });
   
     if (!response.ok) {
-      throw new Error("API 요청에 실패했습니다.");
+      const error = await response.json();
+    
+      throw new Error(
+        error.data ?? error.message ?? "API 요청에 실패했습니다."
+      );
     }
   
     return response.json();
@@ -159,15 +164,19 @@ import {
   }
 
   // 캠핑장 이미지 등록
-export async function addCampingImage(
+  export async function addCampingImage(
     campingId: number,
-    data: CampingImageCreateRequest
+    image: File,
+    thumbnail: boolean
   ) {
-    const response = await request<ApiResponse<CampingImageCreateResponse>>(
-      `/api/host/campings/${campingId}/images`,
+    const formData = new FormData();
+    formData.append("image", image);
+  
+    const response = await request<ApiResponse<CampingImageResponse>>(
+      `/api/host/campings/${campingId}/images?thumbnail=${thumbnail}`,
       {
         method: "POST",
-        body: JSON.stringify(data),
+        body: formData,
       }
     );
   

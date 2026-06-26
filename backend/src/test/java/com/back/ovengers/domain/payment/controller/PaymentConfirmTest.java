@@ -267,7 +267,7 @@ class PaymentConfirmTest {
                         .cookie(new MockCookie("accessToken", accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.data").value("결제 승인에 실패했습니다."));
+                .andExpect(status().isBadGateway())   // 502
+                .andExpect(jsonPath("$.data").value("결제 승인에 실패했습니다. 잠시 후 다시 시도해주세요."));
     }
 }

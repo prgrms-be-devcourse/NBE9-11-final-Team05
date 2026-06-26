@@ -56,4 +56,12 @@ public interface CampingRepository extends JpaRepository<Camping, Long> {
           AND LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
         """)
     List<Camping> searchClaimableCampings(@Param("keyword") String keyword);
+
+
+    @Query("""
+        select c.contentId
+            from Camping c
+                where c.contentId in :contentIds
+        """)
+    List<Long> findContentIdsIn(List<Long> contentIds);
 }

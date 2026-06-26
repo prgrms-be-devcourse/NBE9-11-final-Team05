@@ -25,12 +25,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,6 +48,7 @@ class SettlementSchedulerTest {
     @Autowired private SiteRepository siteRepository;
     @Autowired private CampingRepository campingRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private JdbcTemplate jdbcTemplate;
 
     private User host;
     private Payment payment;
@@ -110,10 +110,15 @@ class SettlementSchedulerTest {
                 .status(PaymentStatus.DONE)
                 .build());
 
-        // createdAt을 지난 주 날짜로 강제 설정
-        ReflectionTestUtils.setField(payment, "createdAt",
-                LocalDateTime.of(2026, 6, 17, 12, 0, 0));
-        paymentRepository.save(payment);
+        // ReflectionTestUtils 대신 JdbcTemplate으로 직접 DB 업데이트
+        // createdAt이 updatable = false라 save()로는 반영이 안 됨
+        LocalDate settlementDate = LocalDate.now().minusDays(1); // 스케줄러와 동일한 기준
+        jdbcTemplate.update(
+                "UPDATE payment SET created_at = ? WHERE id = ?",
+                settlementDate.minusDays(3).atTime(12, 0, 0), // 범위 중간 날짜
+                payment.getId()
+        );
+
     }
 
     @AfterEach

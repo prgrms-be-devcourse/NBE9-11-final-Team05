@@ -193,4 +193,67 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("캠핑장 일괄 승인 성공"));
     }
+
+    @Test
+    @DisplayName("회원 목록 조회 성공")
+    void t7() throws Exception {
+        mockMvc.perform(get("/api/admin/users")
+                        .cookie(adminCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("회원 목록 조회 성공"));
+    }
+
+    @Test
+    @DisplayName("회원 목록 조회 실패 - 일반 유저 접근")
+    void t8() throws Exception {
+        mockMvc.perform(get("/api/admin/users")
+                        .cookie(userCookie))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("회원 목록 조회 실패 - 미로그인")
+    void t9() throws Exception {
+        mockMvc.perform(get("/api/admin/users"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("회원 정지 성공")
+    void t10() throws Exception {
+        mockMvc.perform(patch("/api/admin/users/{userId}/ban", normalUser.getId())
+                        .cookie(adminCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("회원 정지가 완료되었습니다."));
+
+        User updated = userRepository.findById(normalUser.getId()).orElseThrow();
+        assertThat(updated.getStatus()).isEqualTo(Status.BANNED);
+    }
+
+    @Test
+    @DisplayName("회원 정지 실패 - 일반 유저 접근")
+    void t11() throws Exception {
+        mockMvc.perform(patch("/api/admin/users/{userId}/ban", normalUser.getId())
+                        .cookie(userCookie))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("회원 정지 해제 성공")
+    void t12() throws Exception {
+        // given - 먼저 정지 처리
+        mockMvc.perform(patch("/api/admin/users/{userId}/ban", normalUser.getId())
+                        .cookie(adminCookie))
+                .andExpect(status().isOk());
+
+        // when - 정지 해제
+        mockMvc.perform(patch("/api/admin/users/{userId}/unban", normalUser.getId())
+                        .cookie(adminCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("회원 정지 해제가 완료되었습니다."));
+
+        // then
+        User updated = userRepository.findById(normalUser.getId()).orElseThrow();
+        assertThat(updated.getStatus()).isEqualTo(Status.ACTIVE);
+    }
 }
