@@ -36,10 +36,27 @@ public class CampingImage {
     @Column(nullable = false)
     private String imageUrl;
 
+    private String objectKey;
+
+    // 외부 API에서 수집한 이미지를 생성
     public static CampingImage from(Camping camping, String imageUrl) {
         return CampingImage.builder()
                 .imageUrl(imageUrl)
                 .camping(camping)
+                .build();
+    }
+
+    //호스트가 직접 업로드한 이미지를 생성
+    // imageUrl(CloudFront URL)과 objectKey(S3 경로)를 함께 저장
+    public static CampingImage create(
+            Camping camping,
+            String imageUrl,
+            String objectKey
+    ) {
+        return CampingImage.builder()
+                .camping(camping)
+                .imageUrl(imageUrl)
+                .objectKey(objectKey)
                 .build();
     }
 

@@ -36,3 +36,11 @@ app:
     secure: true
   cors:
     allowed-origins: https://campgo.site,https://www.campgo.site
+
+cloud:
+  aws:
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+      cloudfront-domain: ${CLOUDFRONT_DOMAIN}

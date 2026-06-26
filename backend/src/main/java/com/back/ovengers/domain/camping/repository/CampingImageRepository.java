@@ -15,4 +15,9 @@ public interface CampingImageRepository extends JpaRepository<CampingImage, Long
     Optional<CampingImage> findByIdAndCampingId(Long imageId, Long campingId);
 
     List<CampingImage> findByCampingId(Long campingId);
+
+    Optional<CampingImage> findFirstByCampingIdAndIdNotOrderByIdAsc(
+            Long campingId,
+            Long imageId
+    );
 }

@@ -9,6 +9,10 @@ spring:
     encoding:
       charset: UTF-8
       force-response: true
+    # 이미지 업로드 파일 크기 제한
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 
 go-camping:
   base-url: https://apis.data.go.kr/B551011/GoCamping

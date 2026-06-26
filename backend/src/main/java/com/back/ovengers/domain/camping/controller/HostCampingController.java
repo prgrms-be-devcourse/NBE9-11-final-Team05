@@ -110,38 +110,6 @@ public class HostCampingController {
         return ResponseEntity.ok(new ApiResponse<>("캠핑장이 삭제되었습니다."));
     }
 
-    @Operation(summary = "캠핑장 이미지 등록")
-    @PostMapping("/{campingId}/images")
-    public ResponseEntity<ApiResponse<CampingImageCreateResponse>> addCampingImage(
-            @AuthenticationPrincipal User user,
-            @Parameter(description = "캠핑장 ID", example = "1")
-            @PathVariable @Min(1) Long campingId,
-            @Valid @RequestBody CampingImageCreateRequest request
-    ) {
-        CampingImageCreateResponse response =
-                hostCampingService.addCampingImage(user.getId(), campingId, request);
-
-        return ResponseEntity.ok(
-                new ApiResponse<>("캠핑장 이미지가 등록되었습니다.", response)
-        );
-    }
-
-    @Operation(summary = "캠핑장 이미지 삭제")
-    @DeleteMapping("/{campingId}/images/{imageId}")
-    public ResponseEntity<ApiResponse<Void>> deleteCampingImage(
-            @AuthenticationPrincipal User user,
-            @Parameter(description = "캠핑장 ID", example = "1")
-            @PathVariable @Min(1) Long campingId,
-            @Parameter(description = "이미지 ID", example = "1")
-            @PathVariable @Min(1) Long imageId
-    ) {
-        hostCampingService.deleteCampingImage(user.getId(), campingId, imageId);
-
-        return ResponseEntity.ok(
-                new ApiResponse<>("캠핑장 이미지가 삭제되었습니다.")
-        );
-    }
-
     @Operation(summary = "클레임 가능한 캠핑장 검색")
     @GetMapping("/claim/search")
     public ResponseEntity<ApiResponse<List<CampingClaimSearchResponse>>> searchClaimableCampings(
