@@ -5,6 +5,9 @@ import com.back.ovengers.domain.chat.dto.ChatMessageRequest;
 import com.back.ovengers.domain.chat.dto.ChatMessageResponse;
 import com.back.ovengers.domain.chat.entity.ChatMessage;
 import com.back.ovengers.domain.chat.entity.ChatRoom;
+import com.back.ovengers.domain.chat.entity.ChatRoomMember;
+import com.back.ovengers.domain.chat.enums.ChatRoomStatus;
+import com.back.ovengers.domain.chat.enums.ChatRoomType;
 import com.back.ovengers.domain.chat.repository.ChatMessageRepository;
 import com.back.ovengers.domain.chat.repository.ChatRoomMemberRepository;
 import com.back.ovengers.domain.chat.repository.ChatRoomRepository;
@@ -19,16 +22,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -44,6 +46,9 @@ class ChatServiceTest {
     @Mock
     private ChatMessageRepository chatMessageRepository;
 
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
+
     @InjectMocks
     private ChatService chatService;
 
@@ -56,22 +61,25 @@ class ChatServiceTest {
         User user = UserFixture.user().build();
         ReflectionTestUtils.setField(user, "id", 1L);
 
-        ChatMessageRequest request = new ChatMessageRequest("hello");
+        ChatMessageRequest request = new ChatMessageRequest(roomId, "hello");
 
         when(chatRoomRepository.existsById(roomId)).thenReturn(true);
         when(chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, user.getId()))
                 .thenReturn(true);
 
         // when
-        ChatMessageResponse response =
-                chatService.sendMessage(roomId, user, request);
+        ChatMessageResponse response = chatService.sendMessage(user, request);
 
         // then
         assertThat(response.content()).isEqualTo("hello");
         assertThat(response.senderName()).isEqualTo(user.getNickname());
 
-        verify(chatMessageRepository, times(1))
-                .save(any(ChatMessage.class));
+        verify(chatMessageRepository).save(any(ChatMessage.class));
+
+        verify(messagingTemplate).convertAndSend(
+                "/topic/chatroom/" + roomId,
+                response
+        );
     }
 
     @Test
@@ -83,7 +91,7 @@ class ChatServiceTest {
         User user = UserFixture.user().build();
         ReflectionTestUtils.setField(user, "id", 10L);
 
-        ChatMessageRequest request = new ChatMessageRequest("hello");
+        ChatMessageRequest request = new ChatMessageRequest(roomId, "hello");
 
         when(chatRoomRepository.existsById(roomId)).thenReturn(true);
         when(chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, user.getId()))
@@ -92,59 +100,69 @@ class ChatServiceTest {
         // when & then
         CustomException ex = assertThrows(
                 CustomException.class,
-                () -> chatService.sendMessage(roomId, user, request)
+                () -> chatService.sendMessage(user, request)
         );
 
-        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
+        assertThat(ex.getErrorCode())
+                .isEqualTo(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
 
         verify(chatMessageRepository, never()).save(any());
+        verify(messagingTemplate, never()).convertAndSend(any(), Optional.ofNullable(any()));
     }
 
     @Test
     @DisplayName("오픈 채팅방 입장 성공")
     void joinOpenChat_success() {
         // given
+        Long campingId = 100L;
         Long roomId = 1L;
 
         User user = UserFixture.user().build();
         ReflectionTestUtils.setField(user, "id", 10L);
 
         ChatRoom room = ChatRoomFixture.openRoom(roomId);
+        ReflectionTestUtils.setField(room, "campingId", campingId);
 
-        when(chatRoomRepository.findById(roomId))
+        when(chatRoomRepository.findByCampingIdAndTypeAndStatus(
+                campingId,
+                ChatRoomType.OPEN,
+                ChatRoomStatus.ACTIVE))
                 .thenReturn(Optional.of(room));
 
         when(chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, user.getId()))
                 .thenReturn(false);
 
         // when
-        chatService.joinOpenChat(roomId, user.getId());
+        chatService.joinOpenChat(campingId, user.getId());
 
         // then
-        verify(chatRoomMemberRepository, times(1))
-                .save(any());
+        verify(chatRoomMemberRepository).save(any(ChatRoomMember.class));
     }
 
     @Test
-    @DisplayName("오픈 채팅방 입장 실패 - OPEN 아님")
-    void joinOpenChat_fail_notOpenRoom() {
+    @DisplayName("오픈 채팅방 입장 실패 - 채팅방 없음")
+    void joinOpenChat_fail_roomNotFound() {
         // given
-        Long roomId = 1L;
+        Long campingId = 100L;
 
         User user = UserFixture.user().build();
         ReflectionTestUtils.setField(user, "id", 10L);
 
-        ChatRoom room = ChatRoomFixture.directRoom(roomId);
-
-        when(chatRoomRepository.findById(roomId))
-                .thenReturn(Optional.of(room));
+        when(chatRoomRepository.findByCampingIdAndTypeAndStatus(
+                campingId,
+                ChatRoomType.OPEN,
+                ChatRoomStatus.ACTIVE))
+                .thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() ->
-                chatService.joinOpenChat(roomId, user.getId())
-        ).isInstanceOf(CustomException.class);
+        CustomException ex = assertThrows(
+                CustomException.class,
+                () -> chatService.joinOpenChat(campingId, user.getId())
+        );
+
+        assertThat(ex.getErrorCode())
+                .isEqualTo(ErrorCode.CHAT_ROOM_NOT_FOUND);
 
         verify(chatRoomMemberRepository, never()).save(any());
     }
-
 }

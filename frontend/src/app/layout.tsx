@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/layout/Header";
 import "./globals.css";
+import ChatWindow from "@/components/chat/ChatWindow";
+import ChatFabButton from "@/components/chat/ChatFabButton";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +36,11 @@ export default function RootLayout({
         <main className="max-w-6xl mx-auto px-6 py-8 min-h-screen">
           {children}
         </main>
+
+        <ChatFabButton />
+        <ChatWindow />
+        
+        <Toaster position="bottom-center" />
 
         {/* Footer */}
         <footer>
