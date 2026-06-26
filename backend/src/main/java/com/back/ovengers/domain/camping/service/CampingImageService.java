@@ -1,6 +1,6 @@
 package com.back.ovengers.domain.camping.service;
 
-import com.back.ovengers.domain.camping.dto.CampingImageCreateResponse;
+import com.back.ovengers.domain.camping.dto.HostCampingImageResponse;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingImage;
 import com.back.ovengers.domain.camping.repository.CampingImageRepository;
@@ -27,7 +27,7 @@ public class CampingImageService {
      * 캠핑장 이미지 등록
      */
     @Transactional
-    public CampingImageCreateResponse addCampingImage(
+    public HostCampingImageResponse addCampingImage(
             Long userId,
             Long campingId,
             MultipartFile image,
@@ -56,7 +56,7 @@ public class CampingImageService {
             camping.changeFirstImageUrl(uploadResult.imageUrl());
         }
 
-        return CampingImageCreateResponse.from(
+        return HostCampingImageResponse.from(
                 campingImage,
                 camping.getFirstImageUrl()
         );

@@ -23,7 +23,7 @@ public class S3Service {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    @Value("${cloud.aws.cloudfront.domain}")
+    @Value("${cloud.aws.s3.cloudfront-domain}")
     private String cloudFrontDomain;
 
     /**
@@ -60,9 +60,7 @@ public class S3Service {
         }
     }
 
-    /**
-     * S3에서 objectKey에 해당하는 파일을 삭제
-     */
+    // S3에서 objectKey에 해당하는 파일을 삭제
     public void delete(String objectKey) {
         DeleteObjectRequest request = DeleteObjectRequest.builder()
                 .bucket(bucket)
@@ -72,9 +70,8 @@ public class S3Service {
         s3Client.deleteObject(request);
     }
 
-    /**
-     * 업로드된 파일이 비어 있지 않은 이미지 파일인지 검증
-     */
+
+    // 업로드된 파일이 비어 있지 않은 이미지 파일인지 검증
     private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new CustomException(ErrorCode.MISSING_REQUIRED_FIELD);
@@ -87,9 +84,7 @@ public class S3Service {
         }
     }
 
-    /**
-     * 원본 파일명에서 확장자를 추출
-     */
+    //원본 파일명에서 확장자를 추출
     private String getExtension(String filename) {
         if (filename == null || !filename.contains(".")) {
             return "";
@@ -98,9 +93,7 @@ public class S3Service {
         return filename.substring(filename.lastIndexOf("."));
     }
 
-    /**
-     * CloudFront 도메인과 objectKey를 조합해 이미지 조회 URL 생성
-     */
+    // CloudFront 도메인과 objectKey를 조합해 이미지 조회 URL 생성
     private String getFileUrl(String objectKey) {
         return "https://" + cloudFrontDomain + "/" + objectKey;
     }

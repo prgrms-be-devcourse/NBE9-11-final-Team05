@@ -71,7 +71,13 @@ public class HostCampingService {
     ) {
         Camping camping = getOwnedCamping(hostId, campingId);
 
-        return HostCampingDetailResponse.from(camping);
+        List<HostCampingImageResponse> images = campingImageRepository
+                .findByCampingId(campingId)
+                .stream()
+                .map(image -> HostCampingImageResponse.from(image, camping.getFirstImageUrl()))
+                .toList();
+
+        return HostCampingDetailResponse.from(camping, images);
     }
 
     @Transactional

@@ -49,6 +49,7 @@ export interface HostCampingDetail {
   checkInTime: string | null;
   checkOutTime: string | null;
   rating: number | null;
+  images: CampingImage[];
 }
 
 export interface CampingCreateRequest {
@@ -147,17 +148,15 @@ export interface SiteCreateRequest {
   }
 
   export interface CampingImage {
-    id: number;
+    imageId: number;
     imageUrl: string;
+    thumbnail: boolean;
   }
   
-  export interface CampingImageCreateRequest {
+  export interface CampingImageResponse {
+    imageId: number;
     imageUrl: string;
-  }
-  
-  export interface CampingImageCreateResponse {
-    id: number;
-    imageUrl: string;
+    thumbnail: boolean;
   }
 
   export type ReservationStatus =

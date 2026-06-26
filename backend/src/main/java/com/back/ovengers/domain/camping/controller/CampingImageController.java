@@ -1,6 +1,6 @@
 package com.back.ovengers.domain.camping.controller;
 
-import com.back.ovengers.domain.camping.dto.CampingImageCreateResponse;
+import com.back.ovengers.domain.camping.dto.HostCampingImageResponse;
 import com.back.ovengers.domain.camping.service.CampingImageService;
 import com.back.ovengers.domain.user.entity.User;
 import com.back.ovengers.global.response.ApiResponse;
@@ -30,14 +30,14 @@ public class CampingImageController {
             value = "/{campingId}/images",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<ApiResponse<CampingImageCreateResponse>> addCampingImage(
+    public ResponseEntity<ApiResponse<HostCampingImageResponse>> addCampingImage(
             @AuthenticationPrincipal User user,
             @Parameter(description = "캠핑장 ID", example = "1")
             @PathVariable @Min(1) Long campingId,
             @RequestPart("image") MultipartFile image,
             @RequestParam(defaultValue = "false") boolean thumbnail
     ) {
-        CampingImageCreateResponse response =
+        HostCampingImageResponse response =
                 campingImageService.addCampingImage(
                         user.getId(),
                         campingId,

@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.camping.service;
 
 import com.back.ovengers.domain.camping.dto.CampingImageCreateResponse;
+import com.back.ovengers.domain.camping.dto.HostCampingImageResponse;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingImage;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
@@ -27,7 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class CampingImageServiceTest {
@@ -79,7 +81,7 @@ class CampingImageServiceTest {
                 });
 
         // when
-        CampingImageCreateResponse response =
+        HostCampingImageResponse response =
                 campingImageService.addCampingImage(userId, campingId, file, false);
 
         // then
@@ -122,7 +124,7 @@ class CampingImageServiceTest {
                 .willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        CampingImageCreateResponse response =
+        HostCampingImageResponse response =
                 campingImageService.addCampingImage(userId, campingId, file, true);
 
         // then
@@ -162,7 +164,7 @@ class CampingImageServiceTest {
                 .willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        CampingImageCreateResponse response =
+        HostCampingImageResponse response =
                 campingImageService.addCampingImage(userId, campingId, file, false);
 
         // then

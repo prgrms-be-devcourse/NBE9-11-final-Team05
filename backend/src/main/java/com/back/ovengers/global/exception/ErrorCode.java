@@ -390,6 +390,11 @@ public enum ErrorCode {
     INVALID_FILE_TYPE(
             HttpStatus.BAD_REQUEST,
             "이미지 파일만 업로드할 수 있습니다."
+    ),
+
+    IMAGE_SIZE_EXCEEDED(
+            HttpStatus.BAD_REQUEST,
+            "이미지 파일은 5MB 이하만 업로드할 수 있습니다."
     );
 
     private final HttpStatus status;
