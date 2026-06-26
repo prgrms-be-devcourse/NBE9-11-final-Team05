@@ -9,6 +9,7 @@ import com.back.ovengers.domain.payment.dto.TossConfirmResponse;
 import com.back.ovengers.domain.payment.entity.Payment;
 import com.back.ovengers.domain.payment.entity.PaymentStatus;
 import com.back.ovengers.domain.payment.repository.PaymentRepository;
+import com.back.ovengers.domain.payment.scheduler.PaymentScheduler;
 import com.back.ovengers.domain.payment.service.PaymentService;
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
@@ -24,9 +25,12 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 import javax.sql.DataSource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -50,8 +54,8 @@ class PaymentConfirmConcurrencyTest {
     @Autowired private UserRepository userRepository;
     @Autowired private SiteRepository siteRepository;
     @Autowired private CampingRepository campingRepository;
-    @Autowired private JwtProvider jwtProvider;
     @Autowired private DataSource dataSource;
+    @Autowired private PaymentScheduler paymentScheduler;
 
     @MockitoBean
     private TossPaymentClient tossPaymentClient;
@@ -217,6 +221,7 @@ class PaymentConfirmConcurrencyTest {
 
         // 1명만 성공해야 함
         assertThat(successCount.get()).isEqualTo(1);
+        verify(tossPaymentClient, times(1)).confirm(any(), any(), any());
         assertThat(failCount.get()).isEqualTo(4);
 
         // DB에 DONE 결제가 1개만 있어야 함
@@ -235,7 +240,7 @@ class PaymentConfirmConcurrencyTest {
     @DisplayName("한 예약에 여러 결제 생성 후 동시에 각각 confirm 시도 - 1개만 성공해야 함")
     void multiplePayments_concurrentConfirm_onlyOneSuccess() throws InterruptedException {
 
-        // 메서드 레벨에서 선언
+        // 기존 payment(READY) 1개 + 추가 4개 = 총 5개 결제 생성 (모두 같은 예약)
         List<Payment> payments = new java.util.ArrayList<>();
         payments.add(payment);
 
@@ -248,6 +253,7 @@ class PaymentConfirmConcurrencyTest {
                     .build()));
         }
 
+        // 토스 confirm은 항상 성공한다고 가정
         given(tossPaymentClient.confirm(any(), any(), any()))
                 .willAnswer(invocation -> makeTossResponse(invocation.getArgument(1)));
 
@@ -260,6 +266,7 @@ class PaymentConfirmConcurrencyTest {
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failCount = new AtomicInteger(0);
 
+        // 5개 스레드가 각자 다른 결제건으로 동시에 confirm 시도
         for (int i = 0; i < threadCount; i++) {
             final Payment p = payments.get(i);
             executorService.submit(() -> {
@@ -292,27 +299,40 @@ class PaymentConfirmConcurrencyTest {
         System.out.println("결제 승인 성공: " + successCount.get());
         System.out.println("결제 승인 실패: " + failCount.get());
 
-        // 1개만 성공해야 함
+        // ── 검증 ──────────────────────────────────────────────
+
+        // 1) 정확히 1개만 성공
         assertThat(successCount.get()).isEqualTo(1);
         assertThat(failCount.get()).isEqualTo(4);
 
-        // DB에 DONE 결제가 1개만 있어야 함
         List<Payment> allPayments = paymentRepository.findAllByReservation_Id(reservation.getId());
+
+        // 2) DONE 결제는 정확히 1개 (중복 결제 없음 - 핵심 불변식)
         long doneCount = allPayments.stream()
                 .filter(p -> p.getStatus() == PaymentStatus.DONE)
                 .count();
         assertThat(doneCount).isEqualTo(1);
 
-        // Reservation이 CONFIRMED 상태여야 함
+        // 3) 예약은 CONFIRMED
         Reservation updatedReservation = reservationRepository
                 .findById(reservation.getId()).orElseThrow();
         assertThat(updatedReservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
 
-        // 나머지 4개는 CANCELLED 처리되어야 함
-        long cancelledCount = allPayments.stream()
-                .filter(p -> p.getStatus() == PaymentStatus.CANCELLED)
+        // 4) IN_PROGRESS로 남은 결제가 있으면 안 됨 (선점 후 정상 복구/미진입)
+        long inProgressCount = allPayments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.IN_PROGRESS)
                 .count();
-        assertThat(cancelledCount).isEqualTo(4);
+        assertThat(inProgressCount).isEqualTo(0);
+
+        // 5) DONE 1개를 제외한 나머지 4개는 READY 또는 CANCELLED
+        //    - postConfirm이 즉시 잡은 건 CANCELLED
+        //    - 못 잡은 건 READY로 남아 30분 뒤 스케줄러가 정리
+        //    동시성 타이밍에 따라 비율이 갈리므로 둘을 합쳐서 4개인지 검증
+        long readyOrCancelled = allPayments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.READY
+                        || p.getStatus() == PaymentStatus.CANCELLED)
+                .count();
+        assertThat(readyOrCancelled).isEqualTo(4);
     }
 
 
@@ -489,4 +509,55 @@ class PaymentConfirmConcurrencyTest {
                         finalReservation.getStatus(), finalPayment.getStatus())
                 .isTrue();
     }
+    @Test
+    @DisplayName("스케줄러: CONFIRMED 예약의 잉여 READY 결제는 취소되고 예약은 보존된다")
+    void scheduler_cleansUpOrphanReady_keepsConfirmedReservation() {
+
+        // given: 예약 CONFIRMED + DONE 1건 + 30분 지난 READY 잉여 결제 4건
+        reservation.updateStatus(ReservationStatus.CONFIRMED);
+        reservationRepository.save(reservation);
+
+        payment.confirm("test_payment_key");
+        paymentRepository.save(payment);  // DONE
+
+        LocalDateTime past = LocalDateTime.now().minusMinutes(40);
+        for (int i = 0; i < 4; i++) {
+            Payment orphan = Payment.builder()
+                    .reservation(reservation)
+                    .orderId("ORD-ORPHAN-" + UUID.randomUUID())
+                    .paidPrice(100000)
+                    .status(PaymentStatus.READY)
+                    .build();
+            Payment saved = paymentRepository.save(orphan);
+            // createdAt을 과거로 강제 (스케줄러 조건 충족시키기)
+            forceCreatedAt(saved.getId(), past);
+        }
+
+        // when: 스케줄러 실행
+        paymentScheduler.expirePendingPayments();
+
+        // then: 잉여 READY 4건은 CANCELLED, 예약은 CONFIRMED 보존
+        List<Payment> all = paymentRepository.findAllByReservation_Id(reservation.getId());
+        long cancelled = all.stream().filter(p -> p.getStatus() == PaymentStatus.CANCELLED).count();
+        long done = all.stream().filter(p -> p.getStatus() == PaymentStatus.DONE).count();
+        assertThat(cancelled).isEqualTo(4);
+        assertThat(done).isEqualTo(1);
+
+        Reservation finalRsv = reservationRepository.findById(reservation.getId()).orElseThrow();
+        assertThat(finalRsv.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);  // 보존!
+    }
+
+    // createdAt을 강제로 과거로 세팅 (스케줄러의 30분 조건 충족용)
+    private void forceCreatedAt(Long paymentId, LocalDateTime time) {
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.prepareStatement(
+                     "UPDATE payment SET created_at = ? WHERE id = ?")) {
+            stmt.setTimestamp(1, java.sql.Timestamp.valueOf(time));
+            stmt.setLong(2, paymentId);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
