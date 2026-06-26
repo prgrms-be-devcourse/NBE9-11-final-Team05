@@ -4,6 +4,7 @@ import Header from "@/components/layout/Header";
 import "./globals.css";
 import ChatWindow from "@/components/chat/ChatWindow";
 import ChatFabButton from "@/components/chat/ChatFabButton";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,8 @@ export default function RootLayout({
         <ChatFabButton />
         <ChatWindow />
         
+        <Toaster position="bottom-center" />
+
         {/* Footer */}
         <footer>
           <div className="max-w-6xl mx-auto px-6">
