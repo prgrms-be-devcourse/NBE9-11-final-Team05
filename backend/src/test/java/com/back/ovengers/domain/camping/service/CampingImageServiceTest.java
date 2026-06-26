@@ -1,6 +1,5 @@
 package com.back.ovengers.domain.camping.service;
 
-import com.back.ovengers.domain.camping.dto.CampingImageCreateResponse;
 import com.back.ovengers.domain.camping.dto.HostCampingImageResponse;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingImage;
