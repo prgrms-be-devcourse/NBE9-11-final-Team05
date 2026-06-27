@@ -1,6 +1,7 @@
 package com.back.ovengers.domain.reservation.service;
 
 import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.chat.service.ChatService;
 import com.back.ovengers.domain.payment.client.TossPaymentClient;
 import com.back.ovengers.domain.payment.dto.PaymentSummaryResponse;
 import com.back.ovengers.domain.payment.entity.Payment;
@@ -49,6 +50,7 @@ public class ReservationService {
     private final PaymentRepository paymentRepository;
     private final TossPaymentClient tossPaymentClient;
     private final TimeDealRepository timeDealRepository;
+    private final ChatService chatService;
 
     public ReservationResponse create(Long userId, ReservationRequest request) {
 
@@ -188,6 +190,8 @@ public class ReservationService {
         // 6. 예약/결제 상태 변경 (트랜잭션 안에서 처리)
         payment.updateStatus(PaymentStatus.CANCELLED);
         reservation.updateStatus(ReservationStatus.CANCELLED);
+
+        chatService.closeByReservationId(reservationId);
 
         return ReservationCancelResponse.of(reservation);
     }
