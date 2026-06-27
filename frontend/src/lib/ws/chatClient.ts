@@ -4,6 +4,10 @@ import SockJS from "sockjs-client";
 class ChatClient {
   private client: Client | null = null;
 
+  isConnected() {
+    return this.client?.connected ?? false;
+}
+
   connect(token: string) {
     if (this.client?.active) return;
 
@@ -28,7 +32,10 @@ class ChatClient {
   }
 
   subscribe(roomId: number, callback: (msg: any) => void) {
-    if (!this.client) return;
+    if (!this.client?.connected) {
+      console.warn("WS 아직 연결되지 않았습니다.");
+      return;
+  }
 
     return this.client.subscribe(
       `/topic/chat/room/${roomId}`,

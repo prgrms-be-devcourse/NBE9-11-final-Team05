@@ -30,8 +30,6 @@ export const useAuthStore = create<AuthState>()(
                   userId,
                   token,
                 });
-              
-                chatClient.connect(token); // 🔥 여기서 WS 연결
               },
 
             // 로그아웃 시 상태 초기화
@@ -42,8 +40,6 @@ export const useAuthStore = create<AuthState>()(
                   userId: null,
                   token: null,
                 });
-              
-                chatClient.disconnect(); // 🔥 로그아웃 시 끊기
               },
         }),
         {

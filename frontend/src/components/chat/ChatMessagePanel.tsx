@@ -150,7 +150,7 @@ export default function ChatMessagePanel({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-3 space-y-3"
+        className="flex-1 overflow-y-auto p-3 space-y-1"
       >
         {messages.map((m, idx) => {
           const isMine = m.senderId === myUserId;
@@ -166,7 +166,7 @@ export default function ChatMessagePanel({
 
               {/* 날짜 구분선 */}
               {showDateDivider && (
-                <div className="flex justify-center my-3">
+                <div className="flex justify-center my-2">
                   <div className="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-500">
                     {currentDate}
                   </div>
@@ -193,10 +193,10 @@ export default function ChatMessagePanel({
 
                 {/* 말풍선 */}
                 <div
-                  className={`max-w-[70%] px-3 py-2 rounded-lg text-sm`}
+                  className={`max-w-[70%] px-3 py-1 rounded-lg text-sm`}
                 >
                   {!isMine && (
-                    <div className="text-xs font-bold mb-1">
+                    <div className="text-xs font-bold mb-0.5">
                       {m.senderName}
                     </div>
                   )}
