@@ -23,11 +23,13 @@ interface UserProfile {
   nickname: string;
   imageUrl: string | null;
   phone: string;
+  role: "USER" | "HOST" | "ADMIN";
 }
 
 export default function EditProfilePage() {
   const router = useRouter();
   const [originalNickname, setOriginalNickname] = useState("");
+  const [role, setRole] = useState<"USER" | "HOST" | "ADMIN">("USER");
 
   const [nickname, setNickname] = useState("");
   const [nicknameChecked, setNicknameChecked] = useState(false);
@@ -54,6 +56,7 @@ export default function EditProfilePage() {
         setNickname(p.nickname ?? "");
         setPhone(p.phone ?? "");
         setImageUrl(p.imageUrl ?? "");
+        setRole(p.role);
       } catch (e) {
         console.error(e);
         router.push("/auth/login");
@@ -106,7 +109,14 @@ export default function EditProfilePage() {
       }
 
       setSuccess(true);
-      setTimeout(() => router.push("/mypage"), 1000);
+      setTimeout(() => {
+        if (role === "HOST") {
+          router.push("/host/dashboard");
+          return;
+        }
+
+        router.push("/mypage");
+      }, 1000);
     } catch (e) {
       setError(ERROR_MESSAGES["INTERNAL_SERVER_ERROR"]);
     } finally {

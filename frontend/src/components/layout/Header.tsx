@@ -66,9 +66,11 @@ export default function Header() {
                                     </Link>
                                 )}
                                 <NotificationBell />
-                                <Link href="/mypage" className="hover:text-[#4B6945]">
-                                    마이페이지
-                                </Link>
+                                {role === "USER" && (
+                                    <Link href="/mypage" className="hover:text-[#4B6945]">
+                                        마이페이지
+                                    </Link>
+                                )}
                                 <button onClick={handleLogout} className="hover:text-[#4B6945]">
                                     로그아웃
                                 </button>

@@ -10,6 +10,7 @@ interface UserProfile {
   nickname: string;
   imageUrl: string | null;
   phone: string;
+  role: "USER" | "HOST" | "ADMIN";
   reservations: Reservation[];
   reviews: MyReviewResponse[];
 }
@@ -95,6 +96,10 @@ export default function MyPage() {
         if (!res.ok) throw new Error("프로필 조회 실패");
 
         const data = await res.json();
+        if (data.data.role === "HOST") {
+          router.replace("/host/dashboard");
+          return;
+        }
         setProfile(data.data);
       } catch (e) {
         console.error("프로필 로딩 실패:", e);
