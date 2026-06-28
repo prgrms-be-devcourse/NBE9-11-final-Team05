@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
         throw new Error("관리자 계정만 로그인할 수 있습니다.");
       }
 
-      {/* localstorage에 저장되는 방식 없어지면 수정 */ }
+      {/* TODO: localstorage에 저장되는 방식 없어지면 수정 */ }
       const payload = JSON.parse(atob(data.data.accessToken.split('.')[1]));
       useAuthStore.getState().setAuth(
         data.data.role,
