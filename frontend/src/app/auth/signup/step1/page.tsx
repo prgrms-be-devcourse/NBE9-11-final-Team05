@@ -20,7 +20,7 @@ export default function SignupStep1() {
     <div className="min-h-screen flex flex-col bg-white">
 
       {/* 본문 */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 gap-10 -mt-60">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 pt-12 pb-32 gap-10">
         <div className="flex gap-6">
           {/* Guest 카드 */}
           <button
