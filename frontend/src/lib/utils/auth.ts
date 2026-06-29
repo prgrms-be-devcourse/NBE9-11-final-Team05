@@ -32,5 +32,5 @@ export async function getUserRole(): Promise<UserRole | null> {
 /** 예약 가능한 유저인지 확인 (USER만 예약 가능) */
 export async function canReserve(): Promise<boolean> {
   const role = await getUserRole();
-  return role === null || role === "USER";
+  return role === "USER";
 }
