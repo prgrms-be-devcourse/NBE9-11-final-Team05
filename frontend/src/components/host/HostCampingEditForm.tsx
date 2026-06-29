@@ -159,18 +159,37 @@ export default function HostCampingEditForm({
         />
 
         <div className="grid gap-4 md:grid-cols-2">
-          <input
+          <select
             className={inputClass}
-            type="time"
             value={formValues.checkInTime}
             onChange={(e) => handleChange("checkInTime", e.target.value)}
-          />
-          <input
+          >
+            <option value="">체크인 시간 선택</option>
+            {Array.from({ length: 24 }, (_, i) => {
+              const hour = String(i).padStart(2, "0");
+              return (
+                <option key={hour} value={`${hour}:00:00`}>
+                  {hour}시
+                </option>
+              );
+            })}
+          </select>
+
+          <select
             className={inputClass}
-            type="time"
             value={formValues.checkOutTime}
             onChange={(e) => handleChange("checkOutTime", e.target.value)}
-          />
+          >
+            <option value="">체크아웃 시간 선택</option>
+            {Array.from({ length: 24 }, (_, i) => {
+              const hour = String(i).padStart(2, "0");
+              return (
+                <option key={hour} value={`${hour}:00:00`}>
+                  {hour}시
+                </option>
+              );
+            })}
+          </select>
         </div>
       </section>
 

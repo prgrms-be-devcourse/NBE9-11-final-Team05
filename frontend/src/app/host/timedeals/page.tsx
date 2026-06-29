@@ -331,20 +331,20 @@ function DealFormModal({
       const payload =
         mode === "create"
           ? {
-              siteId: selectedSite!.id,
-              checkIn: form.checkIn,
-              checkOut: form.checkOut,
-              quantity: Number(form.quantity),
-              dealPrice: Number(form.dealPrice),
-              saleStartAt: form.saleStartAt,
-              saleEndAt: form.saleEndAt,
-            }
+            siteId: selectedSite!.id,
+            checkIn: form.checkIn,
+            checkOut: form.checkOut,
+            quantity: Number(form.quantity),
+            dealPrice: Number(form.dealPrice),
+            saleStartAt: form.saleStartAt,
+            saleEndAt: form.saleEndAt,
+          }
           : {
-              quantity: Number(form.quantity),
-              dealPrice: Number(form.dealPrice),
-              saleStartAt: form.saleStartAt,
-              saleEndAt: form.saleEndAt,
-            };
+            quantity: Number(form.quantity),
+            dealPrice: Number(form.dealPrice),
+            saleStartAt: form.saleStartAt,
+            saleEndAt: form.saleEndAt,
+          };
       await onSubmit(payload as unknown as CreateForm | UpdateForm);
       onClose();
     } catch (err: unknown) {
@@ -547,8 +547,8 @@ function DealFormModal({
                     selectedSite
                       ? `원가 ${selectedSite.price.toLocaleString()}원`
                       : mode === "edit"
-                      ? `원가 ${initial?.originalPrice.toLocaleString()}원`
-                      : "원"
+                        ? `원가 ${initial?.originalPrice.toLocaleString()}원`
+                        : "원"
                   }
                   required
                   className={inputCls}
@@ -566,10 +566,10 @@ function DealFormModal({
                     Math.round(
                       (1 -
                         Number(form.dealPrice) /
-                          (mode === "create"
-                            ? selectedSite!.price
-                            : initial!.originalPrice)) *
-                        100
+                        (mode === "create"
+                          ? selectedSite!.price
+                          : initial!.originalPrice)) *
+                      100
                     )
                   )}
                   %
@@ -905,96 +905,105 @@ export default function TimeDealManagePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f6f3]">
-      {/* 헤더 */}
-      <header className="bg-[#1a3a2a] px-6 py-5">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div>
-            <p className="text-[#4a7c59] text-xs font-medium tracking-widest uppercase mb-0.5">
-              캠핑가잣 호스트
-            </p>
-            <h1 className="text-white text-xl font-semibold">타임딜 관리</h1>
-          </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#4a7c59] hover:bg-[#3d6b4b] text-white text-sm font-medium
-              rounded-xl transition-colors"
-          >
-            <span className="text-base leading-none">+</span>
-            타임딜 등록
-          </button>
-        </div>
-      </header>
-
-      {/* 요약 스탯 */}
-      <div className="bg-[#1a3a2a]/90 border-t border-white/5 px-6 pb-5">
-        <div className="max-w-6xl mx-auto grid grid-cols-3 gap-4 pt-4">
-          {[
-            { label: "전체", value: totalElements },
-            { label: "판매 중", value: counts["ACTIVE"] ?? 0 },
-            { label: "이번 달 매진", value: counts["SOLD_OUT"] ?? 0 },
-          ].map(({ label, value }) => (
-            <div key={label} className="text-center">
-              <p className="text-2xl font-bold text-white">{value}</p>
-              <p className="text-xs text-[#4a7c59] mt-0.5">{label}</p>
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <div className="mx-auto max-w-6xl overflow-hidden rounded-2xl bg-white shadow-sm">
+        {/* 헤더 */}
+        <header className="bg-[#355C46] px-6 py-5">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div>
+              <p className="mb-0.5 text-xs font-medium tracking-widest text-[#B9CFBD] uppercase">
+                캠핑가잣 호스트
+              </p>
+              <h1 className="text-xl font-semibold text-white">타임딜 관리</h1>
             </div>
-          ))}
-        </div>
-      </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        {/* 필터 탭 */}
-        <div className="flex gap-1 flex-wrap mb-6">
-          {FILTER_TABS.map(({ key, label }) => {
-            const count = key === "ALL" ? deals.length : (counts[key] ?? 0);
-            return (
-              <button
-                key={key}
-                onClick={() => setFilter(key)}
-                className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors
-                  ${filter === key
-                    ? "bg-[#1a3a2a] text-white"
-                    : "bg-white border border-stone-200 text-stone-600 hover:border-stone-300"
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#2F5E43] shadow-sm transition-colors hover:bg-[#F3F7F1]"
+            >
+              <span className="text-base leading-none">+</span>
+              타임딜 등록
+            </button>
+          </div>
+        </header>
+
+        {/* 요약 스탯 */}
+        <div className="border-b border-gray-100 bg-white px-6 pb-5 shadow-sm">
+          <div className="max-w-6xl mx-auto grid grid-cols-3 gap-4 pt-5">
+            {[
+              { label: "전체", value: totalElements },
+              { label: "판매 중", value: counts["ACTIVE"] ?? 0 },
+              { label: "이번 달 매진", value: counts["SOLD_OUT"] ?? 0 },
+            ].map(({ label, value }, index) => (
+              <div
+                key={label}
+                className={`text-center ${index !== 0 ? "border-l border-gray-100" : ""
                   }`}
               >
-                {label}
-                {count > 0 && (
-                  <span className={`ml-1.5 text-xs ${filter === key ? "text-[#4a7c59]" : "text-stone-400"}`}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* 카드 그리드 */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-stone-100 h-64 animate-pulse" />
+                <p className="text-2xl font-bold text-[#2F5E43]">{value}</p>
+                <p className="mt-0.5 text-xs text-gray-500">{label}</p>
+              </div>
             ))}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.length === 0 ? (
-              <EmptyState onCreateClick={() => setShowCreate(true)} />
-            ) : (
-              filtered.map((deal) => (
-                <DealCard
-                  key={deal.id}
-                  deal={deal}
-                  onEdit={() => setEditTarget(deal)}
-                  onCancel={() => setCancelTarget(deal)}
-                  onDelete={() => setDeleteTarget(deal)}
-                />
-              ))
-            )}
-          </div>
-        )}
+        </div>
 
-        <Pagination current={page} total={totalPages} onChange={setPage} />
-      </main>
+        <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6">
+          {/* 필터 탭 */}
+          <div className="mb-6 flex flex-wrap gap-1">
+            {FILTER_TABS.map(({ key, label }) => {
+              const count = key === "ALL" ? deals.length : counts[key] ?? 0;
+
+              return (
+                <button
+                  key={key}
+                  onClick={() => setFilter(key)}
+                  className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${filter === key
+                    ? "bg-[#3F6F43] text-white"
+                    : "border border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                    }`}
+                >
+                  {label}
+                  {count > 0 && (
+                    <span
+                      className={`ml-1.5 text-xs ${filter === key ? "text-[#DDEBDD]" : "text-gray-400"
+                        }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 카드 그리드 */}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-stone-100 h-64 animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filtered.length === 0 ? (
+                <EmptyState onCreateClick={() => setShowCreate(true)} />
+              ) : (
+                filtered.map((deal) => (
+                  <DealCard
+                    key={deal.id}
+                    deal={deal}
+                    onEdit={() => setEditTarget(deal)}
+                    onCancel={() => setCancelTarget(deal)}
+                    onDelete={() => setDeleteTarget(deal)}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          <Pagination current={page} total={totalPages} onChange={setPage} />
+        </main>
+      </div>
 
       {/* 모달들 */}
       {showCreate && (

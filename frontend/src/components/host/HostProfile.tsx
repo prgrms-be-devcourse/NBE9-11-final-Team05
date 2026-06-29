@@ -141,16 +141,6 @@ export default function HostProfile() {
               {profile.phone}
             </p>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-[#F4F5F1] px-3 py-1 text-xs font-medium text-[#3F6B3F]">
-                캠핑장 운영
-              </span>
-
-              <span className="rounded-full bg-[#F4F5F1] px-3 py-1 text-xs font-medium text-gray-600">
-                호스트 계정
-              </span>
-            </div>
-
             <div className="mt-5 flex flex-wrap gap-2">
               <button
                 onClick={() => router.push("/mypage/edit")}
