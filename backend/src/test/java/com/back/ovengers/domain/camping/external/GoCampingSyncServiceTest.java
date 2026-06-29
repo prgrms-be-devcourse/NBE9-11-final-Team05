@@ -45,7 +45,7 @@ class GoCampingSyncServiceTest {
 
         ReflectionTestUtils.setField(camp, "id", 1L);
 
-        when(campingRepository.findByImageSyncStatusInAndHostIdIsNull(any()))
+        when(campingRepository.findByImageSyncStatusInAndHostIdIsNullAndDeletedAtIsNull(any()))
                 .thenReturn(List.of(camp));
 
         when(goCampingClient.getCampImageList(100L))
@@ -69,7 +69,7 @@ class GoCampingSyncServiceTest {
         ReflectionTestUtils.setField(camp1, "id", 1L);
         ReflectionTestUtils.setField(camp2, "id", 2L);
 
-        when(campingRepository.findByImageSyncStatusInAndHostIdIsNull(any()))
+        when(campingRepository.findByImageSyncStatusInAndHostIdIsNullAndDeletedAtIsNull(any()))
                 .thenReturn(List.of(camp1, camp2));
 
         when(goCampingClient.getCampImageList(100L))
@@ -97,7 +97,7 @@ class GoCampingSyncServiceTest {
         ReflectionTestUtils.setField(camp2, "id", 2L);
         ReflectionTestUtils.setField(camp3, "id", 3L);
 
-        when(campingRepository.findByImageSyncStatusInAndHostIdIsNull(any()))
+        when(campingRepository.findByImageSyncStatusInAndHostIdIsNullAndDeletedAtIsNull(any()))
                 .thenReturn(List.of(camp1, camp2, camp3));
 
         when(goCampingClient.getCampImageList(100L))

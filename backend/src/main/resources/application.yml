@@ -24,6 +24,7 @@ go-camping:
   endpoint:
     based-list: /basedList
     image-list: /imageList
+    based-sync-list: /basedSyncList
   value:
     numOfRows: 1000
     mobileOS: ETC

@@ -67,5 +67,7 @@ public interface CampingRepository extends JpaRepository<Camping, Long>, Camping
         """)
     List<Long> findContentIdsIn(List<Long> contentIds);
 
-    List<Camping> findByImageSyncStatusInAndHostIdIsNull(Collection<ImageSyncStatus> statuses);
+    List<Camping> findByContentIdIn(List<Long> contentIds);
+
+    List<Camping> findByImageSyncStatusInAndHostIdIsNullAndDeletedAtIsNull(Collection<ImageSyncStatus> statuses);
 }

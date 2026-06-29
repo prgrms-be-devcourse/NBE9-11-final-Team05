@@ -157,6 +157,23 @@ public class Camping extends BaseEntity {
                 : new BigDecimal(value);
     }
 
+    public void updateFromApi(GoCampingApiItem item) {
+        this.firstImageUrl = item.firstImageUrl();
+        this.tourNum = item.trsagntNo();
+        this.businessNum = item.bizrno();
+        this.name = item.facltNm();
+        this.homepage = item.homepage();
+        this.region = item.doNm();
+        this.city = item.sigunguNm();
+        this.address = item.addr1();
+        this.description = "%s\n%s\n%s".formatted(item.lineIntro(), item.intro(), item.featureNm());
+        this.phone = item.tel();
+        this.notice = "부대시설: %s\n주변이용가능시설: %s\n체험프로그램명: %s".formatted(item.sbrsCl(), item.posblFcltyCl(), item.exprnProgrm());
+        this.lat = toBigDecimal(item.mapY());
+        this.lng = toBigDecimal(item.mapX());
+
+        this.imageSyncStatus = ImageSyncStatus.PENDING;
+    }
 
     public void approve() {
         if (this.status != CampingStatus.PENDING) {
