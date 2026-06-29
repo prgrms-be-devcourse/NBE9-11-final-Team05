@@ -112,6 +112,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/reservations/**").hasRole("USER")
                         .requestMatchers("/api/payments/**").hasRole("USER")
 
+                        // 캠핑장 검색
+                        .requestMatchers("/api/campings/search").permitAll()
 
                         .requestMatchers("/api/timedeals/host/**").hasRole("HOST")
                         .requestMatchers(HttpMethod.GET, "/api/timedeals/**").permitAll()

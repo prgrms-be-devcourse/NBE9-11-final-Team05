@@ -35,4 +35,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT r FROM Review r JOIN FETCH r.reservation res JOIN FETCH res.site s JOIN FETCH s.camping c WHERE r.user.id = :userId")
     List<Review> findAllByUserId(@Param("userId") Long userId);
+
+
+    // 캠핑장 목록 조회 시 평균 별점, 리뷰 수 한 번에 조회 (N+1 방지)
+    // Object[0] = camping_id, Object[1] = avg_rating, Object[2] = review_count
+    @Query("SELECT r.camping.id, AVG(r.rating), COUNT(r) FROM Review r WHERE r.camping.id IN :campingIds GROUP BY r.camping.id")
+    List<Object[]> findRatingStatsByCampingIds(@Param("campingIds") List<Long> campingIds);
+
 }

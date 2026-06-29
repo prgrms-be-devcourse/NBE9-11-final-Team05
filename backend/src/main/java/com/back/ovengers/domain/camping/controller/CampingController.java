@@ -2,6 +2,7 @@ package com.back.ovengers.domain.camping.controller;
 
 import com.back.ovengers.domain.camping.dto.CampingDetailResponse;
 import com.back.ovengers.domain.camping.dto.CampingListResponse;
+import com.back.ovengers.domain.camping.dto.CampingSearchResponse;
 import com.back.ovengers.domain.camping.service.CampingService;
 import com.back.ovengers.global.response.ApiResponse;
 import com.back.ovengers.global.response.PageResponse;
@@ -9,15 +10,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -62,5 +62,30 @@ public class CampingController {
         return ResponseEntity.ok(
                 new ApiResponse<>("캠핑장 상세 조회 성공", response)
         );
+    }
+
+    @Operation(summary = "캠핑장 검색", description = "날짜, 인원, 가격 등 조건으로 예약 가능한 캠핑장을 검색합니다.")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PageResponse<CampingSearchResponse>>> searchCampings(
+            @Parameter(description = "캠핑장 이름 또는 도시 검색어")
+            @RequestParam(required = false) String keyword,
+            @Parameter(description = "체크인 날짜 (yyyy-MM-dd)")
+            @RequestParam(required = false) LocalDate checkIn,
+            @Parameter(description = "체크아웃 날짜 (yyyy-MM-dd)")
+            @RequestParam(required = false) LocalDate checkOut,
+            @Parameter(description = "숙박 인원")
+            @RequestParam(required = false) Integer guestCount,
+            @Parameter(description = "객실 수")
+            @RequestParam(required = false) Integer roomCount,
+            @Parameter(description = "최소 가격 (1박 기준)")
+            @RequestParam(required = false) Integer minPrice,
+            @Parameter(description = "최대 가격 (1박 기준)")
+            @RequestParam(required = false) Integer maxPrice,
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable
+    ) {
+        Page<CampingSearchResponse> response = campingService.searchAvailableCampings(
+                keyword, checkIn, checkOut, guestCount, roomCount, minPrice, maxPrice, pageable
+        );
+        return ResponseEntity.ok(new ApiResponse<>("캠핑장 검색 성공", PageResponse.from(response)));
     }
 }
