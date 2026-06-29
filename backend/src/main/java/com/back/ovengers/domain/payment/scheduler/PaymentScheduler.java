@@ -26,7 +26,7 @@ public class PaymentScheduler {
     private final TimeDealRepository timeDealRepository;
     private final ReservationRepository reservationRepository;
 
-    private static final int EXPIRE_MINUTES = 30;
+    private static final int EXPIRE_MINUTES = 15;
 
     @Scheduled(fixedRate = 60000)
     @Transactional
