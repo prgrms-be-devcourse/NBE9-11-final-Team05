@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { searchCampings } from "@/lib/api/camping";
 import { CampingSearchResponse } from "@/types/camping";
+import ImageSlider from "@/components/camping/ImageSlider";
 
 const today = new Date().toISOString().split("T")[0];
 const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
@@ -101,20 +102,9 @@ export default function CampingSearchPage() {
                             {campings.map((camping) => (
                                 <Link key={camping.id} href={`/campings/${camping.id}`}>
                                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition overflow-hidden flex cursor-pointer">
-                                        <div className="w-56 h-44 shrink-0 bg-gray-100">
-                                            {camping.images.length > 0 ? (
-                                                <img
-                                                    src={camping.images[0]}
-                                                    alt={camping.name}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-gray-300 text-sm">
-                                                    이미지 없음
-                                                </div>
-                                            )}
+                                        <div className="w-56 h-44 shrink-0 bg-gray-100 overflow-hidden">
+                                            <ImageSlider images={camping.images} name={camping.name} />
                                         </div>
-
                                         <div className="flex-1 p-5 flex flex-col justify-between">
                                             <div>
                                                 <h3 className="font-bold text-xl text-gray-800">{camping.name}</h3>
