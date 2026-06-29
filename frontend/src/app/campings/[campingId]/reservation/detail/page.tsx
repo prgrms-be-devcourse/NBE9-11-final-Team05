@@ -1,31 +1,35 @@
-import { getReservation } from "@/lib/api/reservation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { getReservationClient } from "@/lib/api/reservation.client";
 import TossPaymentButton from "@/components/payment/TossPaymentButton";
 import Card from "@/components/ui/Card";
 import DataRow from "@/components/ui/DataRow";
+import type { ReservationDetailResponse } from "@/types/reservation";
 
-interface PageProps {
-  params: Promise<{ campingId: string }>;
-  searchParams: Promise<{ reservationId?: string }>;
-}
+export default function ReservationDetailPage() {
+  const searchParams = useSearchParams();
+  const reservationId = searchParams.get("reservationId");
 
-/**
- * 결제 DB row는 여기서 만들지 않는다.
- * 사용자가 우측 "토스로 결제하기" 버튼을 실제로 눌렀을 때만
- * (TossPaymentButton 내부에서) 결제가 생성된다.
- */
-export default async function ReservationDetailPage({ searchParams }: PageProps) {
-  const { reservationId } = await searchParams;
+  const [reservation, setReservation] = useState<ReservationDetailResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!reservationId) {
-    return <p className="p-10 text-center text-stone-500">예약 정보를 찾을 수 없습니다.</p>;
-  }
+  useEffect(() => {
+    if (!reservationId) return;
+    getReservationClient(Number(reservationId))
+      .then(setReservation)
+      .catch(() => setError("예약 정보를 불러오지 못했습니다."));
+  }, [reservationId]);
 
-  const reservation = await getReservation(Number(reservationId));
+  if (!reservationId) return <p className="p-10 text-center text-stone-500">예약 정보를 찾을 수 없습니다.</p>;
+  if (error) return <p className="p-10 text-center text-red-500">{error}</p>;
+  if (!reservation) return <p className="p-10 text-center text-stone-400">불러오는 중...</p>;
+
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
 
   return (
     <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 p-6 md:grid-cols-2">
-      {/* 좌측: 결제 진행 */}
       <Card>
         <h2 className="mb-5 text-lg font-bold text-stone-900">결제 진행</h2>
         <p className="mb-3 font-semibold text-stone-900">{reservation.campingName}</p>
@@ -43,7 +47,6 @@ export default async function ReservationDetailPage({ searchParams }: PageProps)
         </div>
       </Card>
 
-      {/* 우측: 결제 수단 */}
       <Card className="flex flex-col">
         <h2 className="mb-5 text-lg font-bold text-stone-900">결제 수단</h2>
         <p className="mb-6 text-sm text-stone-500">

@@ -1,21 +1,32 @@
-import { getReservation } from "@/lib/api/reservation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { getReservationClient } from "@/lib/api/reservation.client";
 import CancelReservationButton from "@/components/reservation/CancelReservationButton";
 import Card from "@/components/ui/Card";
 import DataRow from "@/components/ui/DataRow";
 import Button from "@/components/ui/Button";
-import Link from "next/link";
-import DirectChatButton from "@/components/chat/DirectChatButton";
+import type { ReservationDetailResponse } from "@/types/reservation";
 
+export default function MyReservationDetailPage() {
+  const params = useParams();
+  const reservationId = String(params.reservationId);
 
-interface PageProps {
-  params: Promise<{ reservationId: string }>;
-}
+  const [reservation, setReservation] = useState<ReservationDetailResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-export default async function MyReservationDetailPage({ params }: PageProps) {
-  const { reservationId } = await params;
-  const reservation = await getReservation(Number(reservationId));
+  useEffect(() => {
+    getReservationClient(Number(reservationId))
+      .then(setReservation)
+      .catch(() => setError("예약 정보를 불러오지 못했습니다."));
+  }, [reservationId]);
 
-  const isCancellable = reservation.status === "CONFIRMED";
+  if (error) return <p className="p-10 text-center text-red-500">{error}</p>;
+  if (!reservation) return <p className="p-10 text-center text-stone-400">불러오는 중...</p>;
+
+  const isCancellable = reservation.status === "PENDING" || reservation.status === "CONFIRMED";
 
   return (
     <div className="mx-auto max-w-md p-6">
@@ -30,9 +41,7 @@ export default async function MyReservationDetailPage({ params }: PageProps) {
           <div className="mb-4 h-40 w-full rounded-2xl bg-stone-100" />
         )}
 
-        <h2 className="mb-1 text-lg font-bold text-stone-900">
-          {reservation.campingName}
-        </h2>
+        <h2 className="mb-1 text-lg font-bold text-stone-900">{reservation.campingName}</h2>
         <p className="mb-4 text-xs text-stone-400">예약번호: {reservation.rsvNum}</p>
 
         <div className="divide-y divide-stone-100">
@@ -53,15 +62,9 @@ export default async function MyReservationDetailPage({ params }: PageProps) {
       </Card>
 
       <div className="mt-6 flex flex-col gap-3">
-      <Link href={`/campings/${reservation.campingId}`} className="w-full">
-        <Button variant="ghost" fullWidth>
-          캠핑장 상세 페이지로 이동
-        </Button>
-      </Link>
-
-      <DirectChatButton reservationId={Number(reservationId)} />
-      
-        {/* 이미 취소된 예약은 버튼 숨김 */}
+        <Link href={`/campings/${reservation.campingId}`} className="w-full">
+          <Button variant="ghost" fullWidth>캠핑장 상세 페이지로 이동</Button>
+        </Link>
         {isCancellable && (
           <CancelReservationButton reservationId={Number(reservationId)} />
         )}
