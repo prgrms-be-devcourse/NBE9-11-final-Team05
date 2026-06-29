@@ -57,4 +57,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findAllByReservationIdWithLock(@Param("reservationId") Long reservationId);
 
     Optional<Payment> findByReservation_IdAndStatus(Long reservationId, PaymentStatus status);
+
+    List<Payment> findByCancelFailedAtIsNotNullAndCancelRetryCountLessThan(int maxRetry);
 }
