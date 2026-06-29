@@ -9,6 +9,7 @@ export interface Camping {
 
 export interface CampingDetail {
   id: number;
+  hostId: number | null;
   firstImageUrl: string | null;
   name: string;
   homepage: string;

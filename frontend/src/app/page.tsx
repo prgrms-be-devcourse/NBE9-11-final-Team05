@@ -93,7 +93,7 @@ export default async function Home() {
             <SearchBox />
           </div>
           <div className="flex justify-center gap-3 mt-8 flex-wrap">
-            {["강원도", "경기도", "제주도", "부산", "충청도"].map((region) => (
+            {["강원", "경기", "대구", "제주", "부산", "충청"].map((region) => (
               <Link key={region} href={`/campings?keyword=${region}`}>
                 <button className="bg-[#4B6945] text-white px-4 py-2 rounded-full text-sm hover:opacity-90">
                   {region}

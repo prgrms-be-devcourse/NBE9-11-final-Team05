@@ -7,6 +7,7 @@ import {
   SiteFormValues,
 } from "@/types/host";
 import { createCamping } from "@/lib/api/host";
+import { AppToast } from "@/lib/ui/toast";
 
 const inputClass =
   "rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-gray-400 focus:border-[#D17A2F] focus:ring-2 focus:ring-[#D17A2F]/20";
@@ -112,7 +113,7 @@ export default function HostCampingCreateForm() {
       const createdCamping = await createCamping(request);
       router.push(`/host/campings/${createdCamping.id}`);
     } catch {
-      alert("캠핑장 등록에 실패했습니다.");
+      AppToast.error("캠핑장 등록에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }

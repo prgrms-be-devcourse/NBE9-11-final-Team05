@@ -12,26 +12,48 @@ export default function CampingSummary({ camping }: Props) {
         {camping.name}
       </h1>
 
-      <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
-        <span className="text-yellow-500">⭐</span>
-        <span>{camping.rating}</span>
-      </div>
+      {camping.rating != null && (
+        <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+          <span className="text-yellow-500">⭐</span>
+          <span>{camping.rating}</span>
+        </div>
+      )}
 
       <div className="mt-2 text-sm text-gray-500">
         📍 {camping.address}
       </div>
 
+      {camping.homepage && (
+        <div className="mt-2 text-sm text-blue-600">
+          🌐{" "}
+          <a
+            href={camping.homepage}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            홈페이지 바로가기
+          </a>
+        </div>
+      )}
+
       <div className="mt-5 grid grid-cols-2 gap-3 text-xs text-gray-600">
 
-        <div className="flex items-center gap-2">
-          <span>🕒</span>
-          <span>CHECK-IN: {camping.checkInTime}</span>
-        </div>
+        {/* 🕒 체크인 */}
+        {camping.checkInTime && (
+          <div className="flex items-center gap-2">
+            <span>🕒</span>
+            <span>CHECK-IN: {camping.checkInTime}</span>
+          </div>
+        )}
 
-        <div className="flex items-center gap-2">
-          <span>🕚</span>
-          <span>CHECK-OUT: {camping.checkOutTime}</span>
-        </div>
+        {/* 🕚 체크아웃 */}
+        {camping.checkOutTime && (
+          <div className="flex items-center gap-2">
+            <span>🕚</span>
+            <span>CHECK-OUT: {camping.checkOutTime}</span>
+          </div>
+        )}
 
       </div>
 

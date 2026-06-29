@@ -4,7 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function getLatestCampings(): Promise<Camping[]> {
   const response = await fetch(
-    `${API_URL}/api/campings?page=0&size=3&sort=createdAt,asc`,
+    `${API_URL}/api/campings?page=0&size=3&sort=createdAt,desc`,
     {
       cache: "no-store",
     }
@@ -41,7 +41,7 @@ export async function getCampingDetail(
 export async function getCampings(
   keyword?: string,
   page: number = 0,
-  size: number = 10
+  size: number = 12
 ): Promise<{
   content: Camping[];
   hasNext: boolean;
