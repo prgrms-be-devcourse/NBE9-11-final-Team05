@@ -4,17 +4,27 @@ spring:
   profiles:
     active: dev
     include: secret
+#  datasource:
+#    hikari:
+#      maximum-pool-size: 150
+#      connection-timeout: 30000
+
 
   servlet: #SSE 응답 깨짐 현상 해결
     encoding:
       charset: UTF-8
       force-response: true
+    # 이미지 업로드 파일 크기 제한
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 
 go-camping:
   base-url: https://apis.data.go.kr/B551011/GoCamping
   endpoint:
     based-list: /basedList
     image-list: /imageList
+    based-sync-list: /basedSyncList
   value:
     numOfRows: 1000
     mobileOS: ETC

@@ -1,5 +1,6 @@
 package com.back.ovengers.domain.chat.controller;
 
+import com.back.ovengers.domain.chat.dto.ChatJoinResponse;
 import com.back.ovengers.domain.chat.dto.ChatMessageRequest;
 import com.back.ovengers.domain.chat.dto.ChatMessageResponse;
 import com.back.ovengers.domain.chat.dto.ChatRoomResponse;
@@ -30,7 +31,7 @@ public class ChatController {
 
     private final ChatService chatService;
 
-    @GetMapping
+    @GetMapping("/rooms")
     public ResponseEntity<ApiResponse<CursorResponse<ChatRoomResponse>>> getChatRooms(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) Long cursor,
@@ -43,7 +44,7 @@ public class ChatController {
         );
     }
 
-    @GetMapping("/{roomId}/messages")
+    @GetMapping("/rooms/{roomId}/messages")
     public ResponseEntity<ApiResponse<CursorResponse<ChatMessageResponse>>> getChatMessages(
             @AuthenticationPrincipal User user,
             @PathVariable @Min(1) Long roomId,
@@ -62,28 +63,41 @@ public class ChatController {
         );
     }
 
-    @PostMapping("/{roomId}/join")
-    public ResponseEntity<ApiResponse<Void>> joinOpenChat(
-            @PathVariable @Min(1) Long roomId,
+    @PostMapping("/campings/{campingId}/join")
+    public ResponseEntity<ApiResponse<ChatJoinResponse>> joinOpenChat(
+            @PathVariable @Min(1) Long campingId,
             @AuthenticationPrincipal User user
     ) {
-        chatService.joinOpenChat(roomId, user.getId());
+        ChatJoinResponse response = chatService.joinOpenChat(campingId, user.getId());
 
         return ResponseEntity.ok(
-                new ApiResponse<>("채팅 참여 성공")
+                new ApiResponse<>("채팅 참여 성공", response)
         );
     }
 
-    @PostMapping("/{roomId}/messages")
+    @GetMapping("/direct")
+    public ResponseEntity<ApiResponse<ChatJoinResponse>> getDirectRoom(
+            @AuthenticationPrincipal User user,
+            @RequestParam @Min(1) Long reservationId
+    ) {
+        return ResponseEntity.ok(
+                new ApiResponse<>("DIRECT 채팅방 조회 성공",
+                        chatService.getDirectRoom(user.getId(), reservationId)
+                )
+        );
+    }
+
+    @PostMapping("/messages")
     public ResponseEntity<ApiResponse<ChatMessageResponse>> sendMessage(
             @PathVariable @Min(1) Long roomId,
             @AuthenticationPrincipal User user,
             @RequestBody @Valid ChatMessageRequest request
     ) {
-        ChatMessageResponse response = chatService.sendMessage(roomId, user, request);
+        ChatMessageResponse response =
+                chatService.sendMessage(user, request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>("채팅 전송 성공", response)
-        );
+                .body(new ApiResponse<>("채팅 전송 성공", response));
     }
+
 }

@@ -31,8 +31,8 @@ export async function apiFetch<T>(
   { body, token, headers, ...rest }: RequestOptions = {}
 ): Promise<T> {
 // 임시 디버깅 — 확인 후 지워주세요
-console.log("[apiFetch] url:", `${API_BASE_URL}${path}`);
-console.log("[apiFetch] Authorization:", token ? `Bearer ${token.slice(0, 20)}...` : "없음");
+// console.log("[apiFetch] url:", `${API_BASE_URL}${path}`);
+// console.log("[apiFetch] Authorization:", token ? `Bearer ${token.slice(0, 20)}...` : "없음");
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,

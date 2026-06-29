@@ -28,3 +28,14 @@ go-camping:
 app:
   cors:
     allowed-origins: http://localhost:3000
+
+cloud:
+  aws:
+    credentials:
+      access-key: test
+      secret-key: test
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: test-bucket
+      cloudfront-domain: https://test.cloudfront.net

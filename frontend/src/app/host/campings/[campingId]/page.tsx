@@ -14,6 +14,8 @@ import {
 } from "@/types/host";
 import HostCampingDetail from "@/components/host/HostCampingDetail";
 import HostSiteManager from "@/components/host/HostSiteManager";
+import HostImageManager from "@/components/host/HostImageManager";
+import { Pencil, Trash2 } from "lucide-react";
 
 export default function HostCampingDetailPage() {
   const params = useParams();
@@ -24,23 +26,23 @@ export default function HostCampingDetailPage() {
   const [sites, setSites] = useState<Site[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchCamping() {
-      try {
-        const [campingData, siteData] = await Promise.all([
-          getHostCampingDetail(campingId),
-          getHostSites(campingId),
-        ]);
+  async function fetchCamping() {
+    try {
+      const [campingData, siteData] = await Promise.all([
+        getHostCampingDetail(campingId),
+        getHostSites(campingId),
+      ]);
 
-        setCamping(campingData);
-        setSites(siteData);
-      } catch {
-        alert("캠핑장 정보를 불러오지 못했습니다.");
-      } finally {
-        setIsLoading(false);
-      }
+      setCamping(campingData);
+      setSites(siteData);
+    } catch {
+      alert("캠핑장 정보를 불러오지 못했습니다.");
+    } finally {
+      setIsLoading(false);
     }
+  }
 
+  useEffect(() => {
     fetchCamping();
   }, [campingId]);
 
@@ -67,25 +69,33 @@ export default function HostCampingDetailPage() {
           <p className="mt-1 text-sm text-gray-500">{camping.address}</p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
           <Link
             href={`/host/campings/${campingId}/edit`}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
           >
+            <Pencil className="h-4 w-4" />
             수정하기
           </Link>
 
           <button
             type="button"
             onClick={handleDelete}
-            className="rounded-md bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600"
+            className="inline-flex items-center gap-2 rounded-xl border border-red-300 bg-white px-5 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
           >
+            <Trash2 className="h-4 w-4" />
             삭제하기
           </button>
         </div>
       </div>
 
       <HostCampingDetail camping={camping} />
+
+      <HostImageManager
+        campingId={campingId}
+        initialImages={camping.images}
+        onChange={fetchCamping}
+      />
 
       <HostSiteManager campingId={campingId} sites={sites} />
     </div>

@@ -2,16 +2,18 @@ package com.back.ovengers.domain.camping.repository;
 
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
+import com.back.ovengers.domain.camping.entity.ImageSyncStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface CampingRepository extends JpaRepository<Camping, Long> {
+public interface CampingRepository extends JpaRepository<Camping, Long>, CampingRepositoryCustom{
 
     List<Camping> findByHostIdAndDeletedAtIsNull(Long hostId);
 
@@ -48,12 +50,24 @@ public interface CampingRepository extends JpaRepository<Camping, Long> {
     List<Camping> findByIdIn(List<Long> campingIds);
 
     @Query("""
-        SELECT c
-        FROM Camping c
-        WHERE c.deletedAt IS NULL
-          AND c.host IS NULL
-          AND c.contentId IS NOT NULL
-          AND LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
-        """)
+    SELECT c
+    FROM Camping c
+    WHERE c.deletedAt IS NULL
+      AND c.host IS NULL
+      AND c.contentId IS NOT NULL
+      AND LOWER(REPLACE(c.name, ' ', '')) LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%'))
+    """)
     List<Camping> searchClaimableCampings(@Param("keyword") String keyword);
+
+
+    @Query("""
+        select c.contentId
+            from Camping c
+                where c.contentId in :contentIds
+        """)
+    List<Long> findContentIdsIn(List<Long> contentIds);
+
+    List<Camping> findByContentIdIn(List<Long> contentIds);
+
+    List<Camping> findByImageSyncStatusInAndHostIdIsNullAndDeletedAtIsNull(Collection<ImageSyncStatus> statuses);
 }

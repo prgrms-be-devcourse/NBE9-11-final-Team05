@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -124,5 +125,14 @@ public class GlobalExceptionHandler {
                                 ErrorCode.LOCK_TIMEOUT.getMessage()
                         )
                 );
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException e
+    ) {
+        return handleCustomException(
+                new CustomException(ErrorCode.IMAGE_SIZE_EXCEEDED)
+        );
     }
 }

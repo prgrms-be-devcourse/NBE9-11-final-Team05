@@ -12,6 +12,7 @@ import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.awt.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -68,6 +69,9 @@ public class Camping extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private CampingStatus status;
 
+    @Enumerated(EnumType.STRING)
+    private ImageSyncStatus imageSyncStatus;
+
     @Column(precision = 10, scale = 7)
     private BigDecimal lat;
 
@@ -86,6 +90,7 @@ public class Camping extends BaseEntity {
                 .city(request.city())
                 .address(request.address())
                 .status(CampingStatus.PENDING)
+                .imageSyncStatus(ImageSyncStatus.DONE)
                 .build();
     }
 
@@ -105,6 +110,10 @@ public class Camping extends BaseEntity {
         this.lng = request.lng();
     }
 
+    public void updateImageSyncStatus(ImageSyncStatus imageSyncStatus) {
+        this.imageSyncStatus = imageSyncStatus;
+    }
+
     public void delete() {
         this.deletedAt = LocalDateTime.now();
     }
@@ -114,8 +123,16 @@ public class Camping extends BaseEntity {
     }
 
     public static Camping from(GoCampingApiItem item) {
+        Long contentId = item.contentId() != null
+                ? Long.valueOf(item.contentId())
+                : null;
+
+        ImageSyncStatus imageStatus = contentId == null
+                ? ImageSyncStatus.NO_CONTENT
+                : ImageSyncStatus.PENDING;
+
         return Camping.builder()
-                .contentId(Long.valueOf(item.contentId()))
+                .contentId(contentId)
                 .firstImageUrl(item.firstImageUrl())
                 .tourNum(item.trsagntNo())
                 .businessNum(item.bizrno())
@@ -128,6 +145,7 @@ public class Camping extends BaseEntity {
                 .phone(item.tel())
                 .notice("부대시설: %s\n주변이용가능시설: %s\n체험프로그램명: %s".formatted(item.sbrsCl(), item.posblFcltyCl(), item.exprnProgrm()))
                 .status(CampingStatus.APPROVED)
+                .imageSyncStatus(imageStatus)
                 .lat(toBigDecimal(item.mapY()))
                 .lng(toBigDecimal(item.mapX()))
                 .build();
@@ -139,6 +157,23 @@ public class Camping extends BaseEntity {
                 : new BigDecimal(value);
     }
 
+    public void updateFromApi(GoCampingApiItem item) {
+        this.firstImageUrl = item.firstImageUrl();
+        this.tourNum = item.trsagntNo();
+        this.businessNum = item.bizrno();
+        this.name = item.facltNm();
+        this.homepage = item.homepage();
+        this.region = item.doNm();
+        this.city = item.sigunguNm();
+        this.address = item.addr1();
+        this.description = "%s\n%s\n%s".formatted(item.lineIntro(), item.intro(), item.featureNm());
+        this.phone = item.tel();
+        this.notice = "부대시설: %s\n주변이용가능시설: %s\n체험프로그램명: %s".formatted(item.sbrsCl(), item.posblFcltyCl(), item.exprnProgrm());
+        this.lat = toBigDecimal(item.mapY());
+        this.lng = toBigDecimal(item.mapX());
+
+        this.imageSyncStatus = ImageSyncStatus.PENDING;
+    }
 
     public void approve() {
         if (this.status != CampingStatus.PENDING) {

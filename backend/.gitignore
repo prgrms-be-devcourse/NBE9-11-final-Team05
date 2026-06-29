@@ -37,4 +37,6 @@ out/
 .vscode/
 .env
 
+src/main/generated
 src/main/resources/application-secret.yml
+src/main/resources/application-loadtest.yml

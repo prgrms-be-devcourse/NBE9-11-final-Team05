@@ -177,4 +177,28 @@ public interface TimeDealRepository extends JpaRepository<TimeDeal, Long> {
             @Param("soldOutStatus") TimeDealStatus soldOutStatus,
             @Param("activeStatus") TimeDealStatus activeStatus
     );
+
+    /**
+     * [원자적 soldCount 감소] - 결제 미완료 취소 시 재고 복구
+     *
+     * SOLD_OUT 상태였다면 재고가 생겼으므로 ACTIVE로 되돌린다.
+     * soldCount가 0 미만으로 내려가는 것을 WHERE soldCount >= :count 로 방어.
+     */
+    @Modifying
+    @Query("""
+    UPDATE TimeDeal td
+    SET td.soldCount = td.soldCount - :count,
+        td.status = CASE
+            WHEN td.status = :soldOutStatus THEN :activeStatus
+            ELSE td.status
+        END
+    WHERE td.id = :id
+      AND td.soldCount >= :count
+    """)
+    int restoreStock(
+            @Param("id") Long id,
+            @Param("count") int count,
+            @Param("soldOutStatus") TimeDealStatus soldOutStatus,
+            @Param("activeStatus") TimeDealStatus activeStatus
+    );
 }

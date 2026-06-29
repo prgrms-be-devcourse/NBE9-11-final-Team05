@@ -43,6 +43,12 @@ export default function Header() {
                     </Link>
 
                     <nav className="flex items-center gap-8 text-gray-600 font-medium">
+
+                        {/* 캠핑장 검색 탭 추가 */}
+                        <Link href="/campings/search" className="hover:text-[#4B6945]">
+                            캠핑장 검색
+                        </Link>
+
                         {/* mounted 전에는 기본 링크만 표시 */}
                         {!mounted ? (
                             <>
@@ -66,9 +72,11 @@ export default function Header() {
                                     </Link>
                                 )}
                                 <NotificationBell />
-                                <Link href="/mypage" className="hover:text-[#4B6945]">
-                                    마이페이지
-                                </Link>
+                                {role === "USER" && (
+                                    <Link href="/mypage" className="hover:text-[#4B6945]">
+                                        마이페이지
+                                    </Link>
+                                )}
                                 <button onClick={handleLogout} className="hover:text-[#4B6945]">
                                     로그아웃
                                 </button>

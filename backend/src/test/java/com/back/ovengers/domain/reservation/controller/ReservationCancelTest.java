@@ -3,6 +3,11 @@ package com.back.ovengers.domain.reservation.controller;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.chat.entity.ChatRoom;
+import com.back.ovengers.domain.chat.enums.ChatRoomStatus;
+import com.back.ovengers.domain.chat.enums.ChatRoomType;
+import com.back.ovengers.domain.chat.repository.ChatRoomRepository;
+import com.back.ovengers.domain.payment.client.TossPaymentClient;
 import com.back.ovengers.domain.payment.entity.Payment;
 import com.back.ovengers.domain.payment.entity.PaymentStatus;
 import com.back.ovengers.domain.payment.repository.PaymentRepository;
@@ -24,12 +29,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.mock.web.MockCookie;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,7 +55,11 @@ class ReservationCancelTest {
     @Autowired private UserRepository userRepository;
     @Autowired private SiteRepository siteRepository;
     @Autowired private CampingRepository campingRepository;
+    @Autowired private ChatRoomRepository chatRoomRepository;
     @Autowired private JwtProvider jwtProvider;
+
+    @MockitoBean
+    private TossPaymentClient tossPaymentClient;
 
     private User user;
     private Reservation reservation;
@@ -59,6 +72,7 @@ class ReservationCancelTest {
         siteRepository.deleteAll();
         campingRepository.deleteAll();
         userRepository.deleteAll();
+        chatRoomRepository.deleteAll();
 
         user = userRepository.save(
                 UserFixture.user()
@@ -113,7 +127,17 @@ class ReservationCancelTest {
                 .status(PaymentStatus.DONE)
                 .build());
 
+        chatRoomRepository.save(
+                ChatRoom.builder()
+                        .reservationId(reservation.getId())
+                        .name(camping.getName() + " 채팅방")
+                        .type(ChatRoomType.DIRECT)
+                        .status(ChatRoomStatus.ACTIVE)
+                        .build());
+
         accessToken = jwtProvider.createRefreshToken(user.getId(), user.getRole().name());
+
+        willDoNothing().given(tossPaymentClient).cancel(anyString(), anyString());
     }
 
     @AfterEach
@@ -123,6 +147,7 @@ class ReservationCancelTest {
         siteRepository.deleteAll();
         campingRepository.deleteAll();
         userRepository.deleteAll();
+        chatRoomRepository.deleteAll();
     }
 
     @Test
@@ -135,6 +160,12 @@ class ReservationCancelTest {
                 .andExpect(jsonPath("$.message").value("예약이 취소되었습니다."))
                 .andExpect(jsonPath("$.data.status").value("CANCELLED"))
                 .andExpect(jsonPath("$.data.rsvNum").value(reservation.getRsvNum()));
+
+        assertThat(chatRoomRepository.findByReservationIdAndTypeAndStatus(
+                reservation.getId(),
+                ChatRoomType.DIRECT,
+                ChatRoomStatus.CLOSED
+        )).isPresent();
     }
 
     @Test
