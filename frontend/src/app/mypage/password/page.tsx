@@ -47,6 +47,27 @@ export default function ChangePasswordPage() {
       }
 
       setSuccess(true);
+
+      const profileRes = await fetch(`${API_URL}/api/users/me`, {
+        credentials: "include",
+      });
+
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        const role = profileData.data?.role;
+
+        setTimeout(() => {
+          if (role === "HOST") {
+            router.push("/host/dashboard");
+            return;
+          }
+
+          router.push("/mypage");
+        }, 1000);
+
+        return;
+      }
+
       setTimeout(() => router.push("/mypage"), 1000);
     } catch (e) {
       setError(ERROR_MESSAGES["INTERNAL_SERVER_ERROR"]);

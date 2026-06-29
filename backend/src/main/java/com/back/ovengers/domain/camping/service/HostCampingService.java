@@ -106,6 +106,8 @@ public class HostCampingService {
         }
 
         camping.delete();
+
+        siteRepository.softDeleteByCampingId(campingId);
     }
 
     @Transactional(readOnly = true)
