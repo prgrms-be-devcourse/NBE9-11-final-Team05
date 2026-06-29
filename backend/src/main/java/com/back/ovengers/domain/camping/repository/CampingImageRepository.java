@@ -8,11 +8,8 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public interface CampingImageRepository extends JpaRepository<CampingImage, Long> {
-    @Query("select distinct ci.camping.id from CampingImage ci")
-    Set<Long> findCampingIdsWithImages();
 
     Optional<CampingImage> findByIdAndCampingId(Long imageId, Long campingId);
 
