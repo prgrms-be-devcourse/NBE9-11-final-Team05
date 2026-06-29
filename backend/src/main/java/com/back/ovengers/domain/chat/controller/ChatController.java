@@ -89,6 +89,7 @@ public class ChatController {
 
     @PostMapping("/messages")
     public ResponseEntity<ApiResponse<ChatMessageResponse>> sendMessage(
+            @PathVariable @Min(1) Long roomId,
             @AuthenticationPrincipal User user,
             @RequestBody @Valid ChatMessageRequest request
     ) {
