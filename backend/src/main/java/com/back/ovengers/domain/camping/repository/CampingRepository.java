@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface CampingRepository extends JpaRepository<Camping, Long> {
+public interface CampingRepository extends JpaRepository<Camping, Long>, CampingRepositoryCustom{
 
     List<Camping> findByHostIdAndDeletedAtIsNull(Long hostId);
 

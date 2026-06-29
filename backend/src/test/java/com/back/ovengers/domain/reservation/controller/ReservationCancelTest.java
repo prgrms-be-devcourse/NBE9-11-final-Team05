@@ -3,6 +3,7 @@ package com.back.ovengers.domain.reservation.controller;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.payment.client.TossPaymentClient;
 import com.back.ovengers.domain.payment.entity.Payment;
 import com.back.ovengers.domain.payment.entity.PaymentStatus;
 import com.back.ovengers.domain.payment.repository.PaymentRepository;
@@ -24,12 +25,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.mock.web.MockCookie;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,6 +51,9 @@ class ReservationCancelTest {
     @Autowired private SiteRepository siteRepository;
     @Autowired private CampingRepository campingRepository;
     @Autowired private JwtProvider jwtProvider;
+
+    @MockitoBean
+    private TossPaymentClient tossPaymentClient;
 
     private User user;
     private Reservation reservation;
@@ -114,6 +121,8 @@ class ReservationCancelTest {
                 .build());
 
         accessToken = jwtProvider.createRefreshToken(user.getId(), user.getRole().name());
+
+        willDoNothing().given(tossPaymentClient).cancel(anyString(), anyString());
     }
 
     @AfterEach

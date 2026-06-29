@@ -117,7 +117,7 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public ReservationDetailResponse getReservation(Long reservationId, Long userId) {
 
-        Reservation reservation = reservationRepository.findById(reservationId)
+        Reservation reservation = reservationRepository.findByIdWithSiteAndCamping(reservationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
 
         // 본인 예약인지 확인
@@ -147,7 +147,7 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public PaymentSummaryResponse getSummary(Long reservationId, Long userId) {
 
-        Reservation reservation = reservationRepository.findById(reservationId)
+        Reservation reservation = reservationRepository.findByIdWithSiteAndCamping(reservationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
 
         if (!reservation.getUser().getId().equals(userId)) {

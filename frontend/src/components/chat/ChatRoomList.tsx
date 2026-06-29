@@ -42,18 +42,18 @@ export default function ChatRoomList() {
   ========================= */
   useEffect(() => {
     if (!isLoggedIn) return;
-  
+
     const userId = Number(useAuthStore.getState().userId);
-  
+
     const subscription = chatClient.subscribeRoomList(
       userId,
       (updatedRoom: ChatRoomResponse) => {
         setRooms((prev) => {
           const map = new Map<number, ChatRoomResponse>();
-  
+
           prev.forEach((r) => map.set(r.roomId, r));
           map.set(updatedRoom.roomId, updatedRoom);
-  
+
           return Array.from(map.values()).sort(
             (a, b) =>
               new Date(b.lastMessageAt ?? 0).getTime() -
@@ -62,7 +62,7 @@ export default function ChatRoomList() {
         });
       }
     );
-  
+
     return () => subscription?.unsubscribe?.();
   }, [isLoggedIn]);
 
