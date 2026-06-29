@@ -4,6 +4,7 @@ import com.back.ovengers.domain.site.entity.Site;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -34,4 +35,13 @@ public interface SiteRepository extends JpaRepository<Site, Long> {
             String name,
             Long siteId
     );
+
+    @Modifying
+    @Query("""
+    update Site s
+    set s.deletedAt = CURRENT_TIMESTAMP
+    where s.camping.id = :campingId
+      and s.deletedAt is null
+    """)
+    void softDeleteByCampingId(Long campingId);
 }
