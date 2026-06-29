@@ -217,6 +217,7 @@ public class ChatService {
         }
     }
 
+    // 1:1 채팅 연결
     @Transactional(readOnly = true)
     public ChatJoinResponse getDirectRoom(Long userId, Long reservationId) {
         ChatRoom room = chatRoomRepository
@@ -232,4 +233,18 @@ public class ChatService {
         return new ChatJoinResponse(room.getId());
 
     }
+
+    // 채팅방 상태 Closed
+    @Transactional
+    public void closeByReservationId(Long reservationId) {
+        ChatRoom chatRoom = chatRoomRepository.findByReservationIdAndTypeAndStatus(
+                reservationId,
+                ChatRoomType.DIRECT,
+                ChatRoomStatus.ACTIVE
+        )
+        .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        chatRoom.close();
+    }
+
 }

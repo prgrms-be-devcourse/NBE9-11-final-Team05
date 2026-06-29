@@ -3,6 +3,10 @@ package com.back.ovengers.domain.reservation.controller;
 import com.back.ovengers.domain.camping.entity.Camping;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.chat.entity.ChatRoom;
+import com.back.ovengers.domain.chat.enums.ChatRoomStatus;
+import com.back.ovengers.domain.chat.enums.ChatRoomType;
+import com.back.ovengers.domain.chat.repository.ChatRoomRepository;
 import com.back.ovengers.domain.payment.client.TossPaymentClient;
 import com.back.ovengers.domain.payment.entity.Payment;
 import com.back.ovengers.domain.payment.entity.PaymentStatus;
@@ -53,6 +57,7 @@ class ReservationRestockTest {
     @Autowired private UserRepository userRepository;
     @Autowired private SiteRepository siteRepository;
     @Autowired private CampingRepository campingRepository;
+    @Autowired private ChatRoomRepository chatRoomRepository;
     @Autowired private JwtProvider jwtProvider;
 
     @MockitoBean
@@ -126,6 +131,7 @@ class ReservationRestockTest {
         siteRepository.deleteAll();
         campingRepository.deleteAll();
         userRepository.deleteAll();
+        chatRoomRepository.deleteAll();
     }
 
     @Test
@@ -176,6 +182,14 @@ class ReservationRestockTest {
                 .paidPrice(100000)
                 .status(PaymentStatus.DONE)
                 .build());
+
+        chatRoomRepository.save(
+                ChatRoom.builder()
+                        .reservationId(reservation.getId())
+                        .name("테스트 채팅방")
+                        .type(ChatRoomType.DIRECT)
+                        .status(ChatRoomStatus.ACTIVE)
+                        .build());
 
         // 4. 첫 번째 사용자 예약 취소
         mockMvc.perform(patch("/api/reservations/{id}/cancel", reservationId)

@@ -50,4 +50,8 @@ public class ChatRoom extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ChatRoomStatus status;
+
+    public void close() {
+        this.status = ChatRoomStatus.CLOSED;
+    }
 }

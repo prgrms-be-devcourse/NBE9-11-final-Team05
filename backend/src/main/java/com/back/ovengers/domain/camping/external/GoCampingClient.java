@@ -4,6 +4,7 @@ import com.back.ovengers.domain.camping.external.dto.GoCampingApiImageItem;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiImageWrapper;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiItem;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiWrapper;
+import com.back.ovengers.domain.camping.external.dto.SyncStatus;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +27,9 @@ public class GoCampingClient {
 
     private final RestClient restClient;
     private final GoCampingProperties properties;
+
+    private static final DateTimeFormatter SYNC_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("yyMMdd");
 
     public List<GoCampingApiItem> getCampList() {
         URI uri = buildUri(1);
@@ -57,6 +63,25 @@ public class GoCampingClient {
         for (int pageNo = 2; pageNo <= totalPages; pageNo++) {
             uri = buildImageUri(pageNo, contentId);
             response = fetchFromGoCamping(uri, GoCampingApiImageWrapper.class);
+            items.addAll(response.items());
+        }
+
+        return items;
+    }
+
+    public List<GoCampingApiItem> getModifiedList(SyncStatus status, LocalDate syncModTime) {
+        URI uri = buildSyncUri(1, status, syncModTime);
+        GoCampingApiWrapper response = fetchFromGoCamping(uri, GoCampingApiWrapper.class);
+
+        int totalCount = response.totalCount();
+        int pageSize = Integer.parseInt(properties.value().numOfRows());
+        int totalPages = (totalCount + pageSize - 1) / pageSize;
+
+        List<GoCampingApiItem> items = new ArrayList<>(response.items());
+
+        for (int pageNo = 2; pageNo <= totalPages; pageNo++) {
+            uri = buildSyncUri(pageNo, status, syncModTime);
+            response = fetchFromGoCamping(uri, GoCampingApiWrapper.class);
             items.addAll(response.items());
         }
 
@@ -109,6 +134,21 @@ public class GoCampingClient {
                 .queryParam("MobileApp", properties.value().mobileApp())
                 .queryParam("_type", properties.value().type())
                 .queryParam("contentId", contentId)
+                .build(true)
+                .toUri();
+    }
+
+    private URI buildSyncUri(int pageNo, SyncStatus status, LocalDate syncModTime) {
+        return UriComponentsBuilder
+                .fromUriString(properties.baseUrl() + properties.endpoint().basedSyncList())
+                .queryParam("serviceKey", properties.value().serviceKey())
+                .queryParam("pageNo", pageNo)
+                .queryParam("numOfRows", properties.value().numOfRows())
+                .queryParam("MobileOS", properties.value().mobileOS())
+                .queryParam("MobileApp", properties.value().mobileApp())
+                .queryParam("_type", properties.value().type())
+                .queryParam("syncStatus", status.name())
+                .queryParam("syncModTime", syncModTime.format(SYNC_DATE_FORMAT))
                 .build(true)
                 .toUri();
     }

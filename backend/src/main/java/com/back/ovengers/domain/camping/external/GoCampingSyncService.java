@@ -1,19 +1,18 @@
 package com.back.ovengers.domain.camping.external;
 
 import com.back.ovengers.domain.camping.entity.Camping;
+import com.back.ovengers.domain.camping.entity.ImageSyncStatus;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiImageItem;
 import com.back.ovengers.domain.camping.external.dto.GoCampingApiItem;
-import com.back.ovengers.domain.camping.repository.CampingImageRepository;
+import com.back.ovengers.domain.camping.external.dto.SyncStatus;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -22,46 +21,29 @@ public class GoCampingSyncService {
 
     private final GoCampingClient goCampingClient;
     private final CampingRepository campingRepository;
-    private final CampingImageRepository campingImageRepository;
     private final GoCampingPersistenceService campingPersistenceService;
 
     public void syncInitialData() {
         List<GoCampingApiItem> items = goCampingClient.getCampList();
-
-        List<Long> apiContentIds = items.stream()
-                        .map(item -> Long.valueOf(item.contentId()))
-                        .toList();
-
-        Set<Long> existingIds = new HashSet<>(campingRepository.findContentIdsIn(apiContentIds));
-
-        List<GoCampingApiItem> newItems = items.stream()
-                        .filter(item -> !existingIds.contains(Long.valueOf(item.contentId())))
-                        .toList();
-
-        campingPersistenceService.saveCamps(newItems);
+        campingPersistenceService.saveCamps(items);
     }
 
     public void syncImageData() {
-        List<Camping> camps = campingRepository.findAll();
-        Set<Long> campingIdsWithImages =
-                campingImageRepository.findCampingIdsWithImages();
+        List<Camping> camps = campingRepository.findByImageSyncStatusInAndHostIdIsNullAndDeletedAtIsNull(
+                List.of(ImageSyncStatus.PENDING, ImageSyncStatus.FAILED)
+        );
 
-        List<Long> failedCampIds = new ArrayList<>();
         int successCount = 0;
+        int failCount = 0;
 
         for (Camping camp : camps) {
-            if (campingIdsWithImages.contains(camp.getId())) {
-                continue;
-            }
-
             Long contentId = camp.getContentId();
-            if (contentId == null) {
-                continue;
-            }
 
             try {
                 List<GoCampingApiImageItem> items = goCampingClient.getCampImageList(contentId);
                 campingPersistenceService.saveCampImages(camp, items);
+
+                camp.updateImageSyncStatus(ImageSyncStatus.DONE);
 
                 successCount++;
 
@@ -74,7 +56,9 @@ public class GoCampingSyncService {
                 break;
 
             } catch (Exception e) {
-                failedCampIds.add(camp.getId());
+                camp.updateImageSyncStatus(ImageSyncStatus.FAILED);
+
+                failCount++;
 
                 log.error(
                         "Failed to sync images. campId={}, contentId={}",
@@ -88,13 +72,35 @@ public class GoCampingSyncService {
         log.info(
                 "이미지 동기화 완료. 성공={}, 실패={}",
                 successCount,
-                failedCampIds.size()
+                failCount
         );
-        log.info("이미지 동기화 실패 항목 : {}", failedCampIds);
     }
 
     // 임시 채팅방 데이터 생성 (기존 호출된 캠핑장 API)
     public void createMissingOpenChatRooms() {
         campingPersistenceService.createMissingOpenChatRooms();
+    }
+
+    public void syncModifiedData(LocalDate syncDate) {
+        syncAdded(syncDate);
+        syncUpdated(syncDate);
+        syncDeleted(syncDate);
+
+        syncImageData();
+    }
+
+    private void syncAdded(LocalDate syncDate) {
+        List<GoCampingApiItem> items = goCampingClient.getModifiedList(SyncStatus.A, syncDate);
+        campingPersistenceService.saveCamps(items);
+    }
+
+    private void syncUpdated(LocalDate syncDate) {
+        List<GoCampingApiItem> items = goCampingClient.getModifiedList(SyncStatus.U, syncDate);
+        campingPersistenceService.updateCamps(items);
+    }
+
+    private void syncDeleted(LocalDate syncDate) {
+        List<GoCampingApiItem> items = goCampingClient.getModifiedList(SyncStatus.D, syncDate);
+        campingPersistenceService.deleteCamps(items);
     }
 }

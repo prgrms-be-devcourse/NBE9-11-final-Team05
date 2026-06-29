@@ -11,7 +11,8 @@ public record GoCampingProperties(
 
     public record Endpoint(
         String basedList,
-        String imageList
+        String imageList,
+        String basedSyncList
     ) { }
 
     public record Value(
