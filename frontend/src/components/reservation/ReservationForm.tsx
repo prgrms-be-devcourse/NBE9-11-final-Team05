@@ -13,6 +13,8 @@ interface SiteOption {
   id: number;
   name: string;
   price: number;
+  baseCapacity: number;
+  maxCapacity: number;
 }
 
 interface ReservationFormProps {
@@ -60,6 +62,10 @@ export default function ReservationForm({
     e.preventDefault();
     if (!selectedSiteId || !rsvName || !checkIn || !checkOut) {
       setError("필수 입력값을 확인해주세요.");
+      return;
+    }
+    if (selectedSite && guestCount > selectedSite.maxCapacity) {
+      setError(`이 구역은 최대 ${selectedSite.maxCapacity}명까지 예약 가능합니다.`);
       return;
     }
     if (!agreed) {
@@ -135,7 +141,14 @@ export default function ReservationForm({
           label="구역선택"
           required
           defaultValue=""
-          onChange={(e) => setSelectedSiteId(Number(e.target.value))}
+          onChange={(e) => {
+            const siteId = Number(e.target.value);
+            setSelectedSiteId(siteId);
+            const site = siteOptions.find((s) => s.id === siteId);
+            if (site && guestCount > site.maxCapacity) {
+              setGuestCount(site.maxCapacity);
+            }
+          }}
         >
           <option value="" disabled>구역을 선택해주세요</option>
           {siteOptions.map((site) => (
@@ -143,15 +156,23 @@ export default function ReservationForm({
           ))}
         </Select>
 
-        <Input
-          type="number"
-          name="guestCount"
-          label="예약 인원"
-          min={1}
-          value={guestCount}
-          onChange={(e) => setGuestCount(Number(e.target.value))}
-          required
-        />
+        <div className="flex flex-col gap-1.5">
+          <Input
+            type="number"
+            name="guestCount"
+            label="예약 인원"
+            min={1}
+            max={selectedSite?.maxCapacity}
+            value={guestCount}
+            onChange={(e) => setGuestCount(Number(e.target.value))}
+            required
+          />
+          {selectedSite && (
+            <p className="text-xs text-stone-400">
+              기준 {selectedSite.baseCapacity}명 / 최대 {selectedSite.maxCapacity}명
+            </p>
+          )}
+        </div>
 
         <Input
           name="rsvPhone"

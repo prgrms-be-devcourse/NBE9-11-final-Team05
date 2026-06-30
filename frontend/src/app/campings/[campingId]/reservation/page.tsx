@@ -30,6 +30,8 @@ export default function ReservationPage() {
     id: site.id,
     name: `${site.name} (최대 ${site.maxCapacity}명 / ${site.price.toLocaleString()}원)`,
     price: site.price,
+    baseCapacity: site.baseCapacity,
+    maxCapacity: site.maxCapacity,
   }));
 
   return (
