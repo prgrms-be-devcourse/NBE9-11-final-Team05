@@ -87,7 +87,7 @@ export default function SignupStep2() {
     <div className="min-h-screen flex flex-col bg-white">
 
       {/* 본문 */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-10 gap-6 -mt-60">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 pt-12 pb-24 gap-6">
         <h2 className="text-2xl font-bold text-gray-800">
           안녕하세요😀 먼저 아래 정보를 입력해주세요
         </h2>

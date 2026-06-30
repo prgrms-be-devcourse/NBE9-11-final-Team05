@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signupApi } from "@/lib/api/signup";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const IMAGE_UPLOAD_URL = `${API_URL}/api/images/upload`; // 백엔드 업로드 엔드포인트 — 없으면 Base64 폴백
 
 const ERROR_MESSAGES: Record<string, string> = {
   DUPLICATE_EMAIL: "이미 사용 중인 이메일입니다.",
@@ -26,8 +27,40 @@ interface UserProfile {
   role: "USER" | "HOST" | "ADMIN";
 }
 
+/** 이미지 파일을 서버에 업로드하고 URL을 반환. 엔드포인트가 없으면 Base64 폴백 */
+async function uploadImage(file: File): Promise<string> {
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(IMAGE_UPLOAD_URL, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      // 백엔드 응답 구조에 맞게 조정 (예: data.data.url 또는 data.url)
+      return data?.data?.url ?? data?.url ?? "";
+    }
+  } catch {
+    // 엔드포인트 없음 → Base64 폴백
+  }
+
+  // 폴백: Base64 Data URL
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("파일 읽기 실패"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function EditProfilePage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [originalNickname, setOriginalNickname] = useState("");
   const [role, setRole] = useState<"USER" | "HOST" | "ADMIN">("USER");
 
@@ -36,7 +69,11 @@ export default function EditProfilePage() {
   const [nicknameError, setNicknameError] = useState("");
 
   const [phone, setPhone] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+
+  // 기존 imageUrl(서버 저장값) + 새로 선택한 파일/미리보기 분리
+  const [savedImageUrl, setSavedImageUrl] = useState<string>("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -55,7 +92,7 @@ export default function EditProfilePage() {
         setOriginalNickname(p.nickname ?? "");
         setNickname(p.nickname ?? "");
         setPhone(p.phone ?? "");
-        setImageUrl(p.imageUrl ?? "");
+        setSavedImageUrl(p.imageUrl ?? "");
         setRole(p.role);
       } catch (e) {
         console.error(e);
@@ -67,9 +104,36 @@ export default function EditProfilePage() {
     loadProfile();
   }, []);
 
-  const nicknameChanged = nickname !== originalNickname;
+  // 파일 선택 핸들러
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  // 저장 가능 조건: 닉네임을 바꿨으면 중복확인 필수, 안 바꿨으면 바로 가능
+    // 5MB 제한
+    if (file.size > 5 * 1024 * 1024) {
+      setError("이미지 크기는 5MB 이하여야 합니다.");
+      return;
+    }
+
+    setImageFile(file);
+    setError("");
+
+    // 즉시 로컬 미리보기
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    setSavedImageUrl("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const displayImage = imagePreview || savedImageUrl; // 미리보기 우선, 없으면 기존 서버 이미지
+
+  const nicknameChanged = nickname !== originalNickname;
   const canSave = nicknameChanged ? nicknameChecked : true;
 
   const handleNicknameCheck = async () => {
@@ -90,34 +154,42 @@ export default function EditProfilePage() {
     setSuccess(false);
     setSaving(true);
     try {
+      let finalImageUrl: string | null = savedImageUrl || null;
+  
+      if (imageFile) {
+        try {
+          finalImageUrl = await uploadImage(imageFile);
+        } catch (uploadErr) {
+          console.error("[이미지 업로드 실패]", uploadErr);
+          setError("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
+          return;
+        }
+      }
+  
+      const body = { nickname, phone, imageUrl: finalImageUrl };
+      console.log("[PATCH 요청 body]", body); // 확인용
+  
       const res = await fetch(`${API_URL}/api/users/me`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nickname,
-          phone,
-          imageUrl: imageUrl.trim() === "" ? null : imageUrl,
-        }),
+        body: JSON.stringify(body),
       });
-
+  
       if (!res.ok) {
         const data = await res.json();
+        console.error("[PATCH 응답 에러]", data); // 확인용
         const code = data?.code ?? "INTERNAL_SERVER_ERROR";
         setError(ERROR_MESSAGES[code] ?? "수정에 실패했습니다.");
         return;
       }
-
+  
       setSuccess(true);
       setTimeout(() => {
-        if (role === "HOST") {
-          router.push("/host/dashboard");
-          return;
-        }
-
-        router.push("/mypage");
+        router.push(role === "HOST" ? "/host/dashboard" : "/mypage");
       }, 1000);
     } catch (e) {
+      console.error("[handleSave 예외]", e); // ← 여기서 실제 원인 확인
       setError(ERROR_MESSAGES["INTERNAL_SERVER_ERROR"]);
     } finally {
       setSaving(false);
@@ -146,30 +218,50 @@ export default function EditProfilePage() {
         </div>
 
         <div className="bg-[#EDE8DF] rounded-2xl p-6 flex flex-col gap-6">
-          {/* 프로필 이미지 미리보기 */}
+          {/* 프로필 이미지 */}
           <div className="flex flex-col items-center gap-3">
             <div className="w-20 h-20 rounded-full bg-gray-300 overflow-hidden">
-              {imageUrl ? (
-                <img src={imageUrl} alt="프로필" className="w-full h-full object-cover" />
+              {displayImage ? (
+                <img src={displayImage} alt="프로필" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-gray-300" />
               )}
             </div>
+
+            {/* 숨겨진 파일 input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-1.5 bg-[#4a6b4a] hover:bg-[#3d5c3d] text-white text-xs rounded-lg transition-colors"
+              >
+                사진 선택
+              </button>
+              {displayImage && (
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="px-4 py-1.5 bg-gray-400 hover:bg-gray-500 text-white text-xs rounded-lg transition-colors"
+                >
+                  사진 삭제
+                </button>
+              )}
+            </div>
+
+            {imageFile && (
+              <p className="text-xs text-gray-500">{imageFile.name}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* 이미지 URL */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">프로필 이미지 URL</label>
-              <input
-                type="text"
-                placeholder="이미지 URL을 입력해주세요"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-lg bg-white/95 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-orange-400"
-              />
-            </div>
-
             {/* 닉네임 */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium text-gray-700">닉네임</label>
@@ -185,7 +277,6 @@ export default function EditProfilePage() {
                   }}
                   className="flex-1 px-3 py-2.5 rounded-lg bg-white/95 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-orange-400"
                 />
-                {/* 닉네임이 바뀐 경우에만 중복확인 버튼 노출 */}
                 {nicknameChanged && (
                   <button
                     onClick={handleNicknameCheck}
@@ -200,7 +291,6 @@ export default function EditProfilePage() {
                   {nicknameError}
                 </p>
               )}
-              {/* 닉네임을 바꿨는데 아직 중복확인 안 한 경우 안내 */}
               {nicknameChanged && !nicknameChecked && !nicknameError && (
                 <p className="text-xs text-orange-500">닉네임 중복확인이 필요합니다.</p>
               )}
