@@ -133,4 +133,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
       )
     """)
     List<Reservation> findAbandonedReservations(@Param("expireTime") LocalDateTime expireTime);
+
+    List<Reservation> findByStatusAndCheckOutBefore(
+            ReservationStatus status,
+            LocalDate checkOut
+    );
 }
