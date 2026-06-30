@@ -73,7 +73,7 @@ public class CampingController {
         );
     }
 
-    @GetMapping("/{campingId}/avaliable-sites")
+    @GetMapping("/{campingId}/available-sites")
     @Operation(
             summary = "캠핑장 이용 가능한 사이트 조회",
             description = """
@@ -90,8 +90,10 @@ public class CampingController {
             @Parameter(description = "체크아웃 날짜 (yyyy-MM-dd)", required = true)
             @RequestParam LocalDate checkOut
     ) {
-        List<SiteResponse> response = campingService.getAvailableSites(campingId, checkIn, checkOut);
 
+        System.out.println("동작함?");
+        List<SiteResponse> response = campingService.getAvailableSites(campingId, checkIn, checkOut);
+        System.out.println("서비스통과?" + response);
         return ResponseEntity.ok(
                 new ApiResponse<>("이용 가능한 구역 조회 성공", response)
         );

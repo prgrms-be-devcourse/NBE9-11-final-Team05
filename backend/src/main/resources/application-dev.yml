@@ -32,7 +32,7 @@ management:
 
 app:
   cookie:
-    secure: false
+    secure: true
     domain: "localhost"
   cors:
     allowed-origins: http://localhost:3000

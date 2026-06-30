@@ -1,30 +1,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import ReservationForm from "@/components/reservation/ReservationForm";
 import { getCampingDetailClient } from "@/lib/api/reservation.client";
 import type { CampingDetail } from "@/types/camping";
 
 export default function ReservationPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const campingId = String(params.campingId);
-
-  const checkIn = searchParams.get("checkIn") ?? "";
-  const checkOut = searchParams.get("checkOut") ?? "";
 
   const [camping, setCamping] = useState<CampingDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // 🔥 sessionStorage state
+  const [draft, setDraft] = useState<any>(null);
+
+  useEffect(() => {
+    const data = sessionStorage.getItem("reservationDraft");
+
+    if (data) {
+      setDraft(JSON.parse(data));
+    }
+  }, []);
+
   useEffect(() => {
     getCampingDetailClient(Number(campingId))
       .then(setCamping)
-      .catch(() => setError("캠핑장 정보를 불러오지 못했습니다."));
+      .catch(() =>
+        setError("캠핑장 정보를 불러오지 못했습니다.")
+      );
   }, [campingId]);
 
-  if (error) return <p className="p-10 text-center text-red-500">{error}</p>;
-  if (!camping) return <p className="p-10 text-center text-stone-400">불러오는 중...</p>;
+  if (error)
+    return <p className="p-10 text-center text-red-500">{error}</p>;
+
+  if (!camping || !draft)
+    return (
+      <p className="p-10 text-center text-stone-400">
+        불러오는 중...
+      </p>
+    );
 
   const siteOptions = camping.sites.map((site) => ({
     id: site.id,
@@ -40,8 +56,9 @@ export default function ReservationPage() {
         campingId={campingId}
         siteOptions={siteOptions}
         campingName={camping.name}
-        defaultCheckIn={checkIn}
-        defaultCheckOut={checkOut}
+        defaultCheckIn={draft.checkIn}
+        defaultCheckOut={draft.checkOut}
+        defaultSiteId={draft.site.id}
       />
     </div>
   );
