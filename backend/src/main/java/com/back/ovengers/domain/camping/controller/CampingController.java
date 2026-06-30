@@ -91,9 +91,8 @@ public class CampingController {
             @RequestParam LocalDate checkOut
     ) {
 
-        System.out.println("동작함?");
         List<SiteResponse> response = campingService.getAvailableSites(campingId, checkIn, checkOut);
-        System.out.println("서비스통과?" + response);
+
         return ResponseEntity.ok(
                 new ApiResponse<>("이용 가능한 구역 조회 성공", response)
         );
