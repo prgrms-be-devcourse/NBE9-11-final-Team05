@@ -14,6 +14,7 @@ const STATUS_BADGE: Record<
   CONFIRMED: { label: "예약 완료", tone: "success" },
   CANCELLED: { label: "예약 취소됨", tone: "danger" },
   PENDING: { label: "결제 대기", tone: "neutral" },
+  COMPLETED: { label: "이용 완료", tone: "neutral" },
 };
 
 export default function MyReservationsPage() {

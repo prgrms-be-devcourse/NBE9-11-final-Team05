@@ -52,10 +52,10 @@ export async function getCampingReviewsClient(
 }
 
 /** 내 리뷰 목록조회 (완료된 예약 + 작성 여부) */
-export async function getMyReviewsClient(page: number = 0) {
+export async function getMyReviewsClient(page: number = 0, size: number = 10) {
   const res = await apiFetch<{
     message: string;
     data: PageResponse<MyReviewResponse>;
-  }>(`/api/users/me/reviews?page=${page}`);
+  }>(`/api/users/me/reviews?page=${page}&size=${size}`);
   return res.data;
 }

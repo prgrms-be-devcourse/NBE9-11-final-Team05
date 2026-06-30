@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getReservationClient } from "@/lib/api/reservation.client";
+import { getMyReviewsClient } from "@/lib/api/review.client";
 import CancelReservationButton from "@/components/reservation/CancelReservationButton";
+import MyReservationReview from "@/components/review/MyReservationReview";
 import Card from "@/components/ui/Card";
 import DataRow from "@/components/ui/DataRow";
 import Button from "@/components/ui/Button";
 import type { ReservationDetailResponse } from "@/types/reservation";
+import type { ReviewDetail } from "@/types/review";
 
 export default function MyReservationDetailPage() {
   const params = useParams();
@@ -16,6 +19,8 @@ export default function MyReservationDetailPage() {
 
   const [reservation, setReservation] = useState<ReservationDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [review, setReview] = useState<ReviewDetail | null>(null);
+  const [reviewLoaded, setReviewLoaded] = useState(false);
 
   useEffect(() => {
     getReservationClient(Number(reservationId))
@@ -23,10 +28,28 @@ export default function MyReservationDetailPage() {
       .catch(() => setError("예약 정보를 불러오지 못했습니다."));
   }, [reservationId]);
 
+  const loadReview = useCallback(() => {
+    getMyReviewsClient(0, 100)
+      .then((res) => {
+        const matched = res.content.find(
+          (item) => item.reservationId === Number(reservationId)
+        );
+        setReview(matched?.review ?? null);
+      })
+      .finally(() => setReviewLoaded(true));
+  }, [reservationId]);
+
+  useEffect(() => {
+    if (reservation?.status === "COMPLETED") {
+      loadReview();
+    }
+  }, [reservation?.status, loadReview]);
+
   if (error) return <p className="p-10 text-center text-red-500">{error}</p>;
   if (!reservation) return <p className="p-10 text-center text-stone-400">불러오는 중...</p>;
 
   const isCancellable = reservation.status === "PENDING" || reservation.status === "CONFIRMED";
+  const isCompleted = reservation.status === "COMPLETED";
 
   return (
     <div className="mx-auto max-w-md p-6">
@@ -60,6 +83,17 @@ export default function MyReservationDetailPage() {
           </span>
         </div>
       </Card>
+
+      {isCompleted && reviewLoaded && (
+        <div className="mt-6">
+          <h3 className="mb-3 text-sm font-semibold text-stone-900">내 리뷰</h3>
+          <MyReservationReview
+            reservationId={Number(reservationId)}
+            initialReview={review}
+            onChanged={loadReview}
+          />
+        </div>
+      )}
 
       <div className="mt-6 flex flex-col gap-3">
         <Link href={`/campings/${reservation.campingId}`} className="w-full">
