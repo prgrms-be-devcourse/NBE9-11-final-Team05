@@ -21,6 +21,7 @@ export default function MyReservationDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [review, setReview] = useState<ReviewDetail | null>(null);
   const [reviewLoaded, setReviewLoaded] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   useEffect(() => {
     getReservationClient(Number(reservationId))
@@ -29,6 +30,7 @@ export default function MyReservationDetailPage() {
   }, [reservationId]);
 
   const loadReview = useCallback(() => {
+    setReviewError(null);
     getMyReviewsClient(0, 100)
       .then((res) => {
         const matched = res.content.find(
@@ -36,11 +38,13 @@ export default function MyReservationDetailPage() {
         );
         setReview(matched?.review ?? null);
       })
+      .catch(() => setReviewError("리뷰 정보를 불러오지 못했습니다."))
       .finally(() => setReviewLoaded(true));
   }, [reservationId]);
 
   useEffect(() => {
     if (reservation?.status === "COMPLETED") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 예약 상태 확인 직후 리뷰를 즉시 조회하는 표준 데이터 페칭 패턴
       loadReview();
     }
   }, [reservation?.status, loadReview]);
@@ -87,11 +91,16 @@ export default function MyReservationDetailPage() {
       {isCompleted && reviewLoaded && (
         <div className="mt-6">
           <h3 className="mb-3 text-sm font-semibold text-stone-900">내 리뷰</h3>
-          <MyReservationReview
-            reservationId={Number(reservationId)}
-            initialReview={review}
-            onChanged={loadReview}
-          />
+          {reviewError ? (
+            <p className="text-sm text-red-500">{reviewError}</p>
+          ) : (
+            <MyReservationReview
+              key={review?.reviewId ?? "new"}
+              reservationId={Number(reservationId)}
+              initialReview={review}
+              onChanged={loadReview}
+            />
+          )}
         </div>
       )}
 

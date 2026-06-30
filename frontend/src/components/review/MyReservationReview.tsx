@@ -19,11 +19,6 @@ const STAR_VALUES = [1, 2, 3, 4, 5];
 
 export default function MyReservationReview({ reservationId, initialReview, onChanged }: Props) {
   const [review, setReview] = useState(initialReview);
-  const [prevInitialReview, setPrevInitialReview] = useState(initialReview);
-  if (initialReview !== prevInitialReview) {
-    setPrevInitialReview(initialReview);
-    setReview(initialReview);
-  }
   const [isEditing, setIsEditing] = useState(false);
   const [rating, setRating] = useState(review?.rating ?? 5);
   const [content, setContent] = useState(review?.content ?? "");

@@ -22,11 +22,9 @@ export default function ReviewSection({ campingId }: Props) {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.resolve().then(() => {
-      if (cancelled) return;
-      setIsLoading(true);
-      setError(null);
-    });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 페이지 변경 시 로딩 상태로 즉시 전환하기 위한 표준 데이터 페칭 패턴
+    setIsLoading(true);
+    setError(null);
 
     getCampingReviewsClient(campingId, page, PAGE_SIZE)
       .then((res) => {
