@@ -14,6 +14,7 @@ interface Props {
 export default function ReservationCard({ camping, role }: Props) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
+  
   const router = useRouter();
 
   const today = new Date().toLocaleDateString("sv-SE");
@@ -27,7 +28,7 @@ export default function ReservationCard({ camping, role }: Props) {
 
   const handleReservation = () => {
     // 🔥 로그인 체크
-    if (!role) {
+    if (role === null) {
       AppToast.error("로그인이 필요합니다.");
       router.push("/auth/login");
       return;
