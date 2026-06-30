@@ -17,16 +17,31 @@ export default function CampingReviewsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    let cancelled = false;
+
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      setLoading(true);
+      setError(null);
+    });
+
     getCampingReviewsClient(campingId, page, 10)
       .then((res) => {
+        if (cancelled) return;
         setReviews(res.content);
         setTotalElements(res.totalElements);
         setHasNext(res.hasNext);
       })
-      .catch(() => setError("후기를 불러오지 못했습니다."))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!cancelled) setError("후기를 불러오지 못했습니다.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [campingId, page]);
 
   return (

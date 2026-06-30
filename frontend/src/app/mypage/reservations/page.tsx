@@ -21,17 +21,36 @@ export default function MyReservationsPage() {
   const [content, setContent] = useState<ReservationListItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
 
   useEffect(() => {
-    getMyReservationsClient(0)
+    let cancelled = false;
+
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      setLoading(true);
+      setError(null);
+    });
+
+    getMyReservationsClient(page)
       .then((res) => {
-        const items = Array.isArray(res) ? res : res.content ?? [];
+        if (cancelled) return;
         // PENDING 제외
-        setContent(items.filter((r) => r.status !== "PENDING"));
+        setContent(res.content.filter((r) => r.status !== "PENDING"));
+        setHasNext(res.hasNext);
       })
-      .catch(() => setError("예약 목록을 불러오지 못했습니다."))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch(() => {
+        if (!cancelled) setError("예약 목록을 불러오지 못했습니다.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [page]);
 
   if (loading) return <p className="p-10 text-center text-stone-400">불러오는 중...</p>;
   if (error) return <p className="p-10 text-center text-red-500">{error}</p>;
@@ -82,6 +101,26 @@ export default function MyReservationsPage() {
           );
         })}
       </ul>
+
+      {content.length > 0 && (page > 0 || hasNext) && (
+        <div className="mt-6 flex items-center justify-center gap-4">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 text-stone-600 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-stone-50"
+          >
+            ‹
+          </button>
+          <span className="text-sm text-stone-400">{page + 1}</span>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={!hasNext}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 text-stone-600 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-stone-50"
+          >
+            ›
+          </button>
+        </div>
+      )}
     </div>
   );
 }

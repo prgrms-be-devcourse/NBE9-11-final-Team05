@@ -21,8 +21,12 @@ export default function ReviewSection({ campingId }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    setIsLoading(true);
-    setError(null);
+
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      setIsLoading(true);
+      setError(null);
+    });
 
     getCampingReviewsClient(campingId, page, PAGE_SIZE)
       .then((res) => {

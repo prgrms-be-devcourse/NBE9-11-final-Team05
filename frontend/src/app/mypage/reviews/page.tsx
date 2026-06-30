@@ -15,15 +15,30 @@ export default function MyReviewsPage() {
   const [hasNext, setHasNext] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    let cancelled = false;
+
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      setLoading(true);
+      setError(null);
+    });
+
     getMyReviewsClient(page, 10)
       .then((res) => {
+        if (cancelled) return;
         setContent(res.content);
         setHasNext(res.hasNext);
       })
-      .catch(() => setError("리뷰 목록을 불러오지 못했습니다."))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!cancelled) setError("리뷰 목록을 불러오지 못했습니다.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [page]);
 
   return (
