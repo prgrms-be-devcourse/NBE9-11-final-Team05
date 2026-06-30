@@ -42,7 +42,7 @@ export default async function CampingDetailPage({ params }: Props) {
           <ChatJoinButton campingId={id} />
           <CampingDescription camping={camping} />
           <SiteSection sites={camping.sites} />
-          <ReviewSection />
+          <ReviewSection campingId={id} />
         </div>
 
         {!isApiCamping && (

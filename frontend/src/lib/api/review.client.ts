@@ -42,12 +42,13 @@ export async function deleteReviewClient(reviewId: number) {
 /** 캠핑장 리뷰 목록 조회 (최신순) */
 export async function getCampingReviewsClient(
   campingId: number,
-  page: number = 0
+  page: number = 0,
+  size: number = 4
 ) {
   const res = await apiFetch<{
     message: string;
     data: PageResponse<ReviewResponse>;
-  }>(`/api/campings/${campingId}/reviews?page=${page}`);
+  }>(`/api/campings/${campingId}/reviews?page=${page}&size=${size}`);
   return res.data;
 }
 
