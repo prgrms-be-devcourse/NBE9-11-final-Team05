@@ -26,7 +26,7 @@ export default function ReservationDetailPage() {
   if (error) return <p className="p-10 text-center text-red-500">{error}</p>;
   if (!reservation) return <p className="p-10 text-center text-stone-400">불러오는 중...</p>;
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
 
   return (
     <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 p-6 md:grid-cols-2">
