@@ -44,10 +44,16 @@ public interface SiteRepository extends JpaRepository<Site, Long> {
       and s.deletedAt is null
     """)
     void softDeleteByCampingId(Long campingId);
-           
-    // 캠핑장 목록 조회 시 각 캠핑장의 1박 최저가 조회 (N+1 방지)
-    // IN 쿼리로 한 번에 조회 → Map으로 변환해서 O(1) 매칭
-    // Object[0] = camping_id, Object[1] = min_price
-    @Query("SELECT s.camping.id, MIN(s.price) FROM Site s WHERE s.camping.id IN :campingIds AND s.deletedAt IS NULL GROUP BY s.camping.id")
-    List<Object[]> findMinPriceByCampingIds(@Param("campingIds") List<Long> campingIds);
+
+    // guestCount 조건이 있으면 인원 조건을 만족하는 Site 중 최저가 (검색 결과와 일치)
+// guestCount 없으면 전체 Site 최저가
+// Object[0] = camping_id, Object[1] = min_price
+    @Query("SELECT s.camping.id, MIN(s.price) FROM Site s " +
+            "WHERE s.camping.id IN :campingIds " +
+            "AND s.deletedAt IS NULL " +
+            "AND (:guestCount IS NULL OR s.maxCapacity >= :guestCount) " +
+            "GROUP BY s.camping.id")
+    List<Object[]> findMinPriceByCampingIds(
+            @Param("campingIds") List<Long> campingIds,
+            @Param("guestCount") Integer guestCount);
 }
