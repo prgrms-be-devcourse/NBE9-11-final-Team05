@@ -8,6 +8,7 @@ import {
   rejectCamping,
 } from "@/lib/api/admin";
 import { PendingCampingResponse } from "@/types/admin";
+import { AppToast } from "@/lib/ui/toast";
 
 export default function PendingCampingPage() {
   const [campings, setCampings] = useState<PendingCampingResponse[]>([]);
@@ -33,8 +34,8 @@ export default function PendingCampingPage() {
     try {
       await approveCamping(campingId);
 
-      alert("승인되었습니다.");
-
+      AppToast.success("승인되었습니다.");
+      
       const data = await getPendingCampings();
       setCampings(data.content);
     } catch (error) {
@@ -51,7 +52,7 @@ export default function PendingCampingPage() {
     try {
       await rejectCamping(campingId, reason);
 
-      alert("반려되었습니다.");
+      AppToast.success("반려되었습니다.");
 
       const data = await getPendingCampings();
       setCampings(data.content);
@@ -63,7 +64,7 @@ export default function PendingCampingPage() {
   // 일괄 승인
   const handleApproveAll = async () => {
     if (isEmpty) {
-      alert("승인할 캠핑장이 없습니다.");
+      AppToast.error("승인할 캠핑장이 없습니다.");
       return;
     }
 
@@ -77,7 +78,7 @@ export default function PendingCampingPage() {
 
       await approveCampingBulk(ids);
 
-      alert("일괄 승인 완료");
+      AppToast.success("일괄 승인 완료");
 
       const data = await getPendingCampings();
       setCampings(data.content);

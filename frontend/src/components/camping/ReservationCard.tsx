@@ -3,20 +3,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CampingDetail } from "@/types/camping";
+import { UserRole } from "@/lib/utils/auth";
+import { AppToast } from "@/lib/ui/toast";
 
 interface Props {
   camping: CampingDetail;
+  role: UserRole | null;
 }
 
-export default function ReservationCard({ camping }: Props) {
+export default function ReservationCard({ camping, role }: Props) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const router = useRouter();
 
-  // 오늘 날짜 (체크인 최소값)
   const today = new Date().toLocaleDateString("sv-SE");
 
-  // 체크인 다음날 계산 (체크아웃 최소값)
   const getMinCheckOut = (checkIn: string) => {
     if (!checkIn) return "";
     const date = new Date(checkIn);
@@ -25,14 +26,30 @@ export default function ReservationCard({ camping }: Props) {
   };
 
   const handleReservation = () => {
+    // 🔥 로그인 체크
+    if (!role) {
+      AppToast.error("로그인이 필요합니다.");
+      router.push("/auth/login");
+      return;
+    }
+
+    // 🔥 권한 체크
+    if (role !== "USER") {
+      AppToast.error("사용자만 예약이 가능합니다.");
+      return;
+    }
+
+    // 🔥 날짜 체크
     if (!checkIn || !checkOut) {
-      alert("체크인/체크아웃 날짜를 선택해주세요.");
+      AppToast.error("체크인/체크아웃 날짜를 선택해주세요.");
       return;
     }
+
     if (checkOut <= checkIn) {
-      alert("체크아웃은 체크인 다음날 이후여야 합니다.");
+      AppToast.error("체크아웃은 체크인 다음날 이후여야 합니다.");
       return;
     }
+
     router.push(
       `/campings/${camping.id}/reservation?checkIn=${checkIn}&checkOut=${checkOut}`
     );
@@ -43,9 +60,17 @@ export default function ReservationCard({ camping }: Props) {
       <div className="sticky top-24 bg-white rounded-3xl shadow-xl p-8">
         {/* 가격 */}
         <div className="text-3xl font-bold text-gray-900">
-          ₩
-          {Math.min(...camping.sites.map((site) => site.price)).toLocaleString()}
-          <span className="text-lg font-normal text-gray-500">~</span>
+          {camping.sites?.length > 0 ? (
+            <>
+              ₩
+              {Math.min(...camping.sites.map((site) => site.price)).toLocaleString()}
+              <span className="text-lg font-normal text-gray-500">~</span>
+            </>
+          ) : (
+            <span className="text-gray-400 text-xl font-medium">
+              가격 정보 없음
+            </span>
+          )}
         </div>
 
         {/* 날짜 선택 */}

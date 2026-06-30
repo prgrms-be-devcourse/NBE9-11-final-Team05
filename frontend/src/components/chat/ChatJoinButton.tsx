@@ -3,7 +3,7 @@
 import { joinOpenChat } from "@/lib/api/chat";
 import { useChatStore } from "@/stores/chatStore";
 import { useAuthStore } from "@/stores/authStore";
-import { toast } from "sonner";
+import { AppToast } from "@/lib/ui/toast";
 
 export default function ChatJoinButton({ campingId }: { campingId: number }) {
   const openChat = useChatStore((s) => s.openChat);
@@ -11,17 +11,17 @@ export default function ChatJoinButton({ campingId }: { campingId: number }) {
 
   const enterChat = async () => {
     if (!isLoggedIn) {
-      toast.error("로그인 후 이용 가능합니다.");
+      AppToast.error("로그인 후 이용 가능합니다.");
       return;
     }
 
     try {
       const res = await joinOpenChat(campingId);
       openChat(res.roomId);
-      toast.success("채팅방에 입장했습니다.");
+      AppToast.success("채팅방에 입장했습니다.");
     } catch (e) {
       console.error(e);
-      toast.error("채팅방 입장에 실패했습니다.");
+      AppToast.error("채팅방 입장에 실패했습니다.");
     }
   };
 

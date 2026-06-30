@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { claimCamping, searchClaimableCampings } from "@/lib/api/host";
 import type { CampingClaimSearchItem } from "@/types/host";
+import { AppToast } from "@/lib/ui/toast";
 
 export default function CampingClaimPage() {
   const router = useRouter();
@@ -66,7 +67,7 @@ export default function CampingClaimPage() {
         tourNum: tourNum.trim(),
       });
 
-      alert("캠핑장 소유권 인증이 완료되었습니다.");
+      AppToast.success("캠핑장 소유권 인증이 완료되었습니다.");
       router.push("/host/campings");
     } catch {
       setErrorMessage("캠핑장 소유권 인증에 실패했습니다.");

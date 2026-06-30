@@ -8,6 +8,7 @@ import java.util.List;
 
 public record CampingDetailResponse(
         Long id,
+        Long hostId,
         String firstImageUrl,
         String name,
         String homepage,
@@ -27,8 +28,10 @@ public record CampingDetailResponse(
             List<String> imageUrls,
             List<SiteResponse> sites
     ) {
+
         return new CampingDetailResponse(
                 camp.getId(),
+                camp.getHost() != null ? camp.getHost().getId() : null,
                 camp.getFirstImageUrl(),
                 camp.getName(),
                 camp.getHomepage(),
