@@ -88,6 +88,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/notifications/**" // 알람 관련 API는 로그인 사용자만 접근 가능
                         ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/images/upload")
+                        .authenticated()
+
                         .requestMatchers(
                                 "/api/auth/signup",
                                 "/api/auth/signup/host",
