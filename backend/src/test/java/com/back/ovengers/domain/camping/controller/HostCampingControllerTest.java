@@ -4,19 +4,24 @@ import com.back.ovengers.domain.camping.dto.*;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.service.HostCampingService;
 import com.back.ovengers.domain.user.entity.User;
+import com.back.ovengers.global.security.JwtFilter;
+import com.back.ovengers.global.security.JwtProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
@@ -30,28 +35,31 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@WebMvcTest(HostCampingController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class HostCampingControllerTest {
 
-    MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-    HostCampingService hostCampingService;
+    @MockitoBean
+    private HostCampingService hostCampingService;
+
+    @MockitoBean
+    private JwtFilter jwtFilter;
+
+    @MockitoBean
+    private JwtProvider jwtProvider;
+
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     private static final Long USER_ID = 1L;
 
+    private RequestPostProcessor hostUser;
+
     @BeforeEach
     void setUp() {
-        hostCampingService = mock(HostCampingService.class);
-
-        HostCampingController controller =
-                new HostCampingController(hostCampingService);
-
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(controller)
-                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
-                .build();
-    }
-
-    private RequestPostProcessor hostUser() {
         User user = mock(User.class);
         given(user.getId()).willReturn(USER_ID);
 
@@ -62,7 +70,7 @@ class HostCampingControllerTest {
                         List.of(new SimpleGrantedAuthority("ROLE_HOST"))
                 );
 
-        return request -> {
+        hostUser = request -> {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             return request;
         };
@@ -100,11 +108,11 @@ class HostCampingControllerTest {
         CampingCreateResponse response =
                 new CampingCreateResponse(1L, "테스트 캠핑장", CampingStatus.PENDING);
 
-        given(hostCampingService.register(anyLong(), any(CampingCreateRequest.class)))
+        given(hostCampingService.register(eq(USER_ID), any(CampingCreateRequest.class)))
                 .willReturn(response);
 
         mockMvc.perform(post("/api/host/campings")
-                        .with(hostUser())
+                        .with(hostUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated())
@@ -114,7 +122,7 @@ class HostCampingControllerTest {
                 .andExpect(jsonPath("$.data.status").value("PENDING"));
 
         then(hostCampingService).should()
-                .register(anyLong(), any(CampingCreateRequest.class));
+                .register(eq(USER_ID), any(CampingCreateRequest.class));
     }
 
     @Test
@@ -133,11 +141,11 @@ class HostCampingControllerTest {
                 )
         );
 
-        given(hostCampingService.getMyCampings(anyLong()))
+        given(hostCampingService.getMyCampings(eq(USER_ID)))
                 .willReturn(response);
 
         mockMvc.perform(get("/api/host/campings")
-                        .with(hostUser()))
+                        .with(hostUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("내 캠핑장 목록 조회 성공"))
                 .andExpect(jsonPath("$.data[0].id").value(1L))
@@ -145,7 +153,7 @@ class HostCampingControllerTest {
                 .andExpect(jsonPath("$.data[0].status").value("PENDING"));
 
         then(hostCampingService).should()
-                .getMyCampings(anyLong());
+                .getMyCampings(eq(USER_ID));
     }
 
     @Test
@@ -175,18 +183,18 @@ class HostCampingControllerTest {
                 List.of()
         );
 
-        given(hostCampingService.getMyCampingDetail(anyLong(), eq(campingId)))
+        given(hostCampingService.getMyCampingDetail(eq(USER_ID), eq(campingId)))
                 .willReturn(response);
 
         mockMvc.perform(get("/api/host/campings/{campingId}", campingId)
-                        .with(hostUser()))
+                        .with(hostUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("내 캠핑장 상세 조회 성공"))
                 .andExpect(jsonPath("$.data.id").value(1L))
                 .andExpect(jsonPath("$.data.name").value("테스트 캠핑장"));
 
         then(hostCampingService).should()
-                .getMyCampingDetail(anyLong(), eq(campingId));
+                .getMyCampingDetail(eq(USER_ID), eq(campingId));
     }
 
     @Test
@@ -221,11 +229,11 @@ class HostCampingControllerTest {
                         4.5F
                 );
 
-        given(hostCampingService.updateCamping(anyLong(), eq(campingId), any(CampingUpdateRequest.class)))
+        given(hostCampingService.updateCamping(eq(USER_ID), eq(campingId), any(CampingUpdateRequest.class)))
                 .willReturn(response);
 
         mockMvc.perform(patch("/api/host/campings/{campingId}", campingId)
-                        .with(hostUser())
+                        .with(hostUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
@@ -234,7 +242,7 @@ class HostCampingControllerTest {
                 .andExpect(jsonPath("$.data.name").value("수정된 캠핑장"));
 
         then(hostCampingService).should()
-                .updateCamping(anyLong(), eq(campingId), any(CampingUpdateRequest.class));
+                .updateCamping(eq(USER_ID), eq(campingId), any(CampingUpdateRequest.class));
     }
 
     @Test
@@ -244,15 +252,15 @@ class HostCampingControllerTest {
 
         willDoNothing()
                 .given(hostCampingService)
-                .deleteCamping(anyLong(), eq(campingId));
+                .deleteCamping(eq(USER_ID), eq(campingId));
 
         mockMvc.perform(delete("/api/host/campings/{campingId}", campingId)
-                        .with(hostUser()))
+                        .with(hostUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("캠핑장이 삭제되었습니다."));
 
         then(hostCampingService).should()
-                .deleteCamping(anyLong(), eq(campingId));
+                .deleteCamping(eq(USER_ID), eq(campingId));
     }
 
     @Test
@@ -275,6 +283,7 @@ class HostCampingControllerTest {
                 .willReturn(response);
 
         mockMvc.perform(get("/api/host/campings/claim/search")
+                        .with(hostUser)
                         .param("keyword", keyword))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("클레임 가능한 캠핑장 목록 조회 성공"))
@@ -296,16 +305,16 @@ class HostCampingControllerTest {
 
         willDoNothing()
                 .given(hostCampingService)
-                .claimCamping(anyLong(), any(CampingClaimRequest.class));
+                .claimCamping(eq(USER_ID), any(CampingClaimRequest.class));
 
         mockMvc.perform(post("/api/host/campings/claim")
-                        .with(hostUser())
+                        .with(hostUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("캠핑장 소유권 인증이 완료되었습니다."));
 
         then(hostCampingService).should()
-                .claimCamping(anyLong(), any(CampingClaimRequest.class));
+                .claimCamping(eq(USER_ID), any(CampingClaimRequest.class));
     }
 }
