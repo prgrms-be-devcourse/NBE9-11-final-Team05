@@ -33,16 +33,6 @@ export interface CreateReservationRequest {
     createdAt?: string;
   }
   
-  // 내 예약 목록조회 - 페이지네이션 응답 (Spring Page 형태로 추정)
-  export interface ReservationListResponse {
-    content: ReservationResponse[];
-    totalElements: number;
-    totalPages: number;
-    number: number; // 현재 페이지 (0-base)
-    size: number;
-    last: boolean;
-  }
-
   // 예약 생성 응답 (백엔드 실제 응답 기준)
 export interface ReservationCreateResponse {
   checkIn: string;
@@ -76,4 +66,26 @@ export interface ReservationDetailResponse {
   rsvPrice: number;
   siteName: string;
   status: string;
+}
+
+// 예약 목록 아이템 (실제 응답 확인 후 보정 필요)
+export interface ReservationListItem {
+  id: number;
+  campingName: string;
+  siteName: string;
+  checkIn: string;
+  checkOut: string;
+  status: string;
+  rsvPrice: number;
+  imageUrl: string | null;
+}
+
+// 내 예약 목록조회 (Spring Page 형태)
+export interface ReservationListResponse {
+  content: ReservationListItem[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+  last: boolean;
 }

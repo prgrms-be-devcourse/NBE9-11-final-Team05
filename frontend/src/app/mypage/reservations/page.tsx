@@ -1,11 +1,11 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getMyReservations } from "@/lib/api/reservation";
+import { getMyReservationsClient } from "@/lib/api/reservation.client";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-
-interface PageProps {
-  searchParams: Promise<{ page?: string }>;
-}
+import type { ReservationListItem } from "@/types/reservation";
 
 const STATUS_BADGE: Record<
   string,
@@ -16,15 +16,24 @@ const STATUS_BADGE: Record<
   PENDING: { label: "결제 대기", tone: "neutral" },
 };
 
-export default async function MyReservationsPage({ searchParams }: PageProps) {
-  const { page } = await searchParams;
-  const reservations = await getMyReservations(Number(page ?? 0));
+export default function MyReservationsPage() {
+  const [content, setContent] = useState<ReservationListItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // 응답이 배열인지 페이지네이션 객체인지 확인 후 처리
-  const content = (Array.isArray(reservations) ? reservations : reservations?.content ?? [])
-  .filter((r) => r.status !== "PENDING");
+  useEffect(() => {
+    getMyReservationsClient(0)
+      .then((res) => {
+        const items = Array.isArray(res) ? res : res.content ?? [];
+        // PENDING 제외
+        setContent(items.filter((r) => r.status !== "PENDING"));
+      })
+      .catch(() => setError("예약 목록을 불러오지 못했습니다."))
+      .finally(() => setLoading(false));
+  }, []);
 
-  
+  if (loading) return <p className="p-10 text-center text-stone-400">불러오는 중...</p>;
+  if (error) return <p className="p-10 text-center text-red-500">{error}</p>;
 
   return (
     <div className="mx-auto max-w-2xl p-6">
@@ -52,12 +61,9 @@ export default async function MyReservationsPage({ searchParams }: PageProps) {
                 ) : (
                   <div className="h-20 w-24 shrink-0 rounded-2xl bg-stone-100" />
                 )}
-
                 <div className="flex flex-1 flex-col gap-1">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-stone-900">
-                      {reservation.campingName}
-                    </h3>
+                    <h3 className="font-semibold text-stone-900">{reservation.campingName}</h3>
                     <Badge tone={badge.tone}>{badge.label}</Badge>
                   </div>
                   <p className="text-sm text-stone-500">

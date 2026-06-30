@@ -11,35 +11,29 @@ export class ApiError extends Error {
 }
 
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+  (typeof window === "undefined" ? process.env.API_BASE_URL : null) ??
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:8080";
 
 interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
-  token?: string; // 명시적으로 토큰을 넘기고 싶을 때 (서버 컴포넌트 등)
 }
 
 /**
- * 서버/클라이언트에서 공통으로 쓰는 fetch 코어.
- * - 서버 컴포넌트/route handler에서는 token을 직접 넘겨준다 (cookies()에서 읽어서).
- * - 클라이언트 컴포넌트에서는 credentials: "include"로 쿠키를 자동 전송한다.
- *   (쿠키 도메인/CORS 설정이 cross-origin이라면 백엔드에서 Access-Control-Allow-Credentials 필요)
+ * 서버/클라이언트 공통 fetch 코어.
+ * - 서버 컴포넌트: serverApiFetch에서 Cookie 헤더를 headers에 담아서 호출
+ * - 클라이언트 컴포넌트: credentials:"include"로 브라우저가 쿠키 자동 전송
  */
-
-
 export async function apiFetch<T>(
   path: string,
-  { body, token, headers, ...rest }: RequestOptions = {}
+  { body, headers, ...rest }: RequestOptions = {}
 ): Promise<T> {
-// 임시 디버깅 — 확인 후 지워주세요
-// console.log("[apiFetch] url:", `${API_BASE_URL}${path}`);
-// console.log("[apiFetch] Authorization:", token ? `Bearer ${token.slice(0, 20)}...` : "없음");
-
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     method: rest.method ?? (body ? "POST" : "GET"),
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Cookie: `accessToken=${token}` } : {}),
       ...headers,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
