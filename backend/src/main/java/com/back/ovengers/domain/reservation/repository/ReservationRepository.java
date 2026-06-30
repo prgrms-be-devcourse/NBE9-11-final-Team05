@@ -142,6 +142,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("newStatus") ReservationStatus newStatus,
             @Param("oldStatus") ReservationStatus oldStatus,
             @Param("checkOutLimit") LocalDate checkOutLimit
+    );
     @Query("""
         SELECT
             r.site.id AS siteId,
