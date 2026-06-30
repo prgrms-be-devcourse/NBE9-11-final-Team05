@@ -8,34 +8,45 @@ import org.springframework.stereotype.Component;
 /**
  * 부하테스트 전용 TossPaymentClient stub.
  *
- * loadtest 프로파일에서만 활성화되며, 실제 토스 API를 호출하지 않고
- * 즉시 성공 응답을 반환한다. 덕분에:
- *  - 토스 rate limit에 걸리지 않음
- *  - 실제 결제가 발생하지 않음
- *  - 네트워크 레이턴시 없이 서버 내부 동시성 로직만 순수하게 측정 가능
+ * 인위적 지연(300ms)을 추가해 실제 토스 API의 네트워크 레이턴시를 흉내낸다.
+ * 이 지연이 있어야 "락 안에서 호출 vs 락 밖에서 호출"의 성능 차이가
+ * k6 부하테스트에서 측정 가능해진다.
+ * (지연이 0ms면 락 홀딩 시간 차이가 거의 없어 개선 효과가 안 보임)
  */
 @Slf4j
 @Component
 @Profile("loadtest")
 public class StubTossPaymentClient implements TossPaymentClient {
 
+    // 토스 평균 응답시간을 가정한 인위적 지연
+    private static final int SIMULATED_LATENCY_MS = 300;
+
     @Override
     public TossConfirmResponse confirm(String paymentKey, String orderId, Integer amount) {
+        simulateNetworkLatency();
         log.debug("[STUB] 토스 confirm 호출 - paymentKey={}, orderId={}", paymentKey, orderId);
-        // TossConfirmResponse 필드에 맞춰 조정 필요 (아래는 예시)
+
         return new TossConfirmResponse(
                 paymentKey,
                 orderId,
-                "카드",       // method
+                "카드",
                 amount,
-                java.time.OffsetDateTime.now().toString(),  // approvedAt
+                java.time.OffsetDateTime.now().toString(),
                 "DONE"
         );
     }
 
     @Override
     public void cancel(String paymentKey, String cancelReason) {
+        simulateNetworkLatency();
         log.debug("[STUB] 토스 cancel 호출 - paymentKey={}", paymentKey);
-        // 아무것도 하지 않음 (성공으로 간주)
+    }
+
+    private void simulateNetworkLatency() {
+        try {
+            Thread.sleep(SIMULATED_LATENCY_MS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
