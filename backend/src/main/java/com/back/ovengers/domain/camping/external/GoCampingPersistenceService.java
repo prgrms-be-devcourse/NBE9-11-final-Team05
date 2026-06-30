@@ -44,9 +44,9 @@ public class GoCampingPersistenceService {
             camps.add(Camping.from(item));
         }
 
-        campingRepository.saveAll(camps);
+        List<Camping> savedCamps = campingRepository.saveAll(camps);
 
-        for (Camping camp : camps) {
+        for (Camping camp : savedCamps) {
             chatService.createOpenChatRoom(
                     camp.getId(),
                     camp.getName()
