@@ -60,6 +60,32 @@ public class S3Service {
         }
     }
 
+    public S3UploadResult upload(MultipartFile file, String folder) {
+        validateFile(file);
+
+        String extension = getExtension(file.getOriginalFilename());
+        String objectKey = folder + "/" + UUID.randomUUID() + extension;
+
+        try {
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(objectKey)
+                    .contentType(file.getContentType())
+                    .contentLength(file.getSize())
+                    .build();
+
+            s3Client.putObject(
+                    request,
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize())
+            );
+
+            return new S3UploadResult(objectKey, getFileUrl(objectKey));
+
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
+        }
+    }
+
     // S3에서 objectKey에 해당하는 파일을 삭제
     public void delete(String objectKey) {
         DeleteObjectRequest request = DeleteObjectRequest.builder()
