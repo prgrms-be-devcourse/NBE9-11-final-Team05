@@ -34,6 +34,21 @@ export default function CampingSearchPage() {
         handleSearch(0);
     }, []);
 
+    const [dragging, setDragging] = useState<"min" | "max" | null>(null);
+
+    const handleDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!dragging) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const percent = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
+        const rawValue = Math.round((percent / 100) * MAX_PRICE / STEP) * STEP;
+
+        if (dragging === "min") {
+            setMinPrice(Math.min(rawValue, maxPrice - STEP));
+        } else {
+            setMaxPrice(Math.max(rawValue, minPrice + STEP));
+        }
+    };
+
     const handleSearch = async (currentPage = 0) => {
         setFilterOpen(false);
         setLoading(true);
@@ -259,8 +274,12 @@ export default function CampingSearchPage() {
                             <span>{maxPrice >= MAX_PRICE ? "제한 없음" : `${maxPrice.toLocaleString()}원`}</span>
                         </div>
 
-                        {/* 듀얼 슬라이더 */}
-                        <div className="relative h-6">
+                        <div
+                            className="relative h-6"
+                            onMouseMove={handleDrag}
+                            onMouseUp={() => setDragging(null)}
+                            onMouseLeave={() => setDragging(null)}
+                        >
                             {/* 트랙 */}
                             <div className="absolute top-1/2 -translate-y-1/2 w-full h-1.5 bg-gray-200 rounded-full" />
                             {/* 선택 범위 */}
@@ -269,41 +288,16 @@ export default function CampingSearchPage() {
                                 style={{ left: `${minPercent}%`, width: `${maxPercent - minPercent}%` }}
                             />
                             {/* min 핸들 */}
-                            <input
-                                type="range"
-                                min={0}
-                                max={MAX_PRICE}
-                                step={STEP}
-                                value={minPrice}
-                                onChange={(e) => {
-                                    const val = Number(e.target.value);
-                                    if (val < maxPrice - STEP) setMinPrice(val);
-                                }}
-                                className="absolute w-full h-full opacity-0 cursor-pointer"
-                                style={{ zIndex: minPrice > MAX_PRICE - STEP * 2 ? 5 : 3 }}
+                            <div
+                                onMouseDown={() => setDragging("min")}
+                                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-[#5C7A5C] rounded-full cursor-pointer"
+                                style={{ left: `calc(${minPercent}% - 8px)`, zIndex: dragging === "min" ? 5 : 3 }}
                             />
                             {/* max 핸들 */}
-                            <input
-                                type="range"
-                                min={0}
-                                max={MAX_PRICE}
-                                step={STEP}
-                                value={maxPrice}
-                                onChange={(e) => {
-                                    const val = Number(e.target.value);
-                                    if (val > minPrice + STEP) setMaxPrice(val);
-                                }}
-                                className="absolute w-full h-full opacity-0 cursor-pointer"
-                                style={{ zIndex: 4 }}
-                            />
-                            {/* 핸들 표시 */}
                             <div
-                                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-[#5C7A5C] rounded-full pointer-events-none"
-                                style={{ left: `calc(${minPercent}% - 8px)` }}
-                            />
-                            <div
-                                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-[#5C7A5C] rounded-full pointer-events-none"
-                                style={{ left: `calc(${maxPercent}% - 8px)` }}
+                                onMouseDown={() => setDragging("max")}
+                                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-[#5C7A5C] rounded-full cursor-pointer"
+                                style={{ left: `calc(${maxPercent}% - 8px)`, zIndex: dragging === "max" ? 5 : 3 }}
                             />
                         </div>
                     </div>
