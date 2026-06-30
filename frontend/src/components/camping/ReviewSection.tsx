@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { getCampingReviewsClient } from "@/lib/api/review.client";
 import type { ReviewResponse } from "@/types/review";
 
@@ -44,9 +45,19 @@ export default function ReviewSection({ campingId }: Props) {
 
   return (
     <section>
-      <h2 className="text-2xl font-bold mb-6">
-        후기 {totalElements > 0 && <span className="text-gray-400 text-lg">({totalElements})</span>}
-      </h2>
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-bold">
+          후기 {totalElements > 0 && <span className="text-gray-400 text-lg">({totalElements})</span>}
+        </h2>
+        {totalElements > PAGE_SIZE && (
+          <Link
+            href={`/campings/${campingId}/reviews`}
+            className="text-sm font-medium text-gray-500 hover:text-gray-700"
+          >
+            전체보기
+          </Link>
+        )}
+      </div>
 
       {isLoading && (
         <div className="bg-white rounded-3xl shadow-md p-12 text-center text-gray-400">
