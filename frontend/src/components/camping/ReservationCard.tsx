@@ -31,7 +31,7 @@ export default function ReservationCard({ camping, role }: Props) {
     const end = new Date(outDate);
 
     const diff = end.getTime() - start.getTime();
-    return diff / (1000 * 60 * 60 * 24);
+    return Math.round(diff / (1000 * 60 * 60 * 24));
   };
 
   const nights = getNights(checkIn, checkOut);
@@ -89,9 +89,6 @@ export default function ReservationCard({ camping, role }: Props) {
   
     router.push(`/campings/${camping.id}/reservation`);
 
-    // router.push(
-    //   `/campings/${camping.id}/reservation?checkIn=${checkIn}&checkOut=${checkOut}&siteId=${selectedSite.id}&siteName=${encodeURIComponent(selectedSite.name)}`
-    // );
   };
 
   return (

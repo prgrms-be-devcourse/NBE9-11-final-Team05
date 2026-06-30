@@ -58,7 +58,7 @@ export default function ReservationForm({
 
   const nights = Math.max(
     0,
-    Math.floor(
+    Math.round(
       (new Date(defaultCheckOut).getTime() -
         new Date(defaultCheckIn).getTime()) /
         (1000 * 60 * 60 * 24)

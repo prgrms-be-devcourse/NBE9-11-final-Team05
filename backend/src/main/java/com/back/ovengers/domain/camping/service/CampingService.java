@@ -66,6 +66,7 @@ public class CampingService {
         return CampingDetailResponse.from(camp, imageUrls, sites);
     }
 
+    @Transactional(readOnly = true)
     public List<SiteResponse> getAvailableSites(
             Long campingId,
             LocalDate checkIn,

@@ -37,9 +37,16 @@ export default function ReservationPage() {
 
   if (!camping || !draft)
     return (
-      <p className="p-10 text-center text-stone-400">
-        불러오는 중...
-      </p>
+      <div className="p-10 text-center">
+        <p className="text-stone-400 mb-4">불러오는 중...</p>
+        <p className="text-xs text-stone-500">
+          오랫동안 반응이 없다면{" "}
+          <a href={`/campings/${campingId}`} className="text-orange-500 underline">
+            상세 페이지
+          </a>
+          에서 다시 시도해주세요.
+        </p>
+      </div>
     );
 
   const siteOptions = camping.sites.map((site) => ({
