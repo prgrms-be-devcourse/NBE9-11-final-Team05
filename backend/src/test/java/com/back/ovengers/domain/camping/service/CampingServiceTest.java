@@ -247,7 +247,7 @@ class CampingServiceTest {
         when(reviewRepository.findRatingStatsByCampingIds(anyList()))
                 .thenReturn(List.of());
 
-        when(siteRepository.findMinPriceByCampingIds(anyList()))
+        when(siteRepository.findMinPriceByCampingIds(anyList(), any()))
                 .thenReturn(List.of());
 
         // when
@@ -311,7 +311,7 @@ class CampingServiceTest {
         // 최저가
         List<Object[]> priceRows = new ArrayList<>();
         priceRows.add(new Object[]{camping.getId(), 50000});
-        when(siteRepository.findMinPriceByCampingIds(anyList()))
+        when(siteRepository.findMinPriceByCampingIds(anyList(), any()))
                 .thenReturn(priceRows);
 
         // when

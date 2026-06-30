@@ -108,8 +108,9 @@ public class CampingService {
                 ));
 
         // 최저가 한 번에 조회
+        // guestCount 조건을 함께 전달해 검색 조건에 맞는 Site 기준 최저가 계산
         // Object[0] = camping_id, Object[1] = min_price
-        Map<Long, Integer> priceMap = siteRepository.findMinPriceByCampingIds(campingIds)
+        Map<Long, Integer> priceMap = siteRepository.findMinPriceByCampingIds(campingIds, guestCount)
                 .stream()
                 .collect(Collectors.toMap(
                         row -> (Long) row[0],
