@@ -29,7 +29,7 @@ public class PaymentConfirmBenchmarkController {
 
     private final PaymentConfirmServiceBefore paymentConfirmServiceBefore;
 
-    @PostMapping("/api/test/confirm-before")
+    @PostMapping("/api/payments/test/confirm-before")
     public PaymentResponse confirmBefore(@RequestBody PaymentConfirmRequest request) {
         return paymentConfirmServiceBefore.confirm(request);
     }
