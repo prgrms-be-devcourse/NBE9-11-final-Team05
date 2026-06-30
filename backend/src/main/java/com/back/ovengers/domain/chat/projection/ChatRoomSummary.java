@@ -1,4 +1,4 @@
-package com.back.ovengers.domain.chat.dto.projection;
+package com.back.ovengers.domain.chat.projection;
 
 import com.back.ovengers.domain.chat.enums.ChatRoomType;
 

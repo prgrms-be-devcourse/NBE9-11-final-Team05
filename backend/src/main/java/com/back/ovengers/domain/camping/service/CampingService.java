@@ -8,8 +8,12 @@ import com.back.ovengers.domain.camping.entity.CampingImage;
 import com.back.ovengers.domain.camping.entity.CampingStatus;
 import com.back.ovengers.domain.camping.repository.CampingImageRepository;
 import com.back.ovengers.domain.camping.repository.CampingRepository;
+import com.back.ovengers.domain.reservation.entity.ReservationStatus;
+import com.back.ovengers.domain.reservation.projection.ReservedSiteCount;
+import com.back.ovengers.domain.reservation.repository.ReservationRepository;
 import com.back.ovengers.domain.review.repository.ReviewRepository;
 import com.back.ovengers.domain.site.dto.SiteResponse;
+import com.back.ovengers.domain.site.entity.Site;
 import com.back.ovengers.domain.site.repository.SiteRepository;
 import com.back.ovengers.global.exception.CustomException;
 import com.back.ovengers.global.exception.ErrorCode;
@@ -33,6 +37,7 @@ public class CampingService {
     private final CampingImageRepository campingImageRepository;
     private final SiteRepository siteRepository;
     private final ReviewRepository reviewRepository;
+    private final ReservationRepository reservationRepository;
 
     @Transactional(readOnly = true)
     public Page<CampingListResponse> getCampList(String keyword, Pageable pageable) {
@@ -59,6 +64,41 @@ public class CampingService {
                 .toList();
 
         return CampingDetailResponse.from(camp, imageUrls, sites);
+    }
+
+    public List<SiteResponse> getAvailableSites(
+            Long campingId,
+            LocalDate checkIn,
+            LocalDate checkOut) {
+
+        List<ReservationStatus> activeStatuses = List.of(
+                ReservationStatus.PENDING,
+                ReservationStatus.CONFIRMED
+        );
+
+        List<Site> sites = siteRepository.findByCampingId(campingId);
+
+        List<ReservedSiteCount> counts =
+                reservationRepository.findReservedCountByCampingAndPeriod(
+                        campingId,
+                        checkIn,
+                        checkOut,
+                        activeStatuses
+                );
+
+        Map<Long, Long> reservedMap = counts.stream()
+                .collect(Collectors.toMap(
+                        ReservedSiteCount::getSiteId,
+                        ReservedSiteCount::getCount
+                ));
+
+        return sites.stream()
+                .filter(site -> {
+                    long reserved = reservedMap.getOrDefault(site.getId(), 0L);
+                    return site.getTotalAmount() > reserved;
+                })
+                .map(SiteResponse::from)
+                .toList();
     }
 
     // 사용 가능한 캠핑장 검색전용 메서드
@@ -137,4 +177,5 @@ public class CampingService {
             );
         });
     }
+
 }

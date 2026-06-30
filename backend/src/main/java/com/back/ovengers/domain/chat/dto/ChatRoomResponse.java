@@ -1,6 +1,6 @@
 package com.back.ovengers.domain.chat.dto;
 
-import com.back.ovengers.domain.chat.dto.projection.ChatRoomSummary;
+import com.back.ovengers.domain.chat.projection.ChatRoomSummary;
 import com.back.ovengers.domain.chat.enums.ChatRoomType;
 
 import java.time.LocalDateTime;
