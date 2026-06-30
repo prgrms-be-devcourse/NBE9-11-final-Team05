@@ -260,7 +260,7 @@ export default function MyPage() {
               {reservations[0] && (
                 <div
                   className="bg-[#EDE8DF] rounded-2xl overflow-hidden cursor-pointer hover:brightness-95 transition"
-                  onClick={() => router.push(`/campings/${reservations[0].id}/reservation/detail`)}
+                  onClick={() => router.push(`/mypage/reservations/${reservations[0].id}`)}
                 >
                   <div className="relative h-36 bg-stone-300">
                     {reservations[0].imageUrl ? (
@@ -284,7 +284,7 @@ export default function MyPage() {
                 <div
                   key={r.id}
                   className="bg-[#EDE8DF] rounded-2xl flex overflow-hidden cursor-pointer hover:brightness-95 transition"
-                  onClick={() => router.push(`/campings/${r.id}/reservation/detail`)}
+                  onClick={() => router.push(`/mypage/reservations/${r.id}`)}
                 >
                   <div className="w-20 h-20 bg-stone-300 shrink-0">
                     {r.imageUrl ? (
