@@ -7,7 +7,7 @@ import ReviewSection from "@/components/camping/ReviewSection";
 import SiteSection from "@/components/camping/SiteSection";
 import ChatJoinButton from "@/components/chat/ChatJoinButton";
 import { getCampingDetail } from "@/lib/api/reservation";
-import { canReserve } from "@/lib/utils/auth";
+import { getUserRole } from "@/lib/utils/auth";
 
 interface Props {
   params: Promise<{
@@ -23,10 +23,9 @@ export default async function CampingDetailPage({ params }: Props) {
     throw new Error("올바르지 않은 캠핑장 ID입니다.");
   }
 
-  const [camping, reservable] = await Promise.all([
-    getCampingDetail(id),
-    canReserve(),
-  ]);
+  const camping = await getCampingDetail(id);
+  const role = await getUserRole();
+  const isApiCamping = camping.hostId === null;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
@@ -39,18 +38,14 @@ export default async function CampingDetailPage({ params }: Props) {
       <div className="grid lg:grid-cols-[2fr_1fr] gap-12 mt-12">
         <div className="space-y-12">
           <CampingSummary camping={camping} />
-          <FacilitySection />
           <ChatJoinButton campingId={id} />
           <CampingDescription camping={camping} />
           <SiteSection sites={camping.sites} />
           <ReviewSection />
         </div>
 
-        {/* USER만 예약 카드 표시, 호스트/관리자/비로그인은 숨김 */}
-        {reservable ? (
-          <ReservationCard camping={camping} />
-        ) : (
-          <aside />
+        {!isApiCamping && (
+          <ReservationCard camping={camping} role={role} />
         )}
       </div>
     </div>

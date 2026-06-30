@@ -68,6 +68,10 @@ export default function ChatMessagePanel({
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   };
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   /* =========================
      과거 메시지 로딩
   ========================= */
@@ -107,11 +111,16 @@ export default function ChatMessagePanel({
 
   const handleScroll = () => {
     if (!scrollRef.current) return;
+    if (scrollRef.current.scrollTop < 50) loadMore();
   };
 
+   /* =========================
+     메시지 전송
+  ========================= */
   const sendMessage = () => {
     if (!input.trim()) return;
 
+    chatClient.sendMessage(roomId, input.trim());
     setInput("");
 
     requestAnimationFrame(scrollToBottom);

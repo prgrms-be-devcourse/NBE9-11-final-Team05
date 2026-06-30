@@ -1,4 +1,3 @@
-import { chatClient } from "@/lib/ws/chatClient";
 import { create } from "zustand";
 // persist: zustand 상태를 localStorage에 영구 저장하는 미들웨어
 // 새로고침해도 로그인 상태 유지 가능

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AppToast } from "@/lib/ui/toast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -122,7 +123,7 @@ export default function MyPage() {
 
   const handleDeleteAccount = async () => {
     if (!deletePassword.trim()) {
-      alert("비밀번호를 입력해주세요.");
+      AppToast.error("비밀번호를 입력해주세요.");
       return;
     }
   
@@ -161,11 +162,11 @@ export default function MyPage() {
       localStorage.removeItem("role");
       sessionStorage.clear();
   
-      alert("회원탈퇴가 완료되었습니다.");
+      AppToast.success("회원탈퇴가 완료되었습니다.");
   
       window.location.replace("/");
     } catch (error) {
-      alert(
+      AppToast.error(
         error instanceof Error
           ? error.message
           : "회원탈퇴 중 오류가 발생했습니다."

@@ -43,7 +43,12 @@ export default function RootLayout({
           <ChatFabButton />
           <ChatWindow />
           
-          <Toaster position="bottom-center" />
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              duration: 1800,
+            }}
+          />
 
           {/* Footer */}
           <footer>

@@ -33,4 +33,5 @@ export async function getUserRole(): Promise<UserRole | null> {
 export async function canReserve(): Promise<boolean> {
   const role = await getUserRole();
   return role === null || role === "USER";
+
 }

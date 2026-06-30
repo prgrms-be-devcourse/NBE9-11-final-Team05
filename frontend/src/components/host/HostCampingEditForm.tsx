@@ -7,6 +7,7 @@ import {
   HostCampingFormValues,
 } from "@/types/host";
 import { updateCamping } from "@/lib/api/host";
+import { AppToast } from "@/lib/ui/toast";
 
 interface HostCampingEditFormProps {
   campingId: number;
@@ -76,7 +77,7 @@ export default function HostCampingEditForm({
       await updateCamping(campingId, request);
       router.push(`/host/campings/${campingId}`);
     } catch {
-      alert("캠핑장 수정에 실패했습니다.");
+      AppToast.error("캠핑장 수정에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
