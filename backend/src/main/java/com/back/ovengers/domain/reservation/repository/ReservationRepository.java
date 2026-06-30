@@ -3,6 +3,7 @@ package com.back.ovengers.domain.reservation.repository;
 import com.back.ovengers.domain.reservation.dto.HostReservationResponse;
 import com.back.ovengers.domain.reservation.entity.Reservation;
 import com.back.ovengers.domain.reservation.entity.ReservationStatus;
+import com.back.ovengers.domain.reservation.projection.ReservedSiteCount;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,15 +56,15 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     Page<Reservation> findByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
 
     @Query("""
-        select
+        SELECT
             new com.back.ovengers.domain.reservation.dto.HostReservationResponse(
                 r.id, c.name, s.name, r.rsvNum, r.rsvName, r.rsvPhone, r.checkIn, r.checkOut, r.guestCount, r.rsvPrice, r.status, r.createdAt
             )
-            from Reservation r
-               join r.site s
-               join s.camping c
-               where c.host.id = :hostId
-                    order by r.createdAt desc
+            FROM Reservation r
+               JOIN r.site s
+               JOIN s.camping c
+               WHERE c.host.id = :hostId
+                    ORDER BY r.createdAt DESC
     """)
     Page<HostReservationResponse> findHostReservations(Long hostId, Pageable pageable);
 
@@ -141,5 +142,21 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("newStatus") ReservationStatus newStatus,
             @Param("oldStatus") ReservationStatus oldStatus,
             @Param("checkOutLimit") LocalDate checkOutLimit
+    @Query("""
+        SELECT
+            r.site.id AS siteId,
+            COUNT(r) AS count
+        FROM Reservation r
+        WHERE r.site.camping.id = :campingId
+          AND r.status IN :statuses
+          AND r.checkIn < :checkOut
+          AND r.checkOut > :checkIn
+        GROUP BY r.site.id
+    """)
+    List<ReservedSiteCount> findReservedCountByCampingAndPeriod(
+            @Param("campingId") Long campingId,
+            @Param("checkIn") LocalDate checkIn,
+            @Param("checkOut") LocalDate checkOut,
+            @Param("statuses") List<ReservationStatus> statuses
     );
 }

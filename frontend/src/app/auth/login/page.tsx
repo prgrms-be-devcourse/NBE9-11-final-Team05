@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/authStore";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl");
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,6 +45,17 @@ export default function LoginPage() {
       // 로그인 상태 저장
       useAuthStore.getState().setAuth(role, userId, token);
 
+      const safeReturnUrl =
+        returnUrl && returnUrl.startsWith("/")
+          ? returnUrl
+          : null;
+
+      if (role === "USER" && safeReturnUrl) {
+        router.push(safeReturnUrl);
+        return;
+      }
+
+      // role별 기본 이동
       if (role === "HOST") {
         router.push("/host/dashboard");
       } else if (role === "ADMIN") {

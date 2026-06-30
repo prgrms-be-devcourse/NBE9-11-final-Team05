@@ -26,6 +26,8 @@ go-camping:
     serviceKey: "test-service-key"
 
 app:
+  cookie:
+    domain: test
   cors:
     allowed-origins: http://localhost:3000
 

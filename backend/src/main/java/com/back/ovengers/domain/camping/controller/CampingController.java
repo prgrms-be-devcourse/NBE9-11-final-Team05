@@ -4,25 +4,34 @@ import com.back.ovengers.domain.camping.dto.CampingDetailResponse;
 import com.back.ovengers.domain.camping.dto.CampingListResponse;
 import com.back.ovengers.domain.camping.dto.CampingSearchResponse;
 import com.back.ovengers.domain.camping.service.CampingService;
+import com.back.ovengers.domain.site.dto.SiteResponse;
 import com.back.ovengers.global.response.ApiResponse;
 import com.back.ovengers.global.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/campings")
 @Tag(name = "Camping API", description = "캠핑장 조회 및 검색 API")
+@Validated
 public class CampingController {
 
     private final CampingService campingService;
@@ -61,6 +70,31 @@ public class CampingController {
 
         return ResponseEntity.ok(
                 new ApiResponse<>("캠핑장 상세 조회 성공", response)
+        );
+    }
+
+    @GetMapping("/{campingId}/available-sites")
+    @Operation(
+            summary = "캠핑장 이용 가능한 사이트 조회",
+            description = """
+                선택한 체크인/체크아웃 날짜 기준으로 예약 가능한 사이트 목록을 조회합니다.
+                
+                - 예약 상태가 PENDING / CONFIRMED 인 예약 기준으로 제외됩니다.
+                - 사이트의 총 수량 대비 예약 수량을 계산하여 남은 수량이 있는 사이트만 반환됩니다.
+                """
+    )
+    public ResponseEntity<ApiResponse<List<SiteResponse>>> getAvailableSites(
+            @PathVariable @Min(1) Long campingId,
+            @Parameter(description = "체크인 날짜 (yyyy-MM-dd)", required = true)
+            @RequestParam LocalDate checkIn,
+            @Parameter(description = "체크아웃 날짜 (yyyy-MM-dd)", required = true)
+            @RequestParam LocalDate checkOut
+    ) {
+
+        List<SiteResponse> response = campingService.getAvailableSites(campingId, checkIn, checkOut);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>("이용 가능한 구역 조회 성공", response)
         );
     }
 

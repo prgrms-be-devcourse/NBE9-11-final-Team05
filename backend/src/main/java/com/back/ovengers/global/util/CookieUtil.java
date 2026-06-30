@@ -15,6 +15,9 @@ public class CookieUtil {
     @Value("${app.cookie.secure:true}")
     private boolean cookieSecure;
 
+    @Value("${app.cookie.domain}")
+    private String domain;
+
     @Value("${jwt.access-expiration}")
     private int accessExpiration;
 
@@ -35,7 +38,8 @@ public class CookieUtil {
         cookie.setSecure(cookieSecure);     // HTTPS에서만 전송 (로컬: false, 운영: true)
         cookie.setPath("/");                // 모든 경로에서 쿠키 전송
         cookie.setMaxAge(accessExpiration / 1000);    // 쿠키 만료 시간 (초 단위)
-        cookie.setAttribute("SameSite", "Lax");
+        cookie.setDomain(domain);
+        cookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
     }
@@ -65,7 +69,8 @@ public class CookieUtil {
         cookie.setSecure(cookieSecure);
         cookie.setPath("/");
         cookie.setMaxAge(0);    // 즉시 만료
-        cookie.setAttribute("SameSite", "Lax");
+        cookie.setDomain(domain);
+        cookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
     }
@@ -81,7 +86,8 @@ public class CookieUtil {
         cookie.setSecure(cookieSecure);
         cookie.setPath("/");
         cookie.setMaxAge((int) (refreshExpiration / 1000));
-        cookie.setAttribute("SameSite", "Lax");
+        cookie.setDomain(domain);
+        cookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
     }
@@ -111,7 +117,8 @@ public class CookieUtil {
         cookie.setSecure(cookieSecure);
         cookie.setPath("/");
         cookie.setMaxAge(0);
-        cookie.setAttribute("SameSite", "Lax");
+        cookie.setDomain(domain);
+        cookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
     }
