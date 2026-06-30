@@ -1,7 +1,6 @@
 import CampingDescription from "@/components/camping/CampingDescription";
 import CampingImageSlider from "@/components/camping/CampingImageSlider";
 import CampingSummary from "@/components/camping/CampingSummary";
-import FacilitySection from "@/components/camping/FacilitySection";
 import ReservationCard from "@/components/camping/ReservationCard";
 import ReviewSection from "@/components/camping/ReviewSection";
 import SiteSection from "@/components/camping/SiteSection";
@@ -26,6 +25,8 @@ export default async function CampingDetailPage({ params }: Props) {
   const camping = await getCampingDetail(id);
   const role = await getUserRole();
   const isApiCamping = camping.hostId === null;
+
+  console.log("role:", role);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
