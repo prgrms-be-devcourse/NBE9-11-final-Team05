@@ -22,21 +22,16 @@ public class ReservationCompleteScheduler {
     @Scheduled(cron = "0 0 11 * * *") // 매일 오전 11시 실행
     @Transactional
     public void completeExpiredReservations() {
-
         LocalDate today = LocalDate.now();
 
-        // checkOut이 오늘이거나 그 이전인 CONFIRMED 예약 → COMPLETED 처리
-        List<Reservation> expiredReservations = reservationRepository
-                .findByStatusAndCheckOutBefore(ReservationStatus.CONFIRMED, today.plusDays(1));
+        int updatedCount = reservationRepository.bulkUpdateStatusByStatusAndCheckOutBefore(
+                ReservationStatus.COMPLETED,
+                ReservationStatus.CONFIRMED,
+                today.plusDays(1)
+        );
 
-        if (expiredReservations.isEmpty()) {
-            return;
+        if (updatedCount > 0) {
+            log.info("이용 완료 처리 완료: {}건", updatedCount);
         }
-
-        expiredReservations.forEach(reservation -> {
-            reservation.updateStatus(ReservationStatus.COMPLETED);
-            log.info("이용 완료 처리: reservationId={}, rsvNum={}, checkOut={}",
-                    reservation.getId(), reservation.getRsvNum(), reservation.getCheckOut());
-        });
     }
 }
