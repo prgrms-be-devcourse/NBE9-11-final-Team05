@@ -26,7 +26,8 @@ public record CampingDetailResponse(
     public static CampingDetailResponse from(
             Camping camp,
             List<String> imageUrls,
-            List<SiteResponse> sites
+            List<SiteResponse> sites,
+            Double avgRating
     ) {
 
         return new CampingDetailResponse(
@@ -36,7 +37,7 @@ public record CampingDetailResponse(
                 camp.getName(),
                 camp.getHomepage(),
                 camp.getAddress(),
-                camp.getRating(),
+                avgRating != null ? avgRating.floatValue() : null,
                 camp.getDescription(),
                 camp.getPhone(),
                 camp.getCheckInTime(),
