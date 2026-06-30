@@ -65,7 +65,10 @@ export default function ReservationCard({ camping, role }: Props) {
 
     if (role === null) {
       AppToast.error("로그인이 필요합니다.");
-      router.push("/auth/login");
+
+      const returnUrl = window.location.pathname;
+
+      router.push(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
       return;
     }
 
