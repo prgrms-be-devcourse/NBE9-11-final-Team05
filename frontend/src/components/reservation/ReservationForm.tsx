@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createReservationClient } from "@/lib/api/reservation.client";
+import { useActionState } from "react";
+import {
+  submitReservation,
+  type ReservationFormState,
+} from "@/lib/actions/reservation";
 import Input from "@/components/ui/Input";
-import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -13,7 +15,6 @@ interface SiteOption {
   id: number;
   name: string;
   price: number;
-  baseCapacity: number;
   maxCapacity: number;
 }
 
@@ -21,9 +22,12 @@ interface ReservationFormProps {
   campingId: string;
   siteOptions: SiteOption[];
   campingName?: string;
-  defaultCheckIn?: string;
-  defaultCheckOut?: string;
+  defaultCheckIn: string;
+  defaultCheckOut: string;
+  defaultSiteId: number;
 }
+
+const initialState: ReservationFormState = {};
 
 export default function ReservationForm({
   campingId,
@@ -31,156 +35,134 @@ export default function ReservationForm({
   campingName,
   defaultCheckIn,
   defaultCheckOut,
+  defaultSiteId,
 }: ReservationFormProps) {
-  const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
+  const boundAction = submitReservation.bind(null, campingId);
+
+  const [state, formAction, isPending] = useActionState(
+    boundAction,
+    initialState
+  );
+
+  const [rsvName, setRsvName] = useState("");
+  const [guestCount, setGuestCount] = useState(1);
+  const [rsvPhone, setRsvPhone] = useState("");
+  const [request, setRequest] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
-  const [checkIn, setCheckIn] = useState(defaultCheckIn ?? "");
-  const [checkOut, setCheckOut] = useState(defaultCheckOut ?? "");
-  const [rsvName, setRsvName] = useState("");
-  const [rsvPhone, setRsvPhone] = useState("");
-  const [guestCount, setGuestCount] = useState(1);
-  const [request, setRequest] = useState("");
-  const [agreed, setAgreed] = useState(false);
+  const selectedSite = siteOptions.find(
+    (s) => s.id === Number(defaultSiteId)
+  );
 
-  const selectedSite = siteOptions.find((s) => s.id === selectedSiteId);
-  const nights =
-    checkIn && checkOut
-      ? Math.max(
-          0,
-          Math.floor(
-            (new Date(checkOut).getTime() - new Date(checkIn).getTime()) /
-              (1000 * 60 * 60 * 24)
-          )
-        )
-      : 0;
-  const estimatedPrice = selectedSite && nights > 0 ? selectedSite.price * nights : null;
+  const maxCapacity = selectedSite?.maxCapacity ?? 0;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedSiteId || !rsvName || !checkIn || !checkOut) {
-      setError("필수 입력값을 확인해주세요.");
-      return;
+  const nights = Math.max(
+    0,
+    Math.round(
+      (new Date(defaultCheckOut).getTime() -
+        new Date(defaultCheckIn).getTime()) /
+        (1000 * 60 * 60 * 24)
+    )
+  );
+
+  const estimatedPrice =
+    selectedSite && nights > 0
+      ? selectedSite.price * nights
+      : null;
+
+  const validate = () => {
+    if (!rsvName.trim()) {
+      setError("예약자 성함은 필수입니다.");
+      return false;
     }
-    if (selectedSite && guestCount > selectedSite.maxCapacity) {
-      setError(`이 구역은 최대 ${selectedSite.maxCapacity}명까지 예약 가능합니다.`);
-      return;
+
+    if (!rsvPhone.trim()) {
+      setError("예약자 번호는 필수입니다.");
+      return false;
     }
-    if (!agreed) {
-      setError("약관에 동의해주세요.");
-      return;
+
+    if (guestCount < 1) {
+      setError("예약 인원은 1명 이상이어야 합니다.");
+      return false;
+    }
+
+    if (guestCount > maxCapacity) {
+      setError(`최대 ${maxCapacity}명까지 예약 가능합니다.`);
+      return false;
     }
 
     setError(null);
-    setIsPending(true);
-    try {
-      const reservation = await createReservationClient({
-        siteId: selectedSiteId,
-        rsvName,
-        rsvPhone,
-        checkIn,
-        checkOut,
-        guestCount,
-        request: request || undefined,
-      });
-      router.push(`/campings/${campingId}/reservation/detail?reservationId=${reservation.id}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "예약 생성 중 오류가 발생했습니다.");
-    } finally {
-      setIsPending(false);
-    }
+    return true;
   };
 
   return (
     <Card className="mx-auto max-w-xl">
-      {campingName && <p className="mb-1 text-sm text-stone-500">{campingName}</p>}
-      <h1 className="mb-6 text-xl font-bold text-stone-900">예약하기</h1>
+      <h1 className="mb-6 text-xl font-bold text-stone-900">
+        예약 확정
+      </h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {/* 고정 정보 */}
+      <div className="rounded-xl border bg-stone-50 p-4 text-sm space-y-2 mb-4">
+        <div>
+          기간:{" "}
+          <b>
+            {defaultCheckIn} ~ {defaultCheckOut} ({nights}박)
+          </b>
+        </div>
+
+        <div>
+          구역: <b>{selectedSite?.name}</b>
+        </div>
+
+        <div>
+          최대 인원: <b>{maxCapacity}명</b>
+        </div>
+
+        {estimatedPrice !== null && (
+          <div>
+            금액:{" "}
+            <b className="text-orange-600">
+              {estimatedPrice.toLocaleString()}원
+            </b>
+          </div>
+        )}
+      </div>
+
+      {/* 🔥 핵심: formAction + onSubmit 같이 사용 */}
+      <form
+        action={formAction}
+        onSubmit={(e) => {
+          if (!validate()) {
+            e.preventDefault();
+          }
+        }}
+        className="flex flex-col gap-5"
+      >
         <Input
           name="rsvName"
           label="예약자 성함"
-          placeholder="이름을 입력해주세요"
+          placeholder="예약자 성함을 입력해주세요."
           value={rsvName}
           onChange={(e) => setRsvName(e.target.value)}
-          required
+          autoFocus
         />
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-stone-700">예약일</span>
-          <div className="flex items-center gap-3">
-            <input
-              type="date"
-              name={!!defaultCheckIn ? undefined : "checkIn"}
-              required={!defaultCheckIn}
-              value={checkIn}
-              onChange={(e) => setCheckIn(e.target.value)}
-              disabled={!!defaultCheckIn}
-              className={`flex-1 rounded-full border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none transition-colors ${defaultCheckIn ? "bg-stone-50 text-stone-500" : "focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"}`}
-            />
-            <span className="text-stone-400">~</span>
-            <input
-              type="date"
-              name={!!defaultCheckOut ? undefined : "checkOut"}
-              required={!defaultCheckOut}
-              value={checkOut}
-              onChange={(e) => setCheckOut(e.target.value)}
-              disabled={!!defaultCheckOut}
-              className={`flex-1 rounded-full border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none transition-colors ${defaultCheckOut ? "bg-stone-50 text-stone-500" : "focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"}`}
-            />
-          </div>
-          {!!defaultCheckIn && <input type="hidden" name="checkIn" value={checkIn} />}
-          {!!defaultCheckOut && <input type="hidden" name="checkOut" value={checkOut} />}
-          {nights > 0 && <p className="text-xs text-stone-400">{nights}박</p>}
-        </div>
-
-        <Select
-          name="siteId"
-          label="구역선택"
-          required
-          defaultValue=""
-          onChange={(e) => {
-            const siteId = Number(e.target.value);
-            setSelectedSiteId(siteId);
-            const site = siteOptions.find((s) => s.id === siteId);
-            if (site && guestCount > site.maxCapacity) {
-              setGuestCount(site.maxCapacity);
-            }
-          }}
-        >
-          <option value="" disabled>구역을 선택해주세요</option>
-          {siteOptions.map((site) => (
-            <option key={site.id} value={site.id}>{site.name}</option>
-          ))}
-        </Select>
-
-        <div className="flex flex-col gap-1.5">
-          <Input
-            type="number"
-            name="guestCount"
-            label="예약 인원"
-            min={1}
-            max={selectedSite?.maxCapacity}
-            value={guestCount}
-            onChange={(e) => setGuestCount(Number(e.target.value))}
-            required
-          />
-          {selectedSite && (
-            <p className="text-xs text-stone-400">
-              기준 {selectedSite.baseCapacity}명 / 최대 {selectedSite.maxCapacity}명
-            </p>
-          )}
-        </div>
+        <Input
+          type="number"
+          name="guestCount"
+          label={`예약 인원 (최대 ${maxCapacity}명)`}
+          min={1}
+          max={maxCapacity}
+          value={guestCount}
+          onChange={(e) => setGuestCount(Number(e.target.value))}
+        />
 
         <Input
           name="rsvPhone"
-          label="예약자 번호"
+          label="예약자 전화번호"
           placeholder="010-1234-5678"
           value={rsvPhone}
           onChange={(e) => setRsvPhone(e.target.value)}
-          required
         />
 
         <Textarea
@@ -192,25 +174,24 @@ export default function ReservationForm({
           onChange={(e) => setRequest(e.target.value)}
         />
 
-        <label className="flex items-center gap-2 text-sm text-stone-600">
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="h-4 w-4 rounded border-stone-300 text-emerald-700 focus:ring-emerald-600"
-          />
-          위 약관에 동의합니다.
+        {/* hidden */}
+        <input type="hidden" name="checkIn" value={defaultCheckIn} />
+        <input type="hidden" name="checkOut" value={defaultCheckOut} />
+        <input type="hidden" name="siteId" value={defaultSiteId} />
+
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" required />
+          약관 동의
         </label>
 
         {error && (
-          <p className="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>
+          <p className="text-red-500 text-sm">{error}</p>
         )}
 
-        {estimatedPrice !== null && (
-          <div className="flex items-center justify-end gap-2 border-t border-stone-100 pt-4 text-base">
-            <span className="text-stone-500">결제금액:</span>
-            <span className="font-bold text-stone-900">{estimatedPrice.toLocaleString()}원</span>
-          </div>
+        {state.error && (
+          <p className="text-red-500 text-sm">
+            {state.error}
+          </p>
         )}
 
         <Button type="submit" disabled={isPending} fullWidth>

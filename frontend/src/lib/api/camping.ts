@@ -116,3 +116,29 @@ export async function searchCampings(params: {
   const result = await response.json();
   return result.data;
 }
+
+{/* 예약 가능한 구역 조회 */}
+export async function getAvailableSites(
+  campingId: number,
+  checkIn: string,
+  checkOut: string
+): Promise<any[]> {
+  const params = new URLSearchParams();
+  params.append("checkIn", checkIn);
+  params.append("checkOut", checkOut);
+
+  const response = await fetch(
+    `${API_URL}/api/campings/${campingId}/available-sites?${params.toString()}`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`API 호출 실패 : ${response.status}`);
+  }
+
+  const result = await response.json();
+
+  return result.data;
+}
