@@ -126,8 +126,9 @@ export default function ChatMessagePanel({
     requestAnimationFrame(scrollToBottom);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") sendMessage();
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    sendMessage();
   };
 
   /* =========================
@@ -236,23 +237,26 @@ export default function ChatMessagePanel({
       </div>
 
       {/* 입력창 */}
-      <div className="p-3 border-t flex gap-2">
+      <form
+        onSubmit={handleSubmit}
+        className="p-3 border-t flex gap-2"
+      >
         <input
           ref={inputRef}
           className="flex-1 border rounded px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
           placeholder="메시지 입력"
+          enterKeyHint="send"
         />
 
         <button
-          onClick={sendMessage}
+          type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           전송
         </button>
-      </div>
+      </form>
     </div>
   );
 }

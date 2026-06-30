@@ -101,12 +101,7 @@ public class GoCampingClient {
 
             return result;
         } catch (RestClientException e) {
-            String res = restClient.get()
-                    .uri(uri)
-                    .retrieve()
-                    .body(String.class);
-            log.error("RESPONSE:" + res);
-            log.error("ERROR:", e);
+            log.error("GoCamping API 호출 실패. uri={}", uri, e);
             throw new CustomException(ErrorCode.GO_CAMPING_API_ERROR);
         }
     }
