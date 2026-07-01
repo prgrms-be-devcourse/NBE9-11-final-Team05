@@ -211,6 +211,150 @@ class TimeDealServiceTest {
         assertThat(failCount.get()).isEqualTo(threadCount - totalQuantity);
     }
 
+    @Test
+    @Transactional
+    @DisplayName("타임딜 단건 조회 성공")
+    void getTimeDeal_success() {
+        TimeDeal timeDeal = createActiveTimeDeal();
+
+        TimeDealResponse response = timeDealService.getTimeDeal(timeDeal.getId());
+
+        assertThat(response.siteId()).isEqualTo(site.getId());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("타임딜 단건 조회 실패 - 존재하지 않음")
+    void getTimeDeal_fail_notFound() {
+        assertThatThrownBy(() -> timeDealService.getTimeDeal(99999L))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(ErrorCode.TIME_DEAL_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("내 타임딜 목록 조회")
+    void getMyTimeDeals() {
+        createTimeDeal();
+        createTimeDeal();
+
+        var result = timeDealService.getMyTimeDeals(host.getId(),
+                org.springframework.data.domain.PageRequest.of(0, 10));
+
+        assertThat(result.getContent()).hasSize(2);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("활성 타임딜 목록 조회")
+    void getActiveTimeDeals() {
+        createActiveTimeDeal();
+
+        var result = timeDealService.getActiveTimeDeals(
+                org.springframework.data.domain.PageRequest.of(0, 10));
+
+        assertThat(result.getContent()).isNotEmpty();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("타임딜 생성 실패 - 존재하지 않는 사이트")
+    void create_fail_siteNotFound() {
+        TimeDealCreateRequest request = new TimeDealCreateRequest(
+                99999L, LocalDate.now().plusDays(10), LocalDate.now().plusDays(12),
+                5, 70000, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusDays(1)
+        );
+
+        assertThatThrownBy(() -> timeDealService.createTimeDeal(host.getId(), request))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(ErrorCode.SITE_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("타임딜 생성 실패 - 다른 호스트 사이트")
+    void create_fail_accessDenied() {
+        TimeDealCreateRequest request = new TimeDealCreateRequest(
+                site.getId(), LocalDate.now().plusDays(10), LocalDate.now().plusDays(12),
+                5, 70000, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusDays(1)
+        );
+
+        assertThatThrownBy(() -> timeDealService.createTimeDeal(anotherHost.getId(), request))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(ErrorCode.ACCESS_DENIED.getMessage());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("타임딜 생성 실패 - 과거 날짜")
+    void create_fail_pastDate() {
+        TimeDealCreateRequest request = new TimeDealCreateRequest(
+                site.getId(), LocalDate.now().minusDays(1), LocalDate.now().plusDays(1),
+                5, 70000, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusDays(1)
+        );
+
+        assertThatThrownBy(() -> timeDealService.createTimeDeal(host.getId(), request))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(ErrorCode.TIME_DEAL_PAST_DATE.getMessage());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("타임딜 생성 실패 - checkIn >= checkOut")
+    void create_fail_invalidDateRange() {
+        TimeDealCreateRequest request = new TimeDealCreateRequest(
+                site.getId(), LocalDate.now().plusDays(10), LocalDate.now().plusDays(10),
+                5, 70000, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusDays(1)
+        );
+
+        assertThatThrownBy(() -> timeDealService.createTimeDeal(host.getId(), request))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(ErrorCode.TIME_DEAL_INVALID_DATE_RANGE.getMessage());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("타임딜 생성 실패 - 판매 종료 시각이 체크인 이후")
+    void create_fail_invalidSaleWindow() {
+        TimeDealCreateRequest request = new TimeDealCreateRequest(
+                site.getId(), LocalDate.now().plusDays(10), LocalDate.now().plusDays(12),
+                5, 70000, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusDays(11)
+        );
+
+        assertThatThrownBy(() -> timeDealService.createTimeDeal(host.getId(), request))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(ErrorCode.TIME_DEAL_INVALID_SALE_WINDOW.getMessage());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("타임딜 삭제 실패 - 이미 판매된 경우")
+    void delete_fail_alreadySold() {
+        TimeDeal timeDeal = createActiveTimeDeal();
+        timeDealRepository.purchaseAtomically(timeDeal.getId(), 1, TimeDealStatus.ACTIVE);
+
+        assertThatThrownBy(() -> timeDealService.deleteTimeDeal(host.getId(), timeDeal.getId()))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(ErrorCode.TIME_DEAL_ALREADY_SOLD.getMessage());
+    }
+
+    @Test
+    @DisplayName("타임딜 구매 실패 - 재고 초과")
+    void purchase_fail_stockExceeded() {
+        TimeDeal timeDeal = createActiveTimeDeal();
+
+        assertThatThrownBy(() -> timeDealService.purchaseTimeDeal(timeDeal.getId(), 100))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(ErrorCode.TIME_DEAL_STOCK_EXCEEDED.getMessage());
+    }
+
+    @Test
+    @DisplayName("타임딜 구매 실패 - 존재하지 않음")
+    void purchase_fail_notFound() {
+        assertThatThrownBy(() -> timeDealService.purchaseTimeDeal(99999L, 1))
+                .isInstanceOf(CustomException.class);
+    }
+
     private TimeDeal createTimeDeal() {
         return timeDealRepository.save(
                 TimeDeal.builder()
@@ -221,6 +365,21 @@ class TimeDealServiceTest {
                         .originalPrice(site.getPrice())
                         .dealPrice(70000)
                         .saleStartAt(LocalDateTime.now().plusHours(1))
+                        .saleEndAt(LocalDateTime.now().plusDays(1))
+                        .build()
+        );
+    }
+
+    private TimeDeal createActiveTimeDeal() {
+        return timeDealRepository.save(
+                TimeDeal.builder()
+                        .site(site)
+                        .checkIn(LocalDate.now().plusDays(10))
+                        .checkOut(LocalDate.now().plusDays(12))
+                        .quantity(5)
+                        .originalPrice(site.getPrice())
+                        .dealPrice(70000)
+                        .saleStartAt(LocalDateTime.now().minusHours(1))
                         .saleEndAt(LocalDateTime.now().plusDays(1))
                         .build()
         );
