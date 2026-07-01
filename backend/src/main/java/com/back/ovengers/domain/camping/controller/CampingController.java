@@ -30,7 +30,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/campings")
-@Tag(name = "Camping API", description = "캠핑장 조회 및 검색 API")
+@Tag(name = "Camping", description = "캠핑장 조회 및 검색 API")
 @Validated
 public class CampingController {
 
@@ -75,7 +75,7 @@ public class CampingController {
 
     @GetMapping("/{campingId}/available-sites")
     @Operation(
-            summary = "캠핑장 이용 가능한 사이트 조회",
+            summary = "캠핑장 내 이용 가능한 사이트 조회",
             description = """
                 선택한 체크인/체크아웃 날짜 기준으로 예약 가능한 사이트 목록을 조회합니다.
                 

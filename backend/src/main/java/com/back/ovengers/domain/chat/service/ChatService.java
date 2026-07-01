@@ -231,7 +231,6 @@ public class ChatService {
         validateChatRoomMember(room.getId(), userId);
 
         return new ChatJoinResponse(room.getId());
-
     }
 
     // 채팅방 상태 Closed

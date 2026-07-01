@@ -76,11 +76,6 @@ public class GoCampingSyncService {
         );
     }
 
-    // 임시 채팅방 데이터 생성 (기존 호출된 캠핑장 API)
-    public void createMissingOpenChatRooms() {
-        campingPersistenceService.createMissingOpenChatRooms();
-    }
-
     public void syncModifiedData(LocalDate syncDate) {
         syncAdded(syncDate);
         syncUpdated(syncDate);
