@@ -33,21 +33,16 @@ public class AdminController {
 
     @Operation(summary = "초기 데이터 동기화", description = "고캠핑 API 데이터 초기화")
     @GetMapping("/init-data")
-    public void init() {
+    public ResponseEntity<ApiResponse<Void>> init() {
         goCampingSyncService.syncInitialData();
+        return ResponseEntity.ok(new ApiResponse<>("초기 데이터 동기화가 완료되었습니다."));
     }
-
 
     @Operation(summary = "초기 이미지 데이터 동기화", description = "고캠핑 API 이미지 데이터 초기화")
     @GetMapping("/init-images-data")
-    public void initImages() {
+    public ResponseEntity<ApiResponse<Void>> initImages() {
         goCampingSyncService.syncImageData();
-    }
-
-    // 기존 생성된 캠핑장의 채팅방 생성 (실행 후 삭제 예정)
-    @GetMapping("/chat/sync")
-    public void syncChatRoom() {
-        goCampingSyncService.createMissingOpenChatRooms();
+        return ResponseEntity.ok(new ApiResponse<>("초기 이미지 데이터 동기화가 완료되었습니다."));
     }
 
     @Operation(summary = "관리자 대시보드 조회")

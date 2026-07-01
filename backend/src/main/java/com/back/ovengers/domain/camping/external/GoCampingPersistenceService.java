@@ -70,18 +70,6 @@ public class GoCampingPersistenceService {
     }
 
     @Transactional
-    public void createMissingOpenChatRooms() {
-        List<Camping> camps = campingRepository.findAll();
-
-        for (Camping camp : camps) {
-            chatService.createOpenChatRoom(
-                    camp.getId(),
-                    camp.getName()
-            );
-        }
-    }
-
-    @Transactional
     public void updateCamps(List<GoCampingApiItem> items) {
         Map<Long, Camping> campingMap = getCampingMap(items);
 
