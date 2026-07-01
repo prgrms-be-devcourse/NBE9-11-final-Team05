@@ -41,12 +41,13 @@ class SseEmitterServiceTest {
     }
 
     @Test
-    @DisplayName("SSE 전송 - emitter 완료 후 제거")
-    void subscribe_onCompletion_removesEmitter() {
-        SseEmitter emitter = sseEmitterService.subscribe(1L);
-        emitter.complete();
+    @DisplayName("SSE 복수 구독 - 유저별 독립적으로 관리")
+    void subscribe_multipleUsers() {
+        SseEmitter emitter1 = sseEmitterService.subscribe(1L);
+        SseEmitter emitter2 = sseEmitterService.subscribe(2L);
 
-        // 완료 후 재전송 시 스킵 (NPE 없음)
-        sseEmitterService.send(1L, "완료 후 메시지");
+        assertThat(emitter1).isNotNull();
+        assertThat(emitter2).isNotNull();
+        assertThat(emitter1).isNotSameAs(emitter2);
     }
 }
