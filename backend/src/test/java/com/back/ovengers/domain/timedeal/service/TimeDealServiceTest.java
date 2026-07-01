@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -327,11 +328,11 @@ class TimeDealServiceTest {
     }
 
     @Test
-    @Transactional
     @DisplayName("타임딜 삭제 실패 - 이미 판매된 경우")
     void delete_fail_alreadySold() {
         TimeDeal timeDeal = createActiveTimeDeal();
-        timeDealRepository.purchaseAtomically(timeDeal.getId(), 1, TimeDealStatus.ACTIVE);
+        ReflectionTestUtils.setField(timeDeal, "soldCount", 1);
+        timeDealRepository.save(timeDeal);
 
         assertThatThrownBy(() -> timeDealService.deleteTimeDeal(host.getId(), timeDeal.getId()))
                 .isInstanceOf(CustomException.class)
