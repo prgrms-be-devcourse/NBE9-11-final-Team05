@@ -14,7 +14,8 @@ export interface CreateReservationRequest {
   export type ReservationStatus =
     | "PENDING" // 결제 대기
     | "CONFIRMED" // 예약 확정 (결제 완료)
-    | "CANCELLED"; // 취소
+    | "CANCELLED" // 취소
+    | "COMPLETED"; // 이용 완료 (리뷰 작성 가능)
   
   // 예약 응답 (예약생성/상세조회 공통으로 추정, 실제 응답 확인 후 보정 필요)
   export interface ReservationResponse {
@@ -80,12 +81,12 @@ export interface ReservationListItem {
   imageUrl: string | null;
 }
 
-// 내 예약 목록조회 (Spring Page 형태)
+// 내 예약 목록조회 (백엔드 공통 PageResponse 형태)
 export interface ReservationListResponse {
   content: ReservationListItem[];
   totalElements: number;
   totalPages: number;
-  number: number;
+  page: number;
   size: number;
-  last: boolean;
+  hasNext: boolean;
 }

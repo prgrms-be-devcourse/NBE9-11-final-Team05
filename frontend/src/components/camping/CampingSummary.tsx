@@ -15,7 +15,7 @@ export default function CampingSummary({ camping }: Props) {
       {camping.rating != null && (
         <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
           <span className="text-yellow-500">⭐</span>
-          <span>{camping.rating}</span>
+          <span>{camping.rating.toFixed(1)}</span>
         </div>
       )}
 

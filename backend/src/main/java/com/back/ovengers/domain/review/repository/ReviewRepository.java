@@ -42,4 +42,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("SELECT r.camping.id, AVG(r.rating), COUNT(r) FROM Review r WHERE r.camping.id IN :campingIds GROUP BY r.camping.id")
     List<Object[]> findRatingStatsByCampingIds(@Param("campingIds") List<Long> campingIds);
 
+    // 캠핑장 상세 조회 시 평균 별점 조회
+    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.camping.id = :campingId")
+    Double findAvgRatingByCampingId(@Param("campingId") Long campingId);
+
 }

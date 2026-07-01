@@ -63,7 +63,9 @@ public class CampingService {
                 .map(SiteResponse::from)
                 .toList();
 
-        return CampingDetailResponse.from(camp, imageUrls, sites);
+        Double avgRating = reviewRepository.findAvgRatingByCampingId(campingId);
+
+        return CampingDetailResponse.from(camp, imageUrls, sites, avgRating);
     }
 
     @Transactional(readOnly = true)
