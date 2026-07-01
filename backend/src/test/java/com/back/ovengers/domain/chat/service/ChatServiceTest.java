@@ -197,4 +197,207 @@ class ChatServiceTest {
 
         verify(chatRoomMemberRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("채팅방 목록 조회 - 다음 페이지 없음")
+    void getChatRooms_noNext() {
+        // given
+        Long userId = 1L;
+        when(chatRoomRepository.findChatRooms(any(), any(), any(), any()))
+                .thenReturn(List.of());
+
+        // when
+        var result = chatService.getChatRooms(userId, null, 10);
+
+        // then
+        assertThat(result.content()).isEmpty();
+        assertThat(result.hasNext()).isFalse();
+        assertThat(result.nextCursor()).isNull();
+    }
+
+    @Test
+    @DisplayName("채팅 메시지 조회 성공")
+    void getChatMessages_success() {
+        // given
+        Long roomId = 1L;
+        Long userId = 1L;
+
+        User user = UserFixture.user().build();
+        ReflectionTestUtils.setField(user, "id", userId);
+
+        ChatMessage msg = ChatMessage.create(roomId, user, "안녕하세요");
+        ReflectionTestUtils.setField(msg, "id", 1L);
+
+        when(chatRoomRepository.existsById(roomId)).thenReturn(true);
+        when(chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, userId)).thenReturn(true);
+        when(chatMessageRepository.findChatMessages(any(), any(), any())).thenReturn(List.of(msg));
+
+        // when
+        var result = chatService.getChatMessages(userId, roomId, null, 10);
+
+        // then
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().get(0).content()).isEqualTo("안녕하세요");
+    }
+
+    @Test
+    @DisplayName("채팅 메시지 조회 실패 - 채팅방 없음")
+    void getChatMessages_fail_roomNotFound() {
+        // given
+        Long roomId = 999L;
+        Long userId = 1L;
+
+        when(chatRoomRepository.existsById(roomId)).thenReturn(false);
+
+        // when & then
+        CustomException ex = assertThrows(
+                CustomException.class,
+                () -> chatService.getChatMessages(userId, roomId, null, 10)
+        );
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.CHAT_ROOM_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("채팅 메시지 조회 실패 - 멤버 아님")
+    void getChatMessages_fail_notMember() {
+        // given
+        Long roomId = 1L;
+        Long userId = 99L;
+
+        when(chatRoomRepository.existsById(roomId)).thenReturn(true);
+        when(chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, userId)).thenReturn(false);
+
+        // when & then
+        CustomException ex = assertThrows(
+                CustomException.class,
+                () -> chatService.getChatMessages(userId, roomId, null, 10)
+        );
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
+    }
+
+    @Test
+    @DisplayName("1:1 채팅방 조회 성공")
+    void getDirectRoom_success() {
+        // given
+        Long userId = 1L;
+        Long reservationId = 100L;
+        Long roomId = 1L;
+
+        ChatRoom room = ChatRoomFixture.directRoom(roomId);
+        ReflectionTestUtils.setField(room, "reservationId", reservationId);
+
+        when(chatRoomRepository.findByReservationIdAndTypeAndStatus(
+                reservationId, ChatRoomType.DIRECT, ChatRoomStatus.ACTIVE))
+                .thenReturn(Optional.of(room));
+        when(chatRoomRepository.existsById(roomId)).thenReturn(true);
+        when(chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, userId)).thenReturn(true);
+
+        // when
+        var result = chatService.getDirectRoom(userId, reservationId);
+
+        // then
+        assertThat(result.roomId()).isEqualTo(roomId);
+    }
+
+    @Test
+    @DisplayName("1:1 채팅방 조회 실패 - 채팅방 없음")
+    void getDirectRoom_fail_roomNotFound() {
+        // given
+        Long userId = 1L;
+        Long reservationId = 999L;
+
+        when(chatRoomRepository.findByReservationIdAndTypeAndStatus(
+                reservationId, ChatRoomType.DIRECT, ChatRoomStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        CustomException ex = assertThrows(
+                CustomException.class,
+                () -> chatService.getDirectRoom(userId, reservationId)
+        );
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.CHAT_ROOM_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("채팅방 닫기 성공")
+    void closeByReservationId_success() {
+        // given
+        Long reservationId = 100L;
+        Long roomId = 1L;
+
+        ChatRoom room = ChatRoomFixture.directRoom(roomId);
+        ReflectionTestUtils.setField(room, "reservationId", reservationId);
+
+        when(chatRoomRepository.findByReservationIdAndTypeAndStatus(
+                reservationId, ChatRoomType.DIRECT, ChatRoomStatus.ACTIVE))
+                .thenReturn(Optional.of(room));
+
+        // when
+        chatService.closeByReservationId(reservationId);
+
+        // then
+        assertThat(room.getStatus()).isEqualTo(ChatRoomStatus.CLOSED);
+    }
+
+    @Test
+    @DisplayName("채팅방 닫기 실패 - 채팅방 없음")
+    void closeByReservationId_fail_roomNotFound() {
+        // given
+        Long reservationId = 999L;
+
+        when(chatRoomRepository.findByReservationIdAndTypeAndStatus(
+                reservationId, ChatRoomType.DIRECT, ChatRoomStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        CustomException ex = assertThrows(
+                CustomException.class,
+                () -> chatService.closeByReservationId(reservationId)
+        );
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.CHAT_ROOM_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("오픈 채팅방 생성 - 이미 존재하면 생성 안 함")
+    void createOpenChatRoom_alreadyExists() {
+        // given
+        Long campingId = 100L;
+
+        ChatRoom existing = ChatRoomFixture.openRoom(1L);
+        ReflectionTestUtils.setField(existing, "campingId", campingId);
+
+        when(chatRoomRepository.findByCampingIdAndTypeAndStatus(
+                campingId, ChatRoomType.OPEN, ChatRoomStatus.ACTIVE))
+                .thenReturn(Optional.of(existing));
+
+        // when
+        chatService.createOpenChatRoom(campingId, "강릉 솔밭");
+
+        // then
+        verify(chatRoomRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("오픈 채팅방 생성 - 없으면 새로 생성")
+    void createOpenChatRoom_createNew() {
+        // given
+        Long campingId = 100L;
+
+        when(chatRoomRepository.findByCampingIdAndTypeAndStatus(
+                campingId, ChatRoomType.OPEN, ChatRoomStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        ChatRoom newRoom = ChatRoomFixture.openRoom(1L);
+        when(chatRoomRepository.save(any())).thenReturn(newRoom);
+
+        // when
+        chatService.createOpenChatRoom(campingId, "강릉 솔밭");
+
+        // then
+        verify(chatRoomRepository).save(any());
+    }
 }

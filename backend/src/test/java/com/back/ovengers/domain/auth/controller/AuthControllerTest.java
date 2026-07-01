@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -332,6 +332,89 @@ class AuthControllerTest {
         assertThat(refreshTokenRepository.findByUserId(user.getId())).isEmpty();
     }
 
+
+    // ===================== 호스트 회원가입 =====================
+
+    @Test
+    @DisplayName("호스트 회원가입 성공")
+    void t18() throws Exception {
+        mockMvc.perform(post("/api/auth/signup/host")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "email": "host@test.com",
+                                    "password": "password123!",
+                                    "name": "호스트",
+                                    "nickname": "호스트닉네임",
+                                    "phone": "010-1234-5678",
+                                    "businessNum": "123-45-67890",
+                                    "campingName": "강릉 솔밭 캠핑장",
+                                    "address": "강원도 강릉시 어디어디"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message").value("호스트 회원가입이 완료되었습니다."))
+                .andExpect(jsonPath("$.data.role").value("HOST"));
+    }
+
+    @Test
+    @DisplayName("호스트 회원가입 실패 - 이메일 중복")
+    void t19() throws Exception {
+        mockMvc.perform(post("/api/auth/signup/host")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "email": "test@test.com",
+                                    "password": "password123!",
+                                    "name": "호스트",
+                                    "nickname": "호스트닉네임",
+                                    "phone": "010-1234-5678",
+                                    "businessNum": "123-45-67890",
+                                    "campingName": "강릉 솔밭 캠핑장",
+                                    "address": "강원도 강릉시 어디어디"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("DUPLICATE_EMAIL"));
+    }
+
+    // ===================== 이메일/닉네임 중복 확인 =====================
+
+    @Test
+    @DisplayName("이메일 중복 확인 - 사용 가능")
+    void t20() throws Exception {
+        mockMvc.perform(get("/api/auth/check/email")
+                        .param("email", "available@test.com"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("사용 가능한 이메일입니다"));
+    }
+
+    @Test
+    @DisplayName("이메일 중복 확인 - 이미 사용 중")
+    void t21() throws Exception {
+        mockMvc.perform(get("/api/auth/check/email")
+                        .param("email", "test@test.com"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("DUPLICATE_EMAIL"));
+    }
+
+    @Test
+    @DisplayName("닉네임 중복 확인 - 사용 가능")
+    void t22() throws Exception {
+        mockMvc.perform(get("/api/auth/check/nickname")
+                        .param("nickname", "새닉네임"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("사용 가능한 닉네임입니다"));
+    }
+
+    @Test
+    @DisplayName("닉네임 중복 확인 - 이미 사용 중")
+    void t23() throws Exception {
+        mockMvc.perform(get("/api/auth/check/nickname")
+                        .param("nickname", "길동"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("DUPLICATE_NICKNAME"));
+    }
 
     // ===================== 헬퍼 메서드 =====================
 
